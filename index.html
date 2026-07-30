@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wybix POS | Sistema de Punto de Venta</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tipografía Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Iconos Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            dark: '#0B131A', /* Fondo oscuro del branding */
+                            card: '#16202A', /* Color para tarjetas elevadas */
+                            cyan: '#45B3C3', /* Acento Wybix POS */
+                            cyanHover: '#359AA9',
+                            text: '#E2E8F0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: theme('colors.brand.dark'); color: theme('colors.brand.text'); }
+        
+        /* Efecto de cristal para la barra de navegación */
+        .glass-nav {
+            background: rgba(11, 19, 26, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(69, 179, 195, 0.1);
+        }
+
+        /* Resplandor sutil cyan detrás de imágenes */
+        .glow-cyan {
+            position: absolute;
+            background: radial-gradient(circle, rgba(69, 179, 195, 0.2) 0%, rgba(11,19,26,0) 70%);
+            filter: blur(60px);
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        /* Animaciones On Scroll */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-cyan selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full top-0 z-50 glass-nav transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex justify-between items-center">
+            <!-- Logo (Reemplazar con tu archivo) -->
+            <a href="#" class="flex items-center gap-2 text-2xl font-bold text-white">
+                <img src="image_718c8a.jpg" alt="Wybix Logo" class="h-8 object-cover w-auto rounded" style="clip-path: inset(20% 75% 60% 5%);">
+                Wybix <span class="text-brand-cyan font-light">POS</span>
+            </a>
+            
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+                <a href="#beneficios" class="hover:text-brand-cyan transition">Beneficios</a>
+                <a href="#caracteristicas" class="hover:text-brand-cyan transition">Características</a>
+                <a href="#precios" class="hover:text-brand-cyan transition">Precios</a>
+            </div>
+
+            <a href="#precios" class="bg-brand-cyan text-white px-6 py-2.5 rounded-full font-semibold text-sm hover:bg-brand-cyanHover hover:scale-105 transition-all shadow-[0_0_15px_rgba(69,179,195,0.4)]">
+                Comprar Licencia
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden px-6 lg:px-12">
+        <div class="glow-cyan w-[600px] h-[600px] top-0 left-1/2 -translate-x-1/2 opacity-50"></div>
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <!-- Textos Hero -->
+            <div class="reveal">
+                <h1 class="text-5xl lg:text-7xl font-bold leading-tight text-white mb-6">
+                    Tu negocio, <br>
+                    <span class="text-brand-cyan">en buenas manos.</span>
+                </h1>
+                <p class="text-xl text-gray-400 mb-8 font-light">
+                    Más control. Más ventas. Más crecimiento. Todo tu negocio en una sola plataforma diseñada para la velocidad del día a día.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#precios" class="bg-brand-cyan text-center text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-brand-cyanHover transition-all shadow-[0_0_20px_rgba(69,179,195,0.3)]">
+                        Comprar ahora
+                    </a>
+                    <a href="#caracteristicas" class="border border-white/20 text-center text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/5 transition-all">
+                        Explorar sistema
+                    </a>
+                </div>
+                
+                <!-- Checklist de confianza -->
+                <div class="mt-10 flex flex-wrap gap-4 text-sm text-gray-400">
+                    <span class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-brand-cyan"></i> Fácil de usar</span>
+                    <span class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-brand-cyan"></i> Seguro y confiable</span>
+                    <span class="flex items-center gap-2"><i class="bi bi-check-circle-fill text-brand-cyan"></i> Crece contigo</span>
+                </div>
+            </div>
+
+            <!-- Mockup Principal -->
+            <div class="relative reveal delay-200">
+                <div class="glow-cyan w-[400px] h-[400px] bottom-0 right-0"></div>
+                <img src="image_718887.png" alt="Wybix Dashboard" class="w-full rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform -rotate-2 hover:rotate-0 transition-transform duration-500">
+            </div>
+        </div>
+    </header>
+
+    <!-- Grid de 4 Pilares -->
+    <section id="beneficios" class="py-20 bg-brand-card/30 border-y border-white/5 px-6 lg:px-12">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+            <div class="p-6 rounded-2xl bg-brand-card border border-white/5 hover:border-brand-cyan/30 transition-colors reveal">
+                <div class="w-14 h-14 rounded-xl bg-brand-cyan/10 text-brand-cyan flex items-center justify-center text-2xl mb-6">
+                    <i class="bi bi-cart3"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">Ventas rápidas y sencillas</h3>
+                <p class="text-sm text-gray-400">Atiende a tus clientes sin demoras. Interfaz optimizada para agilizar cobros.</p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-brand-card border border-white/5 hover:border-brand-cyan/30 transition-colors reveal delay-100">
+                <div class="w-14 h-14 rounded-xl bg-brand-cyan/10 text-brand-cyan flex items-center justify-center text-2xl mb-6">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">Reportes para decisiones</h3>
+                <p class="text-sm text-gray-400">Claridad total. Reportes gráficos que te muestran qué se vende y cuánto ganas.</p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-brand-card border border-white/5 hover:border-brand-cyan/30 transition-colors reveal delay-200">
+                <div class="w-14 h-14 rounded-xl bg-brand-cyan/10 text-brand-cyan flex items-center justify-center text-2xl mb-6">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">Inventario bajo control</h3>
+                <p class="text-sm text-gray-400">Evita faltantes, excesos y pérdidas. Conoce tus existencias en tiempo real.</p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-brand-card border border-white/5 hover:border-brand-cyan/30 transition-colors reveal delay-300">
+                <div class="w-14 h-14 rounded-xl bg-brand-cyan/10 text-brand-cyan flex items-center justify-center text-2xl mb-6">
+                    <i class="bi bi-cloud-check"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">Acceso desde donde estés</h3>
+                <p class="text-sm text-gray-400">Tu negocio siempre contigo. Accede a tu información desde cualquier dispositivo.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Deep Dive Features (Estilo Alternado) -->
+    <section id="caracteristicas" class="py-24 px-6 lg:px-12 overflow-hidden">
+        <div class="max-w-7xl mx-auto space-y-32">
+            
+            <!-- Feature 1: Facturación / Ventas -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="order-2 lg:order-1 relative reveal">
+                    <div class="absolute inset-0 bg-brand-cyan/20 blur-[80px] rounded-full"></div>
+                    <img src="image_7188a3.png" alt="Pantalla de Venta" class="relative rounded-2xl border border-white/10 shadow-2xl">
+                </div>
+                <div class="order-1 lg:order-2 reveal">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-white mb-6">Más tiempo para lo que importa: <span class="text-brand-cyan">hacer crecer tu negocio.</span></h2>
+                    <p class="text-gray-400 text-lg mb-6">Olvídate de los procesos manuales y los sistemas lentos. Wybix POS conecta cada parte de tu negocio para que todo funcione en perfecta armonía.</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <i class="bi bi-receipt text-brand-cyan mt-1"></i>
+                            <div>
+                                <strong class="text-white block">Facturación CFDI 4.0 Integrada</strong>
+                                <span class="text-sm text-gray-400">Cumple con el SAT sin salir del sistema. Timbra en un par de clics.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="bi bi-credit-card text-brand-cyan mt-1"></i>
+                            <div>
+                                <strong class="text-white block">Múltiples Formas de Pago</strong>
+                                <span class="text-sm text-gray-400">Acepta efectivo, tarjetas y transferencias manteniendo tu corte de caja exacto al centavo.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Feature 2: Inventario -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="reveal">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-white mb-6">Tu inventario, siempre <span class="text-brand-cyan">bajo control.</span></h2>
+                    <p class="text-gray-400 text-lg mb-6">Mantén un registro preciso de tus compras y mermas. El sistema inteligente te alerta antes de que te quedes sin tu producto más vendido.</p>
+                    <a href="#precios" class="text-brand-cyan font-semibold flex items-center gap-2 hover:gap-3 transition-all">
+                        Comienza a controlar tu stock <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="relative reveal delay-200">
+                    <div class="absolute inset-0 bg-brand-cyan/10 blur-[80px] rounded-full"></div>
+                    <!-- Placeholder de imagen: Reemplazar con imagen de inventario -->
+                    <div class="relative rounded-2xl border border-white/10 bg-brand-card aspect-video flex items-center justify-center shadow-2xl">
+                        <i class="bi bi-boxes text-6xl text-brand-cyan/40"></i>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Pricing / Compra -->
+    <section id="precios" class="py-24 bg-[#080d12] px-6 lg:px-12 relative">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Invierte en la <span class="text-brand-cyan">tranquilidad</span> de tu negocio</h2>
+                <p class="text-gray-400 text-lg">Elige la licencia que mejor se adapte a tu etapa de crecimiento.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                
+                <!-- Plan Mensual -->
+                <div class="bg-brand-card border border-white/10 rounded-3xl p-8 hover:border-brand-cyan/50 transition-all duration-300 reveal">
+                    <h3 class="text-xl font-semibold text-white mb-2">Suscripción Mensual</h3>
+                    <div class="flex items-baseline gap-1 mb-6">
+                        <span class="text-4xl font-bold text-white">$499</span>
+                        <span class="text-gray-500 text-sm">MXN / mes</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-6">Ideal para comenzar con bajo riesgo financiero.</p>
+                    <ul class="space-y-4 mb-8 text-gray-300 text-sm">
+                        <li class="flex items-center gap-3"><i class="bi bi-check2 text-brand-cyan text-lg"></i> 1 Caja registradora</li>
+                        <li class="flex items-center gap-3"><i class="bi bi-check2 text-brand-cyan text-lg"></i> Inventario ilimitado</li>
+                        <li class="flex items-center gap-3"><i class="bi bi-check2 text-brand-cyan text-lg"></i> Actualizaciones incluidas</li>
+                    </ul>
+                    <button class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3 rounded-xl transition">Elegir Mensual</button>
+                </div>
+
+                <!-- Plan Anual (Destacado) -->
+                <div class="bg-brand-cyan border border-brand-cyan rounded-3xl p-8 transform md:-translate-y-4 shadow-[0_20px_40px_rgba(69,179,195,0.25)] reveal delay-100 relative">
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-brand-dark text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+                        Ahorras 20%
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2">Licencia Anual</h3>
+                    <div class="flex items-baseline gap-1 mb-6">
+                        <span class="text-4xl font-bold text-white">$4,790</span>
+                        <span class="text-white/70 text-sm">MXN / año</span>
+                    </div>
+                    <p class="text-sm text-white/90 mb-6 border-b border-white/20 pb-6">La opción más popular. Paga una vez y olvídate todo el año.</p>
+                    <ul class="space-y-4 mb-8 text-white text-sm font-medium">
+                        <li class="flex items-center gap-3"><i class="bi bi-check-circle-fill text-white text-lg"></i> <strong>Cajas ilimitadas locales</strong></li>
+                        <li class="flex items-center gap-3"><i class="bi bi-check-circle-fill text-white text-lg"></i> Soporte técnico prioritario</li>
+                        <li class="flex items-center gap-3"><i class="bi bi-check-circle-fill text-white text-lg"></i> Facturación CFDI (Timbres aparte)</li>
+                        <li class="flex items-center gap-3"><i class="bi bi-check-circle-fill text-white text-lg"></i> Reportes avanzados en la nube</li>
+                    </ul>
+                    <button class="w-full bg-white text-brand-dark hover:bg-gray-100 font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-xl">Comprar Licencia Anual</button>
+                </div>
+
+                <!-- Plan Vitalicio -->
+                <div class="bg-brand-card border border-white/10 rounded-3xl p-8 hover:border-brand-cyan/50 transition-all duration-300 reveal delay-200">
+                    <h3 class="text-xl font-semibold text-white mb-2">Licencia Vitalicia</h3>
+                    <div class="flex items-baseline gap-1 mb-6">
+                        <span class="text-4xl font-bold text-white">$12,500</span>
+                        <span class="text-gray-500 text-sm">MXN / pago único</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-6">El software es tuyo para siempre sin mensualidades.</p>
+                    <ul class="space-y-4 mb-8 text-gray-300 text-sm">
+                        <li class="flex items-center gap-3"><i class="bi bi-check2 text-brand-cyan text-lg"></i> <strong>1 solo pago de por vida</strong></li>
+                        <li class="flex items-center gap-3"><i class="bi bi-check2 text-brand-cyan text-lg"></i> Instalación remota guiada</li>
+                        <li class="flex items-center gap-3"><i class="bi bi-check2 text-brand-cyan text-lg"></i> Multicaja red local</li>
+                    </ul>
+                    <button class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3 rounded-xl transition">Elegir Vitalicia</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Integrado con Redes -->
+    <footer class="bg-brand-dark border-t border-white/5 pt-16 pb-8 px-6 lg:px-12">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center md:items-start gap-8 border-b border-white/5 pb-8 mb-8">
+            
+            <div class="text-center md:text-left">
+                <a href="#" class="flex items-center justify-center md:justify-start gap-2 text-2xl font-bold text-white mb-4">
+                    Wybix <span class="text-brand-cyan font-light">POS</span>
+                </a>
+                <p class="text-sm text-gray-500 max-w-sm">Sistema de Punto de Venta moderno, seguro y confiable. Desarrollado para conectar cada parte de tu negocio en perfecta armonía.</p>
+            </div>
+
+            <!-- Redes Sociales según Branding -->
+            <div class="flex gap-4">
+                <a href="#" class="w-10 h-10 rounded-full bg-brand-card flex items-center justify-center text-gray-400 hover:bg-brand-cyan hover:text-white transition-colors"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-brand-card flex items-center justify-center text-gray-400 hover:bg-brand-cyan hover:text-white transition-colors"><i class="bi bi-instagram"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-brand-card flex items-center justify-center text-gray-400 hover:bg-brand-cyan hover:text-white transition-colors"><i class="bi bi-tiktok"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-brand-card flex items-center justify-center text-gray-400 hover:bg-brand-cyan hover:text-white transition-colors"><i class="bi bi-youtube"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-brand-card flex items-center justify-center text-gray-400 hover:bg-brand-cyan hover:text-white transition-colors"><i class="bi bi-linkedin"></i></a>
+            </div>
+        </div>
+        
+        <div class="text-center text-sm text-gray-600">
+            <p>© 2026 Wybix POS. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Script de Animaciones -->
+    <script>
+        // Animación Scroll Reveal
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+        
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Efecto Navbar
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('shadow-[0_4px_30px_rgba(0,0,0,0.5)]');
+            } else {
+                navbar.classList.remove('shadow-[0_4px_30px_rgba(0,0,0,0.5)]');
+            }
+        });
+    </script>
+</body>
+</html>
