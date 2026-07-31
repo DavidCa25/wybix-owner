@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "wybix-owner",
+    "name": "Wybix: Control de Negocio",
     "slug": "wybix-owner",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,22 +10,22 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0F2A3F"
     },
     "scheme": "wybix",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.wybix.owner",
+      "bundleIdentifier": "com.wybix.pos",
       "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0F2A3F"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.wybix.owner",
+      "package": "com.wybix.pos",
       "versionCode": 1
     },
     "web": {

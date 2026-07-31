@@ -82,11 +82,11 @@ export default function Registro() {
 
           <Text style={styles.label}>Correo</Text>
           <TextInput style={styles.input} value={email} onChangeText={setEmail}
-            placeholder="tu@correo.com" autoCapitalize="none" keyboardType="email-address" placeholderTextColor="#94a3b8" />
+            placeholder="tu@correo.com" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.muted} />
 
           <Text style={styles.label}>Contrasena</Text>
           <TextInput style={styles.input} value={password} onChangeText={setPassword}
-            placeholder="Minimo 6 caracteres" secureTextEntry placeholderTextColor="#94a3b8" />
+            placeholder="Minimo 6 caracteres" secureTextEntry placeholderTextColor={colors.muted} />
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   sub: { fontFamily: fonts.medium, fontSize: 13, color: colors.success, textAlign: 'center', marginTop: 6, marginBottom: 8 },
   subWarn: { fontFamily: fonts.medium, fontSize: 13, color: colors.warning, textAlign: 'center', marginTop: 6, marginBottom: 8 },
   label: { fontFamily: fonts.semibold, fontSize: 12, color: colors.ink, marginBottom: 6, marginTop: 12 },
-  input: { fontFamily: fonts.regular, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, paddingHorizontal: 13, paddingVertical: 13, fontSize: 15, color: colors.ink, backgroundColor: '#f8fafc' },
+  input: { fontFamily: fonts.regular, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, paddingHorizontal: 13, paddingVertical: 13, fontSize: 15, color: colors.ink, backgroundColor: colors.navy },
   error: { fontFamily: fonts.medium, color: colors.danger, fontSize: 13, marginTop: 12, textAlign: 'center' },
   button: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: 22 },
   buttonOff: { opacity: 0.5 },

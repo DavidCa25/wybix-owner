@@ -15,6 +15,8 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPush(): Promise<string | null> {
+  // En web (PWA) los push nativos no aplican; se omite sin romper.
+  if (Platform.OS === 'web') return null;
   // Los push reales no funcionan en simulador
   if (!Device.isDevice) {
     console.log('[PUSH] Se requiere un dispositivo fisico.');
@@ -46,10 +48,21 @@ export async function registerForPush(): Promise<string | null> {
     Constants?.expoConfig?.extra?.eas?.projectId ??
     Constants?.easConfig?.projectId;
 
-  const tokenResp = await Notifications.getExpoPushTokenAsync(
-    projectId ? { projectId } : undefined
-  );
-  const token = tokenResp.data;
+  // Sin projectId de EAS (p. ej. en Expo Go o antes del primer build) no se
+  // pueden emitir push. Se omite en silencio para no romper el tablero.
+  if (!projectId) {
+    console.log('[PUSH] Sin projectId de EAS; se omiten las notificaciones push.');
+    return null;
+  }
+
+  let token: string | null = null;
+  try {
+    const tokenResp = await Notifications.getExpoPushTokenAsync({ projectId });
+    token = tokenResp.data;
+  } catch (e: any) {
+    console.log('[PUSH] No se pudo obtener el token:', e?.message);
+    return null;
+  }
 
   const { data: userData } = await supabase.auth.getUser();
   const ownerId = userData?.user?.id;

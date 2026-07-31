@@ -4,7 +4,7 @@ import { supabase } from './supabase';
 export interface Alerta {
   id: string;
   sucursal_id: string;
-  tipo: 'CORTE' | 'CAJA_FUERA_HORARIO' | 'DIFERENCIA' | string;
+  tipo: 'CORTE' | 'CAJA_FUERA_HORARIO' | 'DIFERENCIA' | 'RIESGO_CAJERO' | 'DEVOLUCIONES' | 'VENTAS_CERO' | string;
   titulo: string;
   mensaje: string;
   leida: boolean;

@@ -14,13 +14,21 @@ function money(n: number | null | undefined): string {
   return '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Margen aprox. sobre la venta del día (utilidad / ventas)
+function margenPct(utilidad: number | null | undefined, total: number | null | undefined): string | null {
+  const u = Number(utilidad ?? 0);
+  const t = Number(total ?? 0);
+  if (t <= 0) return null;
+  return (u / t * 100).toFixed(1) + '%';
+}
+
 export default function Dashboard() {
   const { signOut } = useAuth();
   const { sucursales, sucursalId, setSucursalId, resumen, top, trend, loading, refreshing, error, refrescar } = useDashboard();
   const respListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
-    registerForPush();
+    registerForPush().catch(() => {});
     respListener.current = Notifications.addNotificationResponseReceivedListener(() => {});
     return () => { respListener.current?.remove(); };
   }, []);
@@ -73,6 +81,19 @@ export default function Dashboard() {
           </View>
         </View>
 
+        <View style={styles.profitCard}>
+          <View style={styles.profitIcon}>
+            <Ionicons name="trending-up" size={20} color={colors.success} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.profitLbl}>Utilidad estimada de hoy</Text>
+            {margenPct(resumen?.utilidad, resumen?.total)
+              ? <Text style={styles.profitSub}>Margen aprox. {margenPct(resumen?.utilidad, resumen?.total)}</Text>
+              : <Text style={styles.profitSub}>Ganancia después del costo</Text>}
+          </View>
+          <Text style={styles.profitVal}>{money(resumen?.utilidad)}</Text>
+        </View>
+
         <View style={styles.payRow}>
           <View style={styles.payCard}><Text style={styles.payLbl}>Efectivo</Text><Text style={styles.payVal}>{money(resumen?.total_efectivo)}</Text></View>
           <View style={styles.payCard}><Text style={styles.payLbl}>Tarjeta</Text><Text style={styles.payVal}>{money(resumen?.total_tarjeta)}</Text></View>
@@ -115,7 +136,7 @@ const styles = StyleSheet.create({
   sucChipOn: { backgroundColor: colors.sky, color: '#fff' },
   body: { padding: 16 },
   error: { fontFamily: fonts.medium, color: colors.danger, marginBottom: 12 },
-  heroCard: { backgroundColor: colors.navy, borderRadius: radius.lg, padding: 22, marginBottom: 12 },
+  heroCard: { backgroundColor: colors.navy, borderRadius: radius.lg, padding: 22, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(69,179,195,0.25)' },
   heroLabel: { fontFamily: fonts.medium, color: colors.skyLight, fontSize: 13 },
   heroValue: { fontFamily: fonts.black, color: '#fff', fontSize: 38, marginTop: 4 },
   heroRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
@@ -123,6 +144,11 @@ const styles = StyleSheet.create({
   heroStatVal: { fontFamily: fonts.bold, color: '#fff', fontSize: 17 },
   heroStatLbl: { fontFamily: fonts.regular, color: '#94a3b8', fontSize: 12, marginTop: 2 },
   heroDivider: { width: 1, height: 34, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 16 },
+  profitCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: colors.success },
+  profitIcon: { width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(52,211,153,0.15)', justifyContent: 'center', alignItems: 'center' },
+  profitLbl: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 13.5 },
+  profitSub: { fontFamily: fonts.regular, color: colors.muted, fontSize: 11.5, marginTop: 2 },
+  profitVal: { fontFamily: fonts.black, color: colors.success, fontSize: 20 },
   payRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   payCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.md, padding: 14, alignItems: 'center' },
   payLbl: { fontFamily: fonts.medium, color: colors.muted, fontSize: 11.5 },

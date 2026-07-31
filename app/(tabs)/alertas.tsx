@@ -6,9 +6,12 @@ import { colors, fonts, radius } from '../../theme/tokens';
 
 function estiloTipo(tipo: string): { icon: string; color: string; bg: string } {
   switch (tipo) {
-    case 'CORTE':              return { icon: '✓', color: colors.success, bg: '#dcfce7' };
-    case 'DIFERENCIA':         return { icon: '!', color: colors.danger,  bg: '#fee2e2' };
-    case 'CAJA_FUERA_HORARIO': return { icon: '⏰', color: colors.warning, bg: '#fef3c7' };
+    case 'CORTE':              return { icon: '✓', color: colors.success, bg: 'rgba(52,211,153,0.15)' };
+    case 'DIFERENCIA':         return { icon: '!', color: colors.danger,  bg: 'rgba(248,113,113,0.15)' };
+    case 'CAJA_FUERA_HORARIO': return { icon: '⏰', color: colors.warning, bg: 'rgba(251,191,36,0.15)' };
+    case 'RIESGO_CAJERO':      return { icon: '🛡', color: colors.danger,  bg: 'rgba(248,113,113,0.15)' };
+    case 'DEVOLUCIONES':       return { icon: '↩', color: colors.warning, bg: 'rgba(251,191,36,0.15)' };
+    case 'VENTAS_CERO':        return { icon: '∅', color: colors.warning, bg: 'rgba(251,191,36,0.15)' };
     default:                   return { icon: '•', color: colors.sky,     bg: colors.skySoft };
   }
 }
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardTitle: { fontFamily: fonts.bold, color: colors.ink, fontSize: 14.5, flex: 1 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.sky },
-  cardMsg: { fontFamily: fonts.regular, color: '#475569', fontSize: 13, marginTop: 3, lineHeight: 18 },
+  cardMsg: { fontFamily: fonts.regular, color: colors.muted, fontSize: 13, marginTop: 3, lineHeight: 18 },
   cardTime: { fontFamily: fonts.regular, color: colors.muted, fontSize: 11.5, marginTop: 6 },
 
   empty: { alignItems: 'center', paddingTop: 80 },

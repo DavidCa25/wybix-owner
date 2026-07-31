@@ -6,8 +6,12 @@ interface AuthContextValue {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
+
+// Página web que recibe el enlace del correo y deja poner la nueva contraseña
+const RESET_REDIRECT = 'https://wybixpos.com.mx/recuperar';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -38,12 +42,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error ? error.message : null };
   }
 
+  async function resetPassword(email: string): Promise<{ error: string | null }> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: RESET_REDIRECT
+    });
+    return { error: error ? error.message : null };
+  }
+
   async function signOut(): Promise<void> {
     await supabase.auth.signOut();
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, loading, signIn, resetPassword, signOut }}>
       {children}
     </AuthContext.Provider>
   );

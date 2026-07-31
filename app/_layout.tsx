@@ -11,14 +11,18 @@ import {
   Poppins_800ExtraBold
 } from '@expo-google-fonts/poppins';
 import { AuthProvider } from '../lib/auth';
+import { DialogProvider } from '../lib/dialog';
 import { loadPairing } from '../lib/pairing';
 import { configureSupabase } from '../lib/supabase';
 import { colors } from '../theme/tokens';
+import PwaInstallHint from '../components/PwaInstallHint';
+import AnimatedSplash from '../components/AnimatedSplash';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [pairingChecked, setPairingChecked] = useState(false);
+  const [animDone, setAnimDone] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -45,11 +49,15 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="corte/[id]" />
-      </Stack>
+      <DialogProvider>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="corte/[id]" />
+        </Stack>
+        <PwaInstallHint />
+      </DialogProvider>
+      {!animDone && <AnimatedSplash onDone={() => setAnimDone(true)} />}
     </AuthProvider>
   );
 }

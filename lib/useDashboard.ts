@@ -9,6 +9,7 @@ export interface ResumenVentas {
   total_efectivo: number;
   total_tarjeta: number;
   total_credito: number;
+  utilidad: number;
 }
 
 export interface TopProducto {
@@ -46,8 +47,14 @@ export interface PuntoTendencia {
   total: number;
 }
 
+// Fecha de HOY en horario LOCAL (no UTC). El POS guarda con fecha local,
+// así que usar toISOString() (UTC) desalineaba el día después de las 6pm.
 function hoyStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function useDashboard() {

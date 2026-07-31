@@ -1,0 +1,17 @@
+{
+  "name": "Wybix: Control de Negocio",
+  "short_name": "Wybix",
+  "description": "Monitorea tu negocio: ventas en vivo, cortes, inventario y alertas de robo hormiga.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F2A3F",
+  "theme_color": "#0F2A3F",
+  "lang": "es-MX",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

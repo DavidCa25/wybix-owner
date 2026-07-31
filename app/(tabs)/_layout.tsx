@@ -3,11 +3,13 @@ import { View, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../lib/auth';
 import { useAlertas } from '../../lib/useAlertas';
+import { useSeguridad } from '../../lib/useSeguridad';
 import { colors, fonts } from '../../theme/tokens';
 
 export default function TabsLayout() {
   const { session, loading } = useAuth();
   const { noLeidas } = useAlertas();
+  const { altos } = useSeguridad();
 
   if (loading) {
     return (
@@ -27,8 +29,8 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: '#94a3b8',
-        tabBarStyle: { backgroundColor: '#fff', borderTopColor: colors.line, height: 60, paddingBottom: 8, paddingTop: 6 },
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: { backgroundColor: colors.navy, borderTopColor: colors.line, height: 60, paddingBottom: 8, paddingTop: 6 },
         tabBarLabelStyle: { fontFamily: fonts.medium, fontSize: 11 }
       }}
     >
@@ -44,6 +46,15 @@ export default function TabsLayout() {
         options={{
           title: 'Cortes',
           tabBarIcon: ({ color, size }) => <Ionicons name="cash-outline" size={size} color={color} />
+        }}
+      />
+      <Tabs.Screen
+        name="blindaje"
+        options={{
+          title: 'Blindaje',
+          tabBarIcon: ({ color, size }) => <Ionicons name="shield-checkmark" size={size} color={color} />,
+          tabBarBadge: altos > 0 ? (altos > 9 ? '9+' : altos) : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.danger, fontSize: 10 }
         }}
       />
       <Tabs.Screen

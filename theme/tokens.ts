@@ -1,29 +1,29 @@
 export const colors = {
-  // Azul marino de la marca (textos, encabezados, splash)
-  navy:      '#0F2A3F',
-  navyDeep:  '#0B2436',
-  navySoft:  '#1E3A52',
+  // Azul marino de la marca (encabezados, splash) — mismo tono oscuro que la landing
+  navy:      '#0F1C26',
+  navyDeep:  '#0B131A',   // fondo más oscuro (brand.dark de la landing)
+  navySoft:  '#16202A',
 
-  // Celeste de acento (el "POS", botones secundarios, iconos)
-  sky:       '#4F9BB8',
-  skyLight:  '#5EAAC4',
-  skySoft:   '#E8F2F6',
+  // Celeste/cian de acento (igual que la landing: brand.cyan)
+  sky:       '#45B3C3',
+  skyLight:  '#5EC6D6',
+  skySoft:   'rgba(69,179,195,0.14)',   // chip cian tenue sobre fondo oscuro
 
-  // Azul de accion principal (botones)
-  primary:   '#2E3A8C',   
-  primaryDark:'#232D6E',
+  // Acción principal = cian de marca
+  primary:   '#45B3C3',
+  primaryDark:'#359AA9',
 
-  // Neutros
-  ink:       '#0F2A3F',
-  muted:     '#64748B',
-  line:      '#E2E8F0',
-  bg:        '#F1F5F9',
-  card:      '#FFFFFF',
+  // Neutros (tema OSCURO)
+  ink:       '#E6EEF3',   // texto principal (claro)
+  muted:     '#8296A5',   // texto secundario
+  line:      '#213240',   // bordes / divisores
+  bg:        '#0B131A',   // fondo de pantalla
+  card:      '#16202A',   // superficie de tarjeta (brand.card)
 
-  // Estados
-  success:   '#10B981',
-  warning:   '#F59E0B',
-  danger:    '#DC2626',
+  // Estados (brillantes para que resalten sobre oscuro)
+  success:   '#34D399',
+  warning:   '#FBBF24',
+  danger:    '#F87171',
   white:     '#FFFFFF'
 };
 

@@ -48,7 +48,7 @@ export default function Cortes() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.caja}>{c.caja ?? 'Caja'}</Text>
                   <Text style={styles.fecha}>{fechaHora(c.abierto_at)}</Text>
-                  <View style={[styles.estadoChip, { backgroundColor: abierto ? '#fef3c7' : '#dcfce7' }]}>
+                  <View style={[styles.estadoChip, { backgroundColor: abierto ? 'rgba(251,191,36,0.15)' : 'rgba(52,211,153,0.15)' }]}>
                     <Text style={[styles.estadoText, { color: abierto ? colors.warning : colors.success }]}>
                       {abierto ? 'Abierta' : 'Cerrada'}
                     </Text>
