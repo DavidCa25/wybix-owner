@@ -1,24 +1,38 @@
 // ============================================================
 // Edge Function: license-check
-// Activa y valida licencias de Wybix POS.
+// Activa, valida y libera licencias de Wybix POS, y emite su CERTIFICADO
+// FIRMADO (ES256) para que el POS valide sin Internet.
 //
 // Acciones:
-//   activate  -> canjea la clave y registra la maquina
-//   validate  -> verifica que la licencia y la maquina sigan vigentes
-//   release   -> libera una maquina (cambio de equipo)
+//   activate     { licenseKey, machineId, machineAlias }  -> activa la PC
+//   validate     { machineId }                            -> refresca el certificado
+//   release      { machineId, certificate | licenseKey }  -> libera la PC (cambio de equipo)
+//   certificate  { licenseKey, machineId }                -> descarga el archivo offline
+//                                                            (desde otro dispositivo con Internet)
 //
-// Devuelve un token con el plan y la fecha de revalidacion.
-// Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LICENSE_SECRET
+// La lógica vive en Postgres (license_activate, license_for_machine,
+// license_release: atómicas, idempotentes y auditadas). Aquí solo se llama,
+// se firma y se responde.
+//
+// Compatibilidad: la respuesta conserva los campos que leían las versiones
+// anteriores del POS (plan, maxRegisters, customerName, supportUntil,
+// supportActive, revalidateBy, issuedAt) y AGREGA `certificate`.
+//
+// Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY y la firma
+//          (LICENSE_SIGNING_KEY, LICENSE_SIGNING_KID, LICENSE_PUBLIC_KEYS,
+//          LICENSE_REVOKED_KIDS): ver _shared/llaves.ts.
+// Si la firma no está bien configurada responde como antes, SIN certificado
+// (los POS anteriores siguen funcionando; el POS nuevo no guarda una
+// respuesta sin certificado) y la descarga del archivo responde 503.
 // ============================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { payloadDeLicencia, type Certificado, type Runtime } from '../_shared/certificado.ts';
+import { cargarFirma, type Firma } from '../_shared/llaves.ts';
+import { OFFLINE_DAYS } from '../_shared/politica.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-const LICENSE_SECRET = Deno.env.get('LICENSE_SECRET') ?? '';
-
-// Dias que el POS puede operar sin volver a validar contra el servidor
-const GRACIA_OFFLINE_DIAS = 15;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -30,136 +44,112 @@ function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
 
-// Firma el token para que el POS pueda verificar que no fue alterado
-async function firmar(payload: Record<string, unknown>): Promise<string> {
-  const datos = JSON.stringify(payload);
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(LICENSE_SECRET),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(datos));
-  const firma = btoa(String.fromCharCode(...new Uint8Array(sig)));
-  return btoa(datos) + '.' + firma;
+let firma: Promise<Firma> | null = null;
+const laFirma = () => (firma ??= cargarFirma((n) => Deno.env.get(n)).then((f) => {
+  // Solo el motivo, nunca la clave.
+  if (!f.ok) console.error(`license-check: no se firma (${f.motivo})`);
+  return f;
+}));
+async function certificadoDe(rt: Runtime, machineId: string): Promise<Certificado | null> {
+  return await (await laFirma()).firmar(payloadDeLicencia(rt, machineId));
+}
+
+/** La respuesta de siempre + el certificado. */
+async function respuesta(db: ReturnType<typeof createClient>, rt: Runtime, machineId: string) {
+  const { data: lic } = await db.from('licenses').select('support_until').eq('id', rt.license_id).maybeSingle();
+  const supportUntil = lic?.support_until ?? null;
+  const certificate = await certificadoDe(rt, machineId);
+  return {
+    success: true,
+    certificate,
+    // ---- compatibilidad con POS anteriores ----
+    plan: rt.edition,
+    maxRegisters: rt.registers_max ?? 0,          // 0 = ilimitado (contrato anterior)
+    customerName: rt.customer,
+    machineId,
+    supportUntil,
+    supportActive: supportUntil ? new Date(supportUntil) >= new Date() : false,
+    revalidateBy: new Date(Date.now() + OFFLINE_DAYS * 86400000).toISOString(),
+    issuedAt: new Date().toISOString(),
+  };
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method !== 'POST') return json({ success: false, error: 'Método no permitido.' }, 405);
 
   try {
-    if (!SERVICE_KEY || !LICENSE_SECRET) {
-      return json({ success: false, error: 'Backend mal configurado.' }, 500);
-    }
-
+    if (!SERVICE_KEY) return json({ success: false, error: 'Backend mal configurado.' }, 500);
     const db = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { action, licenseKey, machineId, machineAlias } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const action = String(body.action ?? '');
+    const machineId = String(body.machineId ?? '').trim();
+    const licenseKey = body.licenseKey ? String(body.licenseKey).trim().toUpperCase() : '';
 
-    if (!action || !machineId) {
-      return json({ success: false, error: 'Faltan datos de la peticion.' }, 400);
-    }
-
-    // ---------- Buscar la licencia ----------
-    let licencia: any = null;
-
-    if (licenseKey) {
-      const { data } = await db.from('licenses').select('*')
-        .eq('license_key', String(licenseKey).trim().toUpperCase()).maybeSingle();
-      licencia = data;
-    } else {
-      // Sin clave: se busca por la maquina ya activada
-      const { data } = await db.from('license_activations')
-        .select('license_id, active, licenses(*)')
-        .eq('machine_id', machineId).eq('active', true).maybeSingle();
-      licencia = data?.licenses ?? null;
-    }
-
-    if (!licencia) {
-      return json({ success: false, error: 'Licencia no encontrada.', code: 'NOT_FOUND' }, 404);
-    }
-    if (licencia.status !== 'activa') {
-      return json({ success: false, error: 'Esta licencia esta suspendida. Contacta a soporte.', code: 'SUSPENDED' }, 403);
-    }
-
-    // ---------- Liberar una maquina ----------
-    if (action === 'release') {
-      await db.from('license_activations').update({ active: false })
-        .eq('license_id', licencia.id).eq('machine_id', machineId);
-      return json({ success: true, released: true });
+    if (!action || !machineId || machineId.length > 128) {
+      return json({ success: false, error: 'Faltan datos de la petición.' }, 400);
     }
 
     // ---------- Activar ----------
     if (action === 'activate') {
-      // Ya activada? solo refresca
-      const { data: existente } = await db.from('license_activations').select('*')
-        .eq('license_id', licencia.id).eq('machine_id', machineId).maybeSingle();
-
-      if (!existente) {
-        // Cuenta cuantas maquinas vivas hay
-        const { count } = await db.from('license_activations')
-          .select('*', { count: 'exact', head: true })
-          .eq('license_id', licencia.id).eq('active', true);
-
-        const activas = count ?? 0;
-        const limite = licencia.max_registers ?? 1;
-
-        // limite 0 = ilimitado (plan multi)
-        if (limite > 0 && activas >= limite) {
-          return json({
-            success: false,
-            code: 'LIMIT_REACHED',
-            error: licencia.plan === 'mono'
-              ? 'Tu licencia MonoCaja ya esta usada en otra computadora. Mejora a MultiCaja para usar mas cajas.'
-              : `Alcanzaste el limite de ${limite} cajas de tu licencia.`
-          }, 403);
-        }
-
-        await db.from('license_activations').insert({
-          license_id: licencia.id,
-          machine_id: machineId,
-          machine_alias: machineAlias ?? null
-        });
-      } else if (!existente.active) {
-        await db.from('license_activations').update({ active: true, last_seen_at: new Date().toISOString() })
-          .eq('id', existente.id);
-      }
+      if (!licenseKey) return json({ success: false, error: 'Falta la clave de licencia.' }, 400);
+      const { data, error } = await db.rpc('license_activate', {
+        p_license_key: licenseKey, p_machine_id: machineId, p_alias: body.machineAlias ? String(body.machineAlias).slice(0, 80) : null,
+      });
+      if (error) return json({ success: false, error: 'No se pudo activar. Intenta más tarde.' }, 500);
+      if (!data?.ok) return json({ success: false, error: data?.error, code: data?.code }, data?.code === 'NOT_FOUND' ? 404 : 403);
+      return json(await respuesta(db, data.runtime as Runtime, machineId));
     }
 
-    // ---------- Validar (y refrescar el visto) ----------
+    // ---------- Validar / refrescar el certificado ----------
     if (action === 'validate') {
-      const { data: act } = await db.from('license_activations').select('*')
-        .eq('license_id', licencia.id).eq('machine_id', machineId).maybeSingle();
-
-      if (!act || !act.active) {
-        return json({ success: false, error: 'Esta computadora no esta activada.', code: 'NOT_ACTIVATED' }, 403);
-      }
+      const { data, error } = await db.rpc('license_for_machine', { p_machine_id: machineId });
+      if (error) return json({ success: false, error: 'No se pudo validar. Intenta más tarde.' }, 500);
+      if (!data?.ok) return json({ success: false, error: data?.error, code: data?.code }, 403);
+      return json(await respuesta(db, data.runtime as Runtime, machineId));
     }
 
-    await db.from('license_activations')
-      .update({ last_seen_at: new Date().toISOString() })
-      .eq('license_id', licencia.id).eq('machine_id', machineId);
+    // ---------- Descargar el certificado desde OTRO dispositivo ----------
+    // Para el negocio sin Internet: con la clave y el código del equipo se
+    // obtiene su archivo firmado, que se lleva por USB. Solo para una
+    // computadora YA activada con esa clave: no activa nada nuevo.
+    if (action === 'certificate') {
+      if (!licenseKey) return json({ success: false, error: 'Falta la clave de licencia.' }, 400);
+      const { data: lic } = await db.from('licenses').select('id').eq('license_key', licenseKey).maybeSingle();
+      const { data, error } = await db.rpc('license_for_machine', { p_machine_id: machineId });
+      if (error) return json({ success: false, error: 'No se pudo generar el archivo.' }, 500);
+      if (!lic || !data?.ok || data.runtime?.license_id !== lic.id) {
+        return json({ success: false, code: 'NOT_ACTIVATED', error: 'Esa computadora no está activada con esta clave.' }, 403);
+      }
+      const r = await respuesta(db, data.runtime as Runtime, machineId);
+      if (!r.certificate) return json({ success: false, error: 'La firma de licencias no está configurada.' }, 503);
+      // Descargar el archivo NO cambia fechas ni periodos: solo se registra.
+      await db.rpc('license_log', { p_license: lic.id, p_type: 'CERTIFICATE_DOWNLOADED',
+        p_data: { machine_id: machineId }, p_actor: 'web' });
+      return json({ success: true, certificate: r.certificate });
+    }
 
-    // ---------- Token firmado ----------
-    const revalidar = new Date();
-    revalidar.setDate(revalidar.getDate() + GRACIA_OFFLINE_DIAS);
+    // ---------- Liberar (cambio de computadora) ----------
+    // Hace falta demostrar que se tiene la licencia: el certificado firmado de
+    // ESA computadora o la clave. Antes bastaba conocer el machineId.
+    if (action === 'release') {
+      let licenseId: string | null = null;
+      if (body.certificate) {
+        const p = await (await laFirma()).verificar(body.certificate as Certificado);
+        if (p && p.machine_id === machineId && p.license_id) licenseId = p.license_id;
+      }
+      if (!licenseId && licenseKey) {
+        const { data: lic } = await db.from('licenses').select('id').eq('license_key', licenseKey).maybeSingle();
+        licenseId = lic?.id ?? null;
+      }
+      if (!licenseId) return json({ success: false, code: 'PROOF_REQUIRED', error: 'Para liberar esta computadora hace falta su licencia.' }, 403);
+      const { data, error } = await db.rpc('license_release', { p_license_id: licenseId, p_machine_id: machineId, p_actor: 'pos' });
+      if (error || !data?.ok) return json({ success: false, error: 'No se pudo liberar la computadora.' }, 500);
+      return json({ success: true, released: !!data.released });
+    }
 
-    const soporteVigente = licencia.support_until
-      ? new Date(licencia.support_until) >= new Date()
-      : false;
-
-    const payload = {
-      plan: licencia.plan,                       
-      maxRegisters: licencia.max_registers,     
-      customerName: licencia.customer_name,
-      machineId,
-      supportUntil: licencia.support_until,
-      supportActive: soporteVigente,
-      revalidateBy: revalidar.toISOString(),
-      issuedAt: new Date().toISOString()
-    };
-
-    const token = await firmar(payload);
-
-    return json({ success: true, token, ...payload });
-  } catch (e) {
-    return json({ success: false, error: String(e) }, 500);
+    return json({ success: false, error: `Acción desconocida: ${action}` }, 400);
+  } catch (_e) {
+    return json({ success: false, error: 'Error del servicio de licencias.' }, 500);
   }
 });

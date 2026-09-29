@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Claves de firma de licencias (la privada va SOLO a los secretos de Supabase)
+.secrets/
