@@ -165,8 +165,11 @@ try {
     const a = await pedir(webAnterior, { orderId: 'ANT-1', plan: 'multi', cajas: 3, email: 'viejo@example.com', nombre: 'Cliente web anterior',
       items: [{ kind: 'plan', id: 'multicaja', name: 'Multicaja', qty: 1, importe: 3999 }] });
     const l = a.body?.licenseKey ? lic(a.body.licenseKey) : null;
-    check('W01', a.status === 200 && !!l && l.plan === 'multi' && l.max_registers === 3,
-      'web ANTERIOR contra la transición: emite como siempre (MultiCaja guardada con su contrato: max_registers = cajas)', `${a.status} ${JSON.stringify(a.body).slice(0, 80)}`);
+    // La web publicada (desde 2026-08) guarda MultiCaja con max_registers = 9999
+    // («sin límite de cajas»); versiones anteriores guardaban las cajas pedidas.
+    // Cualquiera de los dos es su contrato; lo que importa es la activación (abajo).
+    check('W01', a.status === 200 && !!l && l.plan === 'multi' && (l.max_registers === 9999 || l.max_registers === 3),
+      'web ANTERIOR contra la transición: emite como siempre (MultiCaja guardada con su contrato: 9999, o las cajas en versiones previas)', `${a.status} plan=${l?.plan} max_registers=${l?.max_registers}`);
     if (l) {
       const acts = [1, 2, 3, 4, 5].map(i => uno(`select license_activate('${l.license_key}', 'ANT-PC-${i}')->>'ok'`));
       check('W01', acts.every(x => x === 'true'), 'y esa MultiCaja activa 5 cajas con el license-check nuevo (las cajas salen de la edición)');
