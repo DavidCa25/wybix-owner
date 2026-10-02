@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../lib/auth';
 import { useDialog } from '../../lib/dialog';
+import { vincularConPairing } from '../../lib/vincular';
 import { colors, fonts, radius } from '../../theme/tokens';
 
 export default function Login() {
@@ -26,9 +27,11 @@ export default function Login() {
     setBusy(true);
     setError('');
     const { error: err } = await signIn(email, password);
-    console.log('Resultado login:', err);
+    if (err) { setBusy(false); setError('Correo o contraseña incorrectos.'); return; }
+    // Si escaneó el QR de otro negocio, se une con su invitación.
+    const v = await vincularConPairing();
     setBusy(false);
-    if (err) setError('Correo o contraseña incorrectos.');
+    if (!v.ok) setError(v.error || 'No se pudo vincular el negocio.');
   }
 
   async function onForgot() {

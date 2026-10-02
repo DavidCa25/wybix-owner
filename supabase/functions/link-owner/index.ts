@@ -3,6 +3,12 @@
 // negocio requiere cupo pagado (negocio_app_quota.total_apps).
 // Desplegar: supabase functions deploy link-owner --no-verify-jwt
 // (la funcion valida el usuario con el token que manda la app).
+//
+// FASE 1. El ACCESO a los datos lo da una MEMBRESÍA (company_memberships), y
+// una membresía solo nace de una INVITACIÓN de un solo uso (`codigo`, 30 min)
+// que genera el POS principal (primer dueño) o el dueño desde su app. Conocer
+// el id del negocio —que venía en un QR sin secreto— ya no basta: sin `codigo`
+// se sigue registrando la app (cupo, como antes) pero no ve nada.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -23,8 +29,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   try {
-    const { negocioId, deviceId } = await req.json().catch(() => ({}));
-    if (!negocioId) return json({ error: 'Falta negocioId.' }, 400);
+    const { negocioId: negocioPedido, deviceId, codigo } = await req.json().catch(() => ({}));
+    if (!negocioPedido && !codigo) return json({ error: 'Falta el codigo de tu negocio.' }, 400);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -35,6 +41,14 @@ Deno.serve(async (req) => {
     const { data: userData, error: userErr } = await admin.auth.getUser(token);
     if (userErr || !userData?.user) return json({ error: 'No autenticado.' }, 401);
     const userId = userData.user.id;
+
+    // Invitacion -> membresia (la base valida el codigo: un solo uso, vigente).
+    let negocioId = negocioPedido as string;
+    if (codigo) {
+      const { data: inv, error: invErr } = await admin.rpc('membresia_aceptar_invitacion', { p: { code: String(codigo), user_id: userId } });
+      if (invErr || !inv?.ok) return json({ error: 'INVITE_INVALID', message: 'El codigo ya se uso o vencio. Genera uno nuevo en el POS.' }, 403);
+      negocioId = inv.company_id;
+    }
 
     // Ya esta vinculado este dueño a este negocio -> idempotente
     const { data: existing } = await admin
@@ -50,7 +64,7 @@ Deno.serve(async (req) => {
           .update({ active: true, device_id: deviceId ?? null })
           .eq('id', existing.id);
       }
-      return json({ ok: true, linked: true, reactivated: !existing.active });
+      return json({ ok: true, linked: true, reactivated: !existing.active, negocioId });
     }
 
     // Cupo del negocio (1 incluida por defecto)
@@ -68,7 +82,9 @@ Deno.serve(async (req) => {
       .eq('active', true);
     const used = count ?? 0;
 
-    if (used >= allowed) {
+    // Con invitacion, el acceso ya lo decidio quien invito (dueño o POS); el
+    // cupo queda registrado como app extra para cobranza, no bloquea.
+    if (used >= allowed && !codigo) {
       return json({
         error: 'APP_LIMIT',
         message: 'Este negocio ya alcanzo su limite de apps. Contacta a Wybix para habilitar otra (con costo).',
@@ -86,7 +102,7 @@ Deno.serve(async (req) => {
     });
     if (insErr) return json({ error: insErr.message }, 500);
 
-    return json({ ok: true, linked: true, extra: isExtra });
+    return json({ ok: true, linked: true, extra: isExtra, negocioId });
   } catch (e) {
     return json({ error: String((e as any)?.message ?? e) }, 500);
   }

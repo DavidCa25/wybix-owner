@@ -1,0 +1,73 @@
+{
+  "total": {
+    "neto": 476,
+    "tickets": 4
+  },
+  "company_id": "e5275fce-03c5-4908-82a2-c8cdfcbf19e6",
+  "ubicaciones": [
+    {
+      "tipo": "BRANCH",
+      "fecha": "2026-10-02",
+      "nombre": "Centro",
+      "status": "ACTIVE",
+      "ventas": {
+        "neto": 350.5,
+        "total": 370.5,
+        "fuente": "hechos",
+        "tickets": 2
+      },
+      "location_id": "ef2cdb39-3cbc-4ebf-841a-aa8e14b1d532",
+      "ultimo_corte": {
+        "caja": "Caja 1",
+        "fuente": "hechos",
+        "contado": 640,
+        "a_ciegas": true,
+        "esperado": 650.5,
+        "abierto_at": "2026-10-02T02:54:01+00:00",
+        "cerrado_at": "2026-10-02T08:44:01+00:00",
+        "diferencia": -10.5,
+        "shift_uuid": "69bbf007-a475-4fec-ac17-77ffe547c993",
+        "cerrado_por": "marta"
+      },
+      "turnos_abiertos": []
+    },
+    {
+      "tipo": "BRANCH",
+      "fecha": "2026-10-02",
+      "nombre": "Norte",
+      "status": "ACTIVE",
+      "ventas": {
+        "neto": 125.5,
+        "total": 125.5,
+        "fuente": "hechos",
+        "tickets": 2
+      },
+      "location_id": "35412c6a-6178-49b5-98ca-b0112880483e",
+      "ultimo_corte": null,
+      "turnos_abiertos": [
+        {
+          "caja": "Caja Norte",
+          "fondo": 300,
+          "abierto_at": "2026-10-02T05:54:01+00:00",
+          "shift_uuid": "ac556509-1845-45a5-b425-75a1ef54d19c",
+          "abierto_por": "pepe"
+        }
+      ]
+    },
+    {
+      "tipo": "EVENT",
+      "fecha": "2026-10-02",
+      "nombre": "Feria del Libro",
+      "status": "PENDING",
+      "ventas": {
+        "neto": 0,
+        "total": 0,
+        "fuente": "sin_datos",
+        "tickets": 0
+      },
+      "location_id": "17ec98d1-3ab4-472e-8d12-e7f361f407a8",
+      "ultimo_corte": null,
+      "turnos_abiertos": []
+    }
+  ]
+}

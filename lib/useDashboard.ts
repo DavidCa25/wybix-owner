@@ -57,7 +57,7 @@ function hoyStr(): string {
   return `${y}-${m}-${day}`;
 }
 
-export function useDashboard() {
+export function useDashboard(empresaId: string | null = null) {
   const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [sucursalId, setSucursalId] = useState<string | null>(null);
   const [resumen, setResumen] = useState<ResumenVentas | null>(null);
@@ -68,17 +68,17 @@ export function useDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carga las sucursales del dueno (RLS filtra por su negocio)
+  // Sucursales de la EMPRESA elegida. RLS ya filtra por membresía; una
+  // persona con varias empresas las ve todas, por eso se acota aquí.
   const cargarSucursales = useCallback(async () => {
-    const { data, error: err } = await supabase
-      .from('sucursales')
-      .select('id, nombre')
-      .order('nombre');
+    let q = supabase.from('sucursales').select('id, nombre').order('nombre');
+    if (empresaId) q = q.eq('negocio_id', empresaId);
+    const { data, error: err } = await q;
     if (err) { setError(err.message); return; }
     const list = (data ?? []) as Sucursal[];
     setSucursales(list);
-    if (list.length && !sucursalId) setSucursalId(list[0].id);
-  }, [sucursalId]);
+    setSucursalId(prev => (prev && list.some(s => s.id === prev) ? prev : list[0]?.id ?? null));
+  }, [empresaId]);
 
   // Carga los datos de una sucursal para hoy
   const cargarDatos = useCallback(async (sid: string) => {
@@ -99,14 +99,14 @@ export function useDashboard() {
     setTrend((tr.data as PuntoTendencia[]) ?? []);
   }, []);
 
-  // Primera carga
+  // Primera carga y cada cambio de empresa
   useEffect(() => {
     (async () => {
       setLoading(true);
       await cargarSucursales();
       setLoading(false);
     })();
-  }, []);
+  }, [cargarSucursales]);
 
   // Cuando cambia la sucursal, recarga
   useEffect(() => {

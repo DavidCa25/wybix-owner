@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { loadPairing, PairingData } from '../../lib/pairing';
+import { vincularConPairing } from '../../lib/vincular';
 import { colors, fonts, radius } from '../../theme/tokens';
 
 export default function Registro() {
@@ -45,26 +46,9 @@ export default function Registro() {
       }
     }
 
-    // 3) Vincular al negocio via Edge Function
-    const { data: sess } = await supabase.auth.getSession();
-    const token = sess.session?.access_token;
-    try {
-      const res = await fetch(`${pairing.url}/functions/v1/link-owner`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'apikey': pairing.anonKey
-        },
-        body: JSON.stringify({ negocioId: pairing.negocioId })
-      });
-      const out = await res.json();
-      if (!res.ok) { setBusy(false); setError(out?.message || out?.error || 'No se pudo vincular el negocio.'); return; }
-    } catch (e: any) {
-      setBusy(false);
-      setError('No se pudo vincular. Revisa tu conexion.');
-      return;
-    }
+    // 3) Vincular al negocio: acepta la invitacion del QR (Fase 1).
+    const v = await vincularConPairing(pairing);
+    if (!v.ok) { setBusy(false); setError(v.error || 'No se pudo vincular el negocio.'); return; }
 
     setBusy(false);
     // El _layout detecta la sesion y manda al tablero

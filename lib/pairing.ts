@@ -6,6 +6,8 @@ export interface PairingData {
   negocioId: string;
   sucursalId: string;
   nombre?: string;
+  /** Fase 1: invitación de un solo uso. Sin ella el QR no da acceso. */
+  codigo?: string;
 }
 
 const KEY = 'wybix_pairing';
@@ -37,7 +39,8 @@ export function parseQr(text: string): PairingData | null {
         anonKey: String(d.anonKey),
         negocioId: String(d.negocioId),
         sucursalId: String(d.sucursalId),
-        nombre: d.nombre ? String(d.nombre) : undefined
+        nombre: d.nombre ? String(d.nombre) : undefined,
+        codigo: d.codigo ? String(d.codigo) : undefined
       };
     }
     return null;

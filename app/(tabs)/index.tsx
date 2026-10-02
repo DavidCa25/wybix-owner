@@ -6,6 +6,8 @@ import * as Notifications from 'expo-notifications';
 import { useAuth } from '../../lib/auth';
 import { registerForPush } from '../../lib/push';
 import { useDashboard } from '../../lib/useDashboard';
+import { useEmpresa } from '../../lib/useEmpresa';
+import { ResumenEmpresaCard } from '../../components/ResumenEmpresa';
 import { colors, fonts, radius } from '../../theme/tokens';
 import { TrendChart } from '../../components/TrendChart';
 
@@ -24,7 +26,10 @@ function margenPct(utilidad: number | null | undefined, total: number | null | u
 
 export default function Dashboard() {
   const { signOut } = useAuth();
-  const { sucursales, sucursalId, setSucursalId, resumen, top, trend, loading, refreshing, error, refrescar } = useDashboard();
+  const empresa = useEmpresa();
+  const { sucursales, sucursalId, setSucursalId, resumen, top, trend, loading, refreshing, error, refrescar: refrescarSucursal } = useDashboard(empresa.empresaId);
+  const refrescar = async () => { await Promise.all([refrescarSucursal(), empresa.refrescar()]); };
+  const nombreEmpresa = empresa.empresas.find(e => e.company_id === empresa.empresaId)?.nombre;
   const respListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
@@ -33,7 +38,7 @@ export default function Dashboard() {
     return () => { respListener.current?.remove(); };
   }, []);
 
-  if (loading) {
+  if (loading || empresa.cargando) {
     return <View style={styles.loader}><ActivityIndicator size="large" color={colors.primary} /></View>;
   }
 
@@ -42,12 +47,25 @@ export default function Dashboard() {
       <View style={styles.header}>
         <View>
           <Text style={styles.hTitle}>Wybix</Text>
-          <Text style={styles.hSub}>Resumen de hoy</Text>
+          <Text style={styles.hSub}>{nombreEmpresa ? `${nombreEmpresa} · hoy` : 'Resumen de hoy'}</Text>
         </View>
         <View style={styles.iconBtn}>
           <Ionicons name="log-out-outline" size={22} color="#fff" onPress={signOut} />
         </View>
       </View>
+
+      {empresa.empresas.length > 1 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sucBar} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
+          {empresa.empresas.map(e => (
+            <Text
+              key={e.company_id}
+              onPress={() => empresa.setEmpresaId(e.company_id)}
+              style={[styles.sucChip, empresa.empresaId === e.company_id && styles.sucChipOn]}
+              accessibilityRole="button"
+            >{e.nombre}</Text>
+          ))}
+        </ScrollView>
+      )}
 
       {sucursales.length > 1 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sucBar} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
@@ -64,6 +82,11 @@ export default function Dashboard() {
       <ScrollView contentContainerStyle={styles.body}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refrescar} tintColor={colors.primary} />}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
+        {empresa.error ? <Text style={styles.error}>{empresa.error}</Text> : null}
+
+        {empresa.resumen && empresa.resumen.ubicaciones.length > 1 && (
+          <ResumenEmpresaCard resumen={empresa.resumen} onElegir={setSucursalId} elegida={sucursalId} />
+        )}
 
         <View style={styles.heroCard}>
           <Text style={styles.heroLabel}>Ventas de hoy</Text>
