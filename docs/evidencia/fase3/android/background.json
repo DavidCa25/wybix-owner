@@ -1,0 +1,16 @@
+{
+  "cloudBefore": 2,
+  "at": "2026-10-04T19:29:19.5422509Z",
+  "cloudAfter": 3,
+  "cloudAfterReplay": 3,
+  "scheduler": "cmd jobscheduler run -f -u 10; acelerado en QA",
+  "escenario": "Supabase local, Android user 10",
+  "appProcessAbsentBeforeRun": true,
+  "addedSaleTotal": "35.00",
+  "worker": "expo-background-task / WorkManager",
+  "activity": "Launcher fuera de POS",
+  "limits": [
+    "Sin prueba física de batería/Doze",
+    "Forzar detención del sistema suspende tareas hasta reabrir"
+  ]
+}

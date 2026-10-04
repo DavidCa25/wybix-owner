@@ -70,3 +70,4 @@ docs/evidencia/**/*.jpg
 docs/evidencia/**/*.log
 docs/diseno-pos-mobile/evidencia/
 .expo-cierre-qa.log
+docs/evidencia/fase3/relevo/codex-relevo-deps.json

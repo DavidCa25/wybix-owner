@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-04T20:15:06.448Z",
+  "cases": 31,
+  "allRequiredFields": true,
+  "allPending": true,
+  "licenseOption": "D",
+  "qaLicenseScript": {
+    "localCreate": true,
+    "localDuplicateRefused": true,
+    "grantReturnChecked": true,
+    "transactionRollbackTest": true
+  },
+  "remoteWrites": false
+}
