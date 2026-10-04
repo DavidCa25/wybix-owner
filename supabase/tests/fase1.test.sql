@@ -13,6 +13,10 @@
 --
 --  Cada comprobación deja una fila en t_res; la corrida falla si alguna es false.
 -- ============================================================================
+-- El POS manda business_date en la hora de la sucursal y el tablero cuenta
+-- "hoy" en esa misma zona. El contenedor está en UTC: de 18:00 a 24:00 en
+-- México, current_date ya sería mañana y las ventas "de hoy" no cuadrarían.
+set timezone = 'America/Mexico_City';
 create table if not exists t_res (n serial, id text, ok boolean, msg text, det text);
 grant all on t_res to public;
 grant usage on sequence t_res_n_seq to public;

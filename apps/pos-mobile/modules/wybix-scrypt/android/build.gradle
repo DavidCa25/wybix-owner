@@ -1,0 +1,22 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'mx.wybix'
+version = '1.0.0'
+
+android {
+  namespace "expo.modules.wybixscrypt"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+}
+
+dependencies {
+  // scrypt de BouncyCastle (RFC 7914). La MISMA coordenada que ya trae
+  // react-native-tcp-socket (impresora de red): una sola copia en el APK. Paquete
+  // org.bouncycastle: no choca con la copia interna de Android.
+  implementation 'org.bouncycastle:bcprov-jdk15to18:1.78.1'
+}

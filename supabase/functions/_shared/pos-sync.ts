@@ -18,6 +18,14 @@
 //    invite_owner, link_license (= stamp_license), upsert, alert_exists,
 //    delete_account.
 //
+//  FASE 2
+//    sucursal (POS_PRIMARY): publish (catálogo + personal con PIN),
+//      register_key (llave pública para firmar comprobantes QR),
+//      transfer_inbox (retornos por recibir, envíos ya recibidos, eventos).
+//    tablet (MOBILE_POS): mobile_snapshot, mobile_inbox, mobile_heartbeat,
+//      events. Una tablet REVOCADA solo puede entregar `events` (la nube
+//      acepta lo anterior a la baja y pone en cuarentena lo posterior).
+//
 //  Este módulo no importa nada de Deno: scripts/probar-fase1.mjs lo prueba.
 // ============================================================================
 import { credencialDe, equipoDe, json, negado, type Rpc } from './nube.ts';
@@ -82,8 +90,9 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
   }
 
   // ---------------------------------------------------------- con credencial
-  const eq = await equipoDe(req, deps.rpc);
+  const eq = await equipoDe(req, deps.rpc) as (Awaited<ReturnType<typeof equipoDe>> & { revoked?: boolean }) | null;
   if (!eq) return negado(credencialDe(req).length < 20 ? 'NO_TOKEN' : 'BAD_TOKEN');
+  if (eq.revoked && action !== 'events') return json({ success: false, code: 'DEVICE_REVOKED', error: 'Esta tablet fue dada de baja.' }, 403);
   const conEquipo = (extra: Record<string, unknown> = {}) => ({ device_id: eq.device_id, ...extra });
   const responder = (r: any) => (r?.ok ? json({ success: true, ...r }) : negado(r?.code));
 
@@ -94,6 +103,37 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
       return responder(await deps.rpc('sync_ingest', conEquipo({
         envelope: body.envelope ?? {}, events: Array.isArray(body.events) ? body.events.slice(0, 500) : [],
       })));
+    case 'publish':
+      return responder(await deps.rpc('pos_publicar', conEquipo({ catalog: body.catalog ?? null, staff: Array.isArray(body.staff) ? body.staff.slice(0, 500) : null })));
+    case 'register_key':
+      return responder(await deps.rpc('pos_registrar_llave', conEquipo({ public_key: str(body.public_key, 64) })));
+    case 'transfer_inbox':
+      return responder(await deps.rpc('pos_transfer_inbox', conEquipo()));
+    case 'mobile_snapshot': {
+      const r = await deps.rpc('mobile_snapshot', conEquipo({ channel: str(body.channel, 30) }));
+      return r?.ok ? json({ success: true, ...r }) : json({ success: false, code: r?.code ?? 'DENIED', error: 'Sin acceso a los datos del evento.' }, 403);
+    }
+    case 'mobile_inbox': {
+      const r = await deps.rpc('mobile_inbox', conEquipo({ cursor: Number(body.cursor ?? 0) || 0 }));
+      return r?.ok ? json({ success: true, ...r }) : json({ success: false, code: r?.code ?? 'DENIED', error: 'Sin acceso a los datos del evento.' }, 403);
+    }
+    // Fase 3 · autorización a distancia (el device_id sale de la credencial, nunca del cuerpo).
+    case 'approval_request':
+      return responder(await deps.rpc('aprobacion_solicitar', conEquipo({
+        id: str(body.id, 36), action: str(body.approval_action, 40),
+        requested_by: body.requested_by && typeof body.requested_by === 'object' ? body.requested_by : null,
+        payload: body.payload && typeof body.payload === 'object' && !Array.isArray(body.payload) ? body.payload : null,
+      })));
+    case 'approval_status':
+      return responder(await deps.rpc('aprobacion_estado', conEquipo({ id: str(body.id, 36) })));
+    case 'approval_consume':
+      return responder(await deps.rpc('aprobacion_consumir', conEquipo({
+        id: str(body.id, 36), payload: body.payload && typeof body.payload === 'object' && !Array.isArray(body.payload) ? body.payload : null,
+      })));
+    case 'approval_cancel':
+      return responder(await deps.rpc('aprobacion_cancelar', conEquipo({ id: str(body.id, 36) })));
+    case 'mobile_heartbeat':
+      return responder(await deps.rpc('mobile_latido', conEquipo({ pendientes: Number(body.pendientes ?? 0) || 0, app_version: str(body.app_version, 40), last_seq: Number(body.last_seq ?? 0) || 0 })));
     case 'create_location':
       return responder(await deps.rpc('pos_create_location', conEquipo({
         nombre: str(body.nombre, 120), tipo: str(body.tipo, 20), starts_at: str(body.starts_at, 40), ends_at: str(body.ends_at, 40),

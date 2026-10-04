@@ -21,3 +21,13 @@ grant execute on function auth.uid() to anon, authenticated, service_role;
 grant usage on schema public to anon, authenticated, service_role;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+
+-- Factores MFA de Supabase Auth (Fase 3): misma forma mínima que auth.mfa_factors.
+create table if not exists auth.mfa_factors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  friendly_name text,
+  factor_type text not null default 'totp',
+  status text not null default 'unverified',   -- en Supabase es el enum auth.factor_status
+  created_at timestamptz not null default now()
+);

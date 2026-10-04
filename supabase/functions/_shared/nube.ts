@@ -68,6 +68,24 @@ export function negado(code?: string): Response {
     NO_ISSUER: 'Esta empresa no tiene emisor registrado.',
     ISSUER_REQUIRED: 'Indica el emisor.',
     ISSUER_CONFLICT: 'El emisor está en revisión: dos empresas lo reclaman. Contacta a soporte.',
+    // Fase 2
+    DEVICE_REVOKED: 'Este equipo fue dado de baja.',
+    NOT_PRIMARY: 'Solo la caja principal puede hacer esto.',
+    ENVELOPE_MISMATCH: 'Los datos no corresponden a la empresa o la ubicación de este equipo.',
+    CLONE_SUSPECTED: 'Esta base parece copiada de otro servidor. El dueño debe confirmarlo antes de sincronizar.',
+    NO_LICENSE: 'La empresa no tiene una licencia ligada.',
+    LIMIT_LOCATIONS: 'Ya se usaron todas las sucursales de la licencia.',
+    NO_ENTITLEMENT_TEMPORARY_LOCATIONS: 'La licencia no incluye eventos.',
+    NO_ENTITLEMENT_MOBILE_POS: 'La licencia no incluye Wybix POS Mobile.',
+    LIMIT_MOBILE_POS: 'Ya se usaron todas las tablets de la licencia.',
+    EVENT_NOT_OPEN: 'El evento no está abierto.',
+    // Fase 3 · autorización a distancia
+    NOT_REMOTE: 'Esta acción no se puede autorizar a distancia.',
+    CONFLICT: 'Ya existe otra solicitud con ese identificador.',
+    NOT_FOUND: 'No se encontró la solicitud.',
+    NOT_APPROVED: 'La solicitud no está aprobada.',
+    NOT_PENDING: 'La solicitud ya no está pendiente.',
+    PAYLOAD_CHANGED: 'La operación cambió después de pedir la autorización. Pide una nueva.',
   };
   return json({ success: false, code: code ?? 'DENIED', error: msg[code ?? ''] ?? 'No autorizado.' }, s);
 }
