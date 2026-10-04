@@ -105,4 +105,3 @@ Esto es evidencia de validación local parcial, no un acta que cierre Fase 3.
 Elegir y autorizar el entorno de staging o producción, aplicar migraciones y desplegar funciones, configurar/rotar secretos reales, generar el artefacto remoto firmado, efectuar recepción push/email externa y posteriormente commit/push/publicación. No se ejecutó ninguna de esas acciones reservadas.
 
 Antes del gate operativo: entregar la definición de Astra y disponer de tablet/impresoras físicas y las credenciales externas pertinentes. Los pasos de release están preparados en `fase3-release.md`; los del webhook/Vault en `fase3-push-secretos.md`.
-

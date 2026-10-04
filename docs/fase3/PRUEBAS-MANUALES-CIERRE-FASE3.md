@@ -1043,4 +1043,3 @@ Bluetooth: **FUERA DE ALCANCE ACTUAL**. Mercado Pago: **MANUAL / FUERA DE INTEGR
 | HW-02 | Paso 19 | Suspensión y reinicio | Pendientes persistentes y sync sin duplicados; documentar demoras del scheduler y primer desbloqueo, sin prometer trabajo durante force-stop. | PENDIENTE | Por registrar |
 | UPDATE-01 | Paso 20 | Actualización compatible | Datos conservados; runtime incompatible no recibe OTA. Si no existe segundo artefacto, PENDIENTE, no PASS. | PENDIENTE | Por registrar |
 | HW-03 | Paso 21 | Cierre del piloto | Cerrar solo con criterios críticos PASS; hardware ausente queda IMPLEMENTADO / VALIDACIÓN FÍSICA PENDIENTE y fase parcialmente lista. | PENDIENTE | Por registrar |
-
