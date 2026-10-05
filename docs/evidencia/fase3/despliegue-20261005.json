@@ -1,0 +1,581 @@
+{
+  "date": "2026-10-05",
+  "project": "swlpspgmkwzlrowllvvj",
+  "migrationVersions": [
+    "20260901000000",
+    "20260926120000",
+    "20260926130000",
+    "20260927120000",
+    "20261002120000",
+    "20261010120000",
+    "20261011100000",
+    "20261011110000",
+    "20261011120000",
+    "20261011130000",
+    "20261011140000",
+    "20261011150000",
+    "20261011160000",
+    "20261011170000"
+  ],
+  "contractsAndPermissions": true,
+  "relations": 60,
+  "localTests": {
+    "typescript": true,
+    "node": 94,
+    "sql": 75
+  },
+  "edge": [
+    {
+      "slug": "pos-sync",
+      "version": 3,
+      "bundleSha256": "2d351cc484e14b433b20eb522e93fa7934c74b419fd8c6d58b1d69da46c22ce5",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "pos-sync/index.ts",
+          "sha256": "777d35cdfa89f8e8fa0477cd187a07c1a140d3a0d7818752f18103924ffeb872"
+        },
+        {
+          "file": "_shared/fiscal.ts",
+          "sha256": "643c7709cea1bf8843ecab6ceee8e4898516f4a4a005a7d2b04d2182671c0086"
+        },
+        {
+          "file": "_shared/nube.ts",
+          "sha256": "07b77a883c542c27fdc20371a6ebfa15962ff9a3aed90e377351ff2a689dcea8"
+        },
+        {
+          "file": "_shared/pos-sync.ts",
+          "sha256": "d186cdf14f9d6fe43ff9b15ff0208698bbf09b146973947be3aff4fbb27009a4"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": "NO_TOKEN"
+      },
+      "checkedAt": "2026-10-05T07:33:35.315Z"
+    },
+    {
+      "slug": "link-owner",
+      "version": 6,
+      "bundleSha256": "bb224077d6d8f98be1cd7d8de75a7dd9808d5568f501fc7b5c9b1884619ea296",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "link-owner/index.ts",
+          "sha256": "677d86283690db646c0c8917d85d64c6159dc4df595eb9b779522d615451c1b1"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": null
+      },
+      "checkedAt": "2026-10-05T07:33:38.756Z"
+    },
+    {
+      "slug": "fiscal-register-issuer",
+      "version": 12,
+      "bundleSha256": "d2a7d34082c89d67ee5363ba67a278f1711f6560dca37a4f3ddb950f217f6e5e",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "fiscal-register-issuer/index.ts",
+          "sha256": "3e363b5f60677990fcb7fcb79149359327ddcf83b8b4248285cc2f30f61472b7"
+        },
+        {
+          "file": "_shared/fiscal.ts",
+          "sha256": "643c7709cea1bf8843ecab6ceee8e4898516f4a4a005a7d2b04d2182671c0086"
+        },
+        {
+          "file": "_shared/nube.ts",
+          "sha256": "07b77a883c542c27fdc20371a6ebfa15962ff9a3aed90e377351ff2a689dcea8"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": "NO_TOKEN"
+      },
+      "checkedAt": "2026-10-05T07:33:42.097Z"
+    },
+    {
+      "slug": "fiscal-stamp-invoice",
+      "version": 21,
+      "bundleSha256": "048292135bc6d5ac6dc57d3a61639b4586c34f547341f9f814cb4d0a2d271029",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "fiscal-stamp-invoice/index.ts",
+          "sha256": "b833ca677d7f98676bcb774b5395b3aca19f8897e546fd535433f95f3630f2a6"
+        },
+        {
+          "file": "_shared/fiscal.ts",
+          "sha256": "643c7709cea1bf8843ecab6ceee8e4898516f4a4a005a7d2b04d2182671c0086"
+        },
+        {
+          "file": "_shared/nube.ts",
+          "sha256": "07b77a883c542c27fdc20371a6ebfa15962ff9a3aed90e377351ff2a689dcea8"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": "NO_TOKEN"
+      },
+      "checkedAt": "2026-10-05T07:33:45.475Z"
+    },
+    {
+      "slug": "fiscal-invoice-files",
+      "version": 7,
+      "bundleSha256": "9320c2b5fb73fca58be534046927d183552df7b4f8125f7bd2e85d8777416036",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "fiscal-invoice-files/index.ts",
+          "sha256": "04eff34a872a6cf178db70a70822d9af7f0618a6fe5114c34c59dfa2c6b34f60"
+        },
+        {
+          "file": "_shared/fiscal.ts",
+          "sha256": "643c7709cea1bf8843ecab6ceee8e4898516f4a4a005a7d2b04d2182671c0086"
+        },
+        {
+          "file": "_shared/nube.ts",
+          "sha256": "07b77a883c542c27fdc20371a6ebfa15962ff9a3aed90e377351ff2a689dcea8"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": "NO_TOKEN"
+      },
+      "checkedAt": "2026-10-05T07:33:49.115Z"
+    },
+    {
+      "slug": "fiscal-cancel-invoice",
+      "version": 9,
+      "bundleSha256": "9a3203b36751c43dafaad40d3a2a37acea2a3f90d5678e015229771f0b2e01f5",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "fiscal-cancel-invoice/index.ts",
+          "sha256": "63b937db0566301a3c6a73fd89646d9ad43c2838ae2664cc20b91f563b157993"
+        },
+        {
+          "file": "_shared/fiscal.ts",
+          "sha256": "643c7709cea1bf8843ecab6ceee8e4898516f4a4a005a7d2b04d2182671c0086"
+        },
+        {
+          "file": "_shared/nube.ts",
+          "sha256": "07b77a883c542c27fdc20371a6ebfa15962ff9a3aed90e377351ff2a689dcea8"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": "NO_TOKEN"
+      },
+      "checkedAt": "2026-10-05T07:33:52.654Z"
+    },
+    {
+      "slug": "fiscal-claim-history",
+      "version": 2,
+      "bundleSha256": "f228561c0b4df329590c5315053c32ff48862bfd42b9d81f861ee76c89259e3d",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "fiscal-claim-history/index.ts",
+          "sha256": "4785178b544f450ef711dcb3ac77bc06b2a8d184a64c2a3213c0ee72957b3992"
+        },
+        {
+          "file": "_shared/fiscal.ts",
+          "sha256": "643c7709cea1bf8843ecab6ceee8e4898516f4a4a005a7d2b04d2182671c0086"
+        },
+        {
+          "file": "_shared/nube.ts",
+          "sha256": "07b77a883c542c27fdc20371a6ebfa15962ff9a3aed90e377351ff2a689dcea8"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": "NO_TOKEN"
+      },
+      "checkedAt": "2026-10-05T07:33:58.479Z"
+    },
+    {
+      "slug": "owner-mfa",
+      "version": 2,
+      "bundleSha256": "2692145c94d90204d8c2e20f072b061764fb06db63295ac9bfa1615467653b9a",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "owner-mfa/index.ts",
+          "sha256": "a82dc259a924bc5de0d718c50e4405d59ee38688a165a36ec4245bb82697a0e7"
+        },
+        {
+          "file": "_shared/owner-mfa.ts",
+          "sha256": "ba5d077e172ce7c792c4d293eef858b8028b61a56e54969e186a00f46591bce6"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": "NO_SESSION"
+      },
+      "checkedAt": "2026-10-05T07:34:02.697Z"
+    },
+    {
+      "slug": "send-alert-push",
+      "version": 10,
+      "bundleSha256": "58721b4e249bf7210d4c8a7454b4a699c7cb642fbe6f75f85aed2016fff2697f",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "send-alert-push/index.ts",
+          "sha256": "9d20ff52e155475a6357714e449de6b2b9684d5e986f307ec6b1dbdf32ff4e01"
+        },
+        {
+          "file": "_shared/alerta-push-servir.ts",
+          "sha256": "5f62a67999cf4f05dd1ea69cc493ff566a9d57c44c6d4ee35591b0dc0dc88b35"
+        },
+        {
+          "file": "_shared/alerta-push.ts",
+          "sha256": "01842b11b1225fa125591a5eb237e0bc93b1e77c35bc282b593b32071839cc76"
+        },
+        {
+          "file": "_shared/webhook.ts",
+          "sha256": "2868769189b4bea7496685b190beb65498485415ffb78ee8a2a98f3a23104c03"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": null
+      },
+      "checkedAt": "2026-10-05T07:34:06.538Z"
+    },
+    {
+      "slug": "notificar-alerta",
+      "version": 6,
+      "bundleSha256": "ead5ec40975f1339e973a8c9555d2b0c842be49e115ee581db9b0f17aa3d1a7b",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "notificar-alerta/index.ts",
+          "sha256": "0b3d025159ac12ed3920c93f113088ad94f1bfce3f80b5f33fba48d3c0eb1b89"
+        },
+        {
+          "file": "_shared/alerta-push-servir.ts",
+          "sha256": "5f62a67999cf4f05dd1ea69cc493ff566a9d57c44c6d4ee35591b0dc0dc88b35"
+        },
+        {
+          "file": "_shared/alerta-push.ts",
+          "sha256": "01842b11b1225fa125591a5eb237e0bc93b1e77c35bc282b593b32071839cc76"
+        },
+        {
+          "file": "_shared/webhook.ts",
+          "sha256": "2868769189b4bea7496685b190beb65498485415ffb78ee8a2a98f3a23104c03"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": null
+      },
+      "checkedAt": "2026-10-05T07:34:10.185Z"
+    },
+    {
+      "slug": "notificaciones",
+      "version": 2,
+      "bundleSha256": "9e5515ee086e723587ad1f0a29771e18e7b0c2d6e00893adf1a38234d982d551",
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "hashes": [
+        {
+          "file": "notificaciones/index.ts",
+          "sha256": "435fa80a24602736715767facfa527c9e73ad37d674ae7ecb1a969edfcc07fe8"
+        },
+        {
+          "file": "_shared/notificaciones.ts",
+          "sha256": "4b72ce2ae42f1305af6ef1b2c85df58c527714dba263268d91e6f60fad7535af"
+        },
+        {
+          "file": "_shared/webhook.ts",
+          "sha256": "2868769189b4bea7496685b190beb65498485415ffb78ee8a2a98f3a23104c03"
+        }
+      ],
+      "unauthenticated": {
+        "status": 401,
+        "code": null
+      },
+      "checkedAt": "2026-10-05T07:34:13.696Z"
+    }
+  ],
+  "webhook": {
+    "configuredAt": "2026-10-05T07:08:38.986Z",
+    "vaultNames": [
+      "wybix_webhook_secret",
+      "wybix_alerta_push_url",
+      "wybix_notif_url"
+    ],
+    "checks": [
+      {
+        "slug": "send-alert-push",
+        "unauthenticated": 401
+      },
+      {
+        "slug": "notificar-alerta",
+        "unauthenticated": 401
+      },
+      {
+        "slug": "notificaciones",
+        "unauthenticated": 401
+      }
+    ],
+    "authenticatedEmptyAlert": 400,
+    "cronActivated": false
+  },
+  "mobileQa": {
+    "checkedAt": "2026-10-05T07:14:40.219Z",
+    "checks": [
+      {
+        "name": "entitlements_a",
+        "ok": true
+      },
+      {
+        "name": "entitlements_b",
+        "ok": true
+      },
+      {
+        "name": "publish",
+        "ok": true
+      },
+      {
+        "name": "evento_asignar_personal",
+        "ok": true
+      },
+      {
+        "name": "enrollment",
+        "ok": true
+      },
+      {
+        "name": "snapshot",
+        "ok": true
+      },
+      {
+        "name": "pin_local",
+        "ok": true
+      },
+      {
+        "name": "foreign_scope",
+        "ok": true
+      },
+      {
+        "name": "enrollment_one_use",
+        "ok": true
+      },
+      {
+        "name": "sale_shift_sync",
+        "ok": true
+      },
+      {
+        "name": "exactly_once",
+        "ok": true
+      },
+      {
+        "name": "excluded_licenses_unchanged",
+        "ok": true
+      },
+      {
+        "name": "heartbeat_inbox",
+        "ok": true
+      }
+    ]
+  },
+  "approvals": {
+    "checkedAt": "2026-10-05T07:18:05.009Z",
+    "request": "PENDING",
+    "status": "PENDING",
+    "foreignDenied": 403,
+    "consumeBeforeDecisionDenied": 403,
+    "cancel": "CANCELLED",
+    "ownerAal2DecisionTested": false
+  },
+  "oldTestLicenses": {
+    "excluded": 5,
+    "linked": false,
+    "deleted": false
+  },
+  "newQaLicenses": {
+    "count": 2,
+    "origin": "QA",
+    "days": 14,
+    "mobileEntitlementVerified": true
+  },
+  "androidCertificateSha256": "620AEF3E793E31E0FDC578BBA2743E7718912A9C5A4B61B3608616E30D531351",
+  "eas": {
+    "firstBuild": "eb4b9500-e364-4246-a7d4-e7f3adc402b3",
+    "firstStatus": "ERRORED",
+    "retryBuild": "20b1a630-2a35-475f-ab52-2e78ab7b97ce",
+    "retryStatus": "FINISHED",
+    "runtimeVersion": "6895f7b5917621db7e90e2fb8f79c7a45ee1e915",
+    "sourceDirty": true,
+    "completedAt": "2026-10-05T07:36:14Z"
+  },
+  "pending": [
+    "Resend/verified sender",
+    "physical push/email reception",
+    "Owner app reconciliation",
+    "physical hardware/Doze/update",
+    "physical Owner UI/authenticator"
+  ],
+  "cronActive": false,
+  "gitPush": false,
+  "storePublished": false,
+  "preservedEdge": [
+    {
+      "slug": "fiscal-catalogs",
+      "version": 8,
+      "status": "ACTIVE",
+      "bundleUnchanged": true
+    },
+    {
+      "slug": "license-check",
+      "version": 7,
+      "status": "ACTIVE",
+      "bundleUnchanged": true
+    },
+    {
+      "slug": "trial-license",
+      "version": 6,
+      "status": "ACTIVE",
+      "bundleUnchanged": true
+    }
+  ],
+  "secretRotationBumpedRevisions": true,
+  "finalSmoke": {
+    "contratos_ok": true,
+    "cron_inactivo": true,
+    "permisos_ok": true,
+    "version": "20261011170000"
+  },
+  "ownerMfaQa": {
+    "checkedAt": "2026-10-05T07:41:13.406Z",
+    "syntheticAccount": true,
+    "emailsSent": false,
+    "physicalUiTested": false,
+    "checks": [
+      {
+        "name": "owner_login",
+        "ok": true
+      },
+      {
+        "name": "approval_requested",
+        "ok": true
+      },
+      {
+        "name": "owner_list_aal1",
+        "ok": true
+      },
+      {
+        "name": "aal1_cannot_approve",
+        "ok": true
+      },
+      {
+        "name": "bad_totp_denied",
+        "ok": true
+      },
+      {
+        "name": "totp_verify",
+        "ok": true
+      },
+      {
+        "name": "session_aal2",
+        "ok": true
+      },
+      {
+        "name": "mfa_audit",
+        "ok": true
+      },
+      {
+        "name": "changed_payload_denied",
+        "ok": true
+      },
+      {
+        "name": "owner_aal2_approval",
+        "ok": true
+      },
+      {
+        "name": "foreign_cannot_consume",
+        "ok": true
+      },
+      {
+        "name": "altered_payload_cannot_consume",
+        "ok": true
+      },
+      {
+        "name": "approval_consumed",
+        "ok": true
+      },
+      {
+        "name": "approval_single_use",
+        "ok": true
+      },
+      {
+        "name": "recovery_generated",
+        "ok": true
+      },
+      {
+        "name": "aal1_cannot_read_recovery",
+        "ok": true
+      },
+      {
+        "name": "owner_foreign_scope",
+        "ok": true
+      },
+      {
+        "name": "edge_recovery",
+        "ok": true
+      },
+      {
+        "name": "only_qa_factors_removed",
+        "ok": true
+      },
+      {
+        "name": "recovery_one_use",
+        "ok": true
+      }
+    ]
+  },
+  "apk": {
+    "bytes": 120465293,
+    "sha256": "21CBF079C797198D1457E6CB11B8B78DA400443D0371197CDFBBF860627DC164",
+    "signatureVerified": true,
+    "signatureScheme": 2,
+    "certificateMatchesDefinitive": true,
+    "package": "com.wybix.posmobile",
+    "versionName": "0.1.0",
+    "versionCode": 1,
+    "minSdk": 24,
+    "targetSdk": 36,
+    "abis": [
+      "arm64-v8a",
+      "armeabi-v7a",
+      "x86",
+      "x86_64"
+    ],
+    "embeddedRuntimeVersion": "6895f7b5917621db7e90e2fb8f79c7a45ee1e915",
+    "embeddedBackend": "https://www.wybixpos.com.mx/backend",
+    "embeddedChannel": "pos-production",
+    "embeddedProfile": "produccion"
+  },
+  "physicalPilot": {
+    "preparedAt": "2026-10-05T07:47:44.847Z",
+    "virtualTabletRevoked": true,
+    "newEnrollmentPrepared": true,
+    "expiresAt": "2026-10-06T07:47:44.729498+00:00",
+    "qaOnly": true,
+    "oldExcludedLicensesTouched": false
+  }
+}

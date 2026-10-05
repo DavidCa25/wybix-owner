@@ -509,5 +509,21 @@ select t_check('F3-REC02',t_get('conc_ok')->>'ok'='true'
  and pg_temp.t_conc(true,'Otra vez')->>'code'='BAD_TRANSITION',
  'conciliar registra un ajuste en el evento, conserva diferencia y evita repetirlo');
 
+-- Grants de Supabase: las funciones auxiliares no son endpoints públicos.
+select t_check('F3-SEC01',
+ not has_table_privilege('authenticated','public.location_stock','INSERT')
+ and not has_table_privilege('anon','public.location_stock','SELECT'),
+ 'la vista de stock es de lectura y no conserva los grants heredados de Supabase');
+select t_check('F3-SEC02',
+ not has_function_privilege('anon','public.wx_stock_desglose(uuid)','EXECUTE')
+ and not has_function_privilege('authenticated','public.wx_stock_desglose(uuid)','EXECUTE')
+ and has_function_privilege('service_role','public.wx_stock_desglose(uuid)','EXECUTE'),
+ 'el desglose interno no permite consultar inventario de otra empresa mediante RPC directo');
+select t_check('F3-SEC03',
+ not has_function_privilege('anon','public.wx_aprob_exigir_evento(public.devices,jsonb)','EXECUTE')
+ and not has_function_privilege('authenticated','public.wx_aprob_exigir_evento(public.devices,jsonb)','EXECUTE')
+ and has_function_privilege('service_role','public.wx_aprob_exigir_evento(public.devices,jsonb)','EXECUTE'),
+ 'el validador interno de aprobaciones solo admite llamadas del backend confiable');
+
 select 'ok|' || id || '|' || msg || coalesce(' · ' || det, '') from t_res where ok and id like 'F3-%' order by n;
 select 'FALLA|' || id || '|' || msg || coalesce(' · ' || det, '') from t_res where not ok and id like 'F3-%' order by n;

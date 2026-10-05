@@ -97,12 +97,12 @@ create table if not exists public.resumen_ventas (
   id uuid primary key default gen_random_uuid(),
   sucursal_id uuid not null references public.sucursales(id) on delete cascade,
   fecha date not null,
-  total numeric not null default 0,
+  total numeric(12,2) not null default 0,
   num_tickets int not null default 0,
-  ticket_promedio numeric not null default 0,
-  total_efectivo numeric not null default 0,
-  total_tarjeta numeric not null default 0,
-  total_credito numeric not null default 0,
+  ticket_promedio numeric(12,2) not null default 0,
+  total_efectivo numeric(12,2) not null default 0,
+  total_tarjeta numeric(12,2) not null default 0,
+  total_credito numeric(12,2) not null default 0,
   actualizado_at timestamptz not null default now(),
   utilidad numeric default 0,
   unique (sucursal_id, fecha)
@@ -112,7 +112,7 @@ create table if not exists public.tendencia_ventas (
   id uuid primary key default gen_random_uuid(),
   sucursal_id uuid not null references public.sucursales(id) on delete cascade,
   fecha date not null,
-  total numeric not null default 0,
+  total numeric(12,2) not null default 0,
   actualizado_at timestamptz not null default now(),
   unique (sucursal_id, fecha)
 );
@@ -123,8 +123,8 @@ create table if not exists public.top_productos (
   sucursal_id uuid not null references public.sucursales(id) on delete cascade,
   fecha date not null,
   producto text not null,
-  cantidad numeric not null,
-  importe numeric not null,
+  cantidad numeric(12,2) not null,
+  importe numeric(12,2) not null,
   actualizado_at timestamptz not null default now()
 );
 create index if not exists ix_top_prod on public.top_productos (sucursal_id, fecha);
@@ -136,10 +136,10 @@ create table if not exists public.cortes_caja (
   caja text,
   abierto_at timestamptz,
   cerrado_at timestamptz,
-  fondo_inicial numeric,
-  esperado numeric,
-  entregado numeric,
-  diferencia numeric,
+  fondo_inicial numeric(12,2),
+  esperado numeric(12,2),
+  entregado numeric(12,2),
+  diferencia numeric(12,2),
   actualizado_at timestamptz not null default now(),
   movimientos jsonb,
   unique (sucursal_id, closure_id_local)

@@ -1,0 +1,96 @@
+{
+  "offline": {
+    "pendientes": 13,
+    "texto": "Sin conexión · 13 operaciones pendientes",
+    "stock": [
+      {
+        "product_uuid": "9ec4eaaf-6438-4315-a942-708599edcfac",
+        "qty": "9"
+      },
+      {
+        "product_uuid": "f78e6db8-bc65-48d1-a7f3-0ee7d2e5e6ad",
+        "qty": "8"
+      }
+    ]
+  },
+  "owner": [
+    {
+      "nombre": "Centro",
+      "tipo": "BRANCH",
+      "ventas": 100,
+      "tickets": 2,
+      "ultima_sincronizacion": "2026-10-04T02:12:40.178543+00:00"
+    },
+    {
+      "nombre": "Norte",
+      "tipo": "BRANCH",
+      "ventas": 120,
+      "tickets": 1,
+      "ultima_sincronizacion": "2026-10-04T02:12:12.947566+00:00"
+    },
+    {
+      "nombre": "Feria León 2026",
+      "tipo": "EVENT",
+      "ventas": 800,
+      "tickets": 8,
+      "ultima_sincronizacion": "2026-10-04T02:12:36.314393+00:00"
+    }
+  ],
+  "total": {
+    "neto": 1020,
+    "tickets": 11
+  },
+  "dispositivos": [
+    {
+      "id": "84b022a0-a8ad-4084-843e-f9775222438b",
+      "kind": "POS_PRIMARY",
+      "name": "CAJA-CENTRO",
+      "tipo": "BRANCH",
+      "status": "ACTIVE",
+      "en_linea": true,
+      "location": "Centro",
+      "register": null,
+      "revoked_at": null,
+      "app_version": null,
+      "location_id": "a063d6f3-d0c2-4964-8b8e-716576f7473b",
+      "last_seen_at": "2026-10-04T02:12:52.604737+00:00",
+      "last_sync_at": "2026-10-04T02:12:52.604737+00:00",
+      "pending_events": null,
+      "clock_skew_seconds": null
+    },
+    {
+      "id": "65665c9f-9ddb-4dae-bdb6-a3655a78f9b9",
+      "kind": "POS_PRIMARY",
+      "name": null,
+      "tipo": "BRANCH",
+      "status": "ACTIVE",
+      "en_linea": true,
+      "location": "Norte",
+      "register": null,
+      "revoked_at": null,
+      "app_version": null,
+      "location_id": "d8e7086e-09ad-4c09-b980-3e8d9e173842",
+      "last_seen_at": "2026-10-04T02:12:12.947566+00:00",
+      "last_sync_at": "2026-10-04T02:12:12.947566+00:00",
+      "pending_events": null,
+      "clock_skew_seconds": null
+    },
+    {
+      "id": "cbe8102b-75df-40b5-8340-9d8de6ad7844",
+      "kind": "MOBILE_POS",
+      "name": "Tablet Feria",
+      "tipo": "EVENT",
+      "status": "REVOKED",
+      "en_linea": true,
+      "location": "Feria León 2026",
+      "register": "F1",
+      "revoked_at": "2026-10-04T02:12:55.507977+00:00",
+      "app_version": "0.1.0",
+      "location_id": "e86d318c-5e81-4218-89d9-df885cc96715",
+      "last_seen_at": "2026-10-04T02:12:56.287906+00:00",
+      "last_sync_at": "2026-10-04T02:12:56.022121+00:00",
+      "pending_events": 0,
+      "clock_skew_seconds": 0
+    }
+  ]
+}

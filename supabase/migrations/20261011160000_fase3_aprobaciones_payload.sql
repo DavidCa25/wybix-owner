@@ -41,6 +41,8 @@ begin
   if not coalesce(correcto, false) then raise exception 'WX_REJECT: operación distinta a la aprobada'; end if;
 end $$;
 revoke all on function public.wx_aprob_exigir_evento(public.devices, jsonb) from public;
+revoke all on function public.wx_aprob_exigir_evento(public.devices, jsonb) from anon, authenticated;
+grant execute on function public.wx_aprob_exigir_evento(public.devices, jsonb) to service_role;
 
 create or replace function public.sync_ingest(p jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$

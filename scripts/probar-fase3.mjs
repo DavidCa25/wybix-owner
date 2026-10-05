@@ -45,6 +45,11 @@ try {
   for (const m of CADENA) { const a = aplicar(m); if (!a.ok) check('F3-BASE', false, m, a.err); }
   const f1 = correrPruebas('tests/fase1.test.sql', 'F1-');
   check('F3-BASE01', f1.length > 0 && f1.every((x) => x.ok), `Fase 1 sigue verde antes de la Fase 3 (${f1.filter((x) => x.ok).length}/${f1.length})`);
+  // Supabase concede grants por omisión que un Postgres vacío no reproduce.
+  // Las fases posteriores deben retirar esos permisos antes de abrir lo justo.
+  const defaults = psql(`alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+    alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;`);
+  if (defaults.code !== 0) throw new Error('No se pudieron reproducir los grants por omisión de Supabase.');
   const a2 = aplicar(F2); if (!a2.ok) check('F3-BASE', false, F2, a2.err);
   const f2 = correrPruebas('tests/fase2.test.sql', 'F2-').filter((x) => x.id.startsWith('F2-'));
   check('F3-BASE02', f2.length > 0 && f2.every((x) => x.ok), `Fase 2 sigue verde antes de la Fase 3 (${f2.filter((x) => x.ok).length}/${f2.length})`,

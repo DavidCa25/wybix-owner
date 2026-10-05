@@ -3,11 +3,11 @@
     "neto": 476,
     "tickets": 4
   },
-  "company_id": "e5275fce-03c5-4908-82a2-c8cdfcbf19e6",
+  "company_id": "9126ecc6-13c1-4d34-bbec-895d4cd1ca96",
   "ubicaciones": [
     {
       "tipo": "BRANCH",
-      "fecha": "2026-10-02",
+      "fecha": "2026-10-03",
       "nombre": "Centro",
       "status": "ACTIVE",
       "ventas": {
@@ -16,24 +16,24 @@
         "fuente": "hechos",
         "tickets": 2
       },
-      "location_id": "ef2cdb39-3cbc-4ebf-841a-aa8e14b1d532",
+      "location_id": "0d0b494a-389c-4c24-9e95-36c21cf695ec",
       "ultimo_corte": {
         "caja": "Caja 1",
         "fuente": "hechos",
         "contado": 640,
         "a_ciegas": true,
         "esperado": 650.5,
-        "abierto_at": "2026-10-02T02:54:01+00:00",
-        "cerrado_at": "2026-10-02T08:44:01+00:00",
+        "abierto_at": "2026-10-03T14:11:10-06:00",
+        "cerrado_at": "2026-10-03T20:01:10-06:00",
         "diferencia": -10.5,
-        "shift_uuid": "69bbf007-a475-4fec-ac17-77ffe547c993",
+        "shift_uuid": "ab45752b-4cc3-4533-a910-13df0d617d5b",
         "cerrado_por": "marta"
       },
       "turnos_abiertos": []
     },
     {
       "tipo": "BRANCH",
-      "fecha": "2026-10-02",
+      "fecha": "2026-10-03",
       "nombre": "Norte",
       "status": "ACTIVE",
       "ventas": {
@@ -42,21 +42,21 @@
         "fuente": "hechos",
         "tickets": 2
       },
-      "location_id": "35412c6a-6178-49b5-98ca-b0112880483e",
+      "location_id": "147a8e0f-160b-44e4-ab8d-695d32216a08",
       "ultimo_corte": null,
       "turnos_abiertos": [
         {
           "caja": "Caja Norte",
           "fondo": 300,
-          "abierto_at": "2026-10-02T05:54:01+00:00",
-          "shift_uuid": "ac556509-1845-45a5-b425-75a1ef54d19c",
+          "abierto_at": "2026-10-03T17:11:10-06:00",
+          "shift_uuid": "3b0a2a1b-7907-4eb2-aff6-0b4c0d5de1bf",
           "abierto_por": "pepe"
         }
       ]
     },
     {
       "tipo": "EVENT",
-      "fecha": "2026-10-02",
+      "fecha": "2026-10-03",
       "nombre": "Feria del Libro",
       "status": "PENDING",
       "ventas": {
@@ -65,7 +65,7 @@
         "fuente": "sin_datos",
         "tickets": 0
       },
-      "location_id": "17ec98d1-3ab4-472e-8d12-e7f361f407a8",
+      "location_id": "3ae80755-0b5e-425d-bec6-9b72f027f5ec",
       "ultimo_corte": null,
       "turnos_abiertos": []
     }

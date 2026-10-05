@@ -1,25 +1,27 @@
-# Plan de deploy de Fase 3 — preparado, no autorizado
+# Deploy de Fase 3 — backend aplicado y verificado
 
 ## Estado remoto actual
 
-Consulta del 4 de octubre de 2026 mediante CLI autenticada y SELECT del catálogo del sistema. Proyecto `swlpspgmkwzlrowllvvj`, región us-east-2, PostgreSQL 17.6. Un único proyecto accesible; lista de branches vacía. **No se encontró staging utilizable**; no se creó infraestructura.
+Actualizado el 5 de octubre de 2026. Proyecto `swlpspgmkwzlrowllvvj`, región us-east-2, PostgreSQL 17.6. El propietario autorizó continuar los siguientes pasos, excluyendo cinco licencias antiguas de prueba. No hay staging accesible; se utilizó un ensayo local aislado sobre el backup restaurado antes de aplicar cada etapa remota.
 
-El remoto tiene 26 tablas/vistas públicas, 259 columnas, 25 funciones SQL, 9 políticas y 2 triggers. `supabase_migrations.schema_migrations` existe, pero no tiene registros. Esto NO significa que nunca se haya aplicado SQL: el esquema legado y licenciamiento V2 existen y fueron administrados fuera de ese historial.
+El remoto contiene ahora 60 tablas/vistas públicas y catorce versiones registradas: cuatro baseline, Fase 1, Fase 2 y ocho Fase 3. Cada etapa nueva se aplicó en transacción y pasó smoke de contratos, hashes normalizados, grants, RLS, políticas y triggers antes de registrar su historial.
 
-Faltan las tablas de empresa/dispositivo, hechos, transferencias, catálogo publicado, MFA, notification engine y aprobaciones. Faltan sus RPCs, políticas y columnas. `pg_net` y `supabase_vault` están instalados; `pg_cron` no. Vault no tiene referencias configuradas. El delta exhaustivo está en `../evidencia/fase3/cierre-operativo/delta.json`; inventarios local/remoto conservan nombres, tipos, RLS, políticas y hashes, sin datos de clientes ni valores de secretos. Una diferencia de hash también puede ser de formato; no justifica sustituir funciones a ciegas.
+Los contratos requeridos están instalados; las once funciones del delta están ACTIVE y sus bundles coinciden con las fuentes locales. pg_net, Vault y pg_cron están disponibles. Vault tiene las tres referencias de Wybix; el job está INACTIVO. El inventario del 4 de octubre bajo cierre-operativo es evidencia histórica, no el estado vigente. Véanse FASES2-3-APLICACION.md y la evidencia depurada del despliegue actual.
 
 | Edge remota | Versión | JWT gateway |
 |---|---:|---|
-| pos-sync | 1 | desactivado |
-| link-owner | 4 | desactivado |
-| license-check / trial-license | 6 / 5 | desactivado |
-| fiscal-catalogs | 7 | desactivado |
-| fiscal-register-issuer | 10 | desactivado |
-| fiscal-invoice-files | 5 | desactivado |
-| fiscal-stamp-invoice | 19 | desactivado |
-| fiscal-cancel-invoice | 7 | desactivado |
-| send-alert-push / notificar-alerta | 8 / 4 | desactivado |
-| owner-mfa / notificaciones / fiscal-claim-history | ausentes | — |
+| pos-sync | 3 | desactivado |
+| link-owner | 6 | desactivado |
+| license-check / trial-license | 7 / 6 | desactivado |
+| fiscal-catalogs | 8 | desactivado |
+| fiscal-register-issuer | 12 | desactivado |
+| fiscal-invoice-files | 7 | desactivado |
+| fiscal-stamp-invoice | 21 | desactivado |
+| fiscal-cancel-invoice | 9 | desactivado |
+| send-alert-push / notificar-alerta | 10 / 6 | desactivado |
+| owner-mfa / notificaciones / fiscal-claim-history | 2 / 2 / 2 | desactivado |
+
+La rotación de secrets incrementó automáticamente una revisión en todas las funciones. Los bundles de license-check, trial-license y fiscal-catalogs conservan exactamente su SHA-256 anterior: no se actualizó su código.
 
 ## Estado local
 
@@ -88,7 +90,7 @@ El gateway no exige JWT porque POS autentica credencial propia, owner-mfa verifi
 
 Existen por nombre: `FISCALAPI_API_KEY`, `FISCALAPI_TENANT`, `FISCALAPI_URL`, `LICENSE_PUBLIC_KEYS`, `LICENSE_SECRET`, `LICENSE_SIGNING_KEY`, `LICENSE_SIGNING_KID`, `WEBHOOK_SECRET` y secretos administrados `SUPABASE_*`. Valores no consultados ni publicados. La presencia de un nombre no demuestra que una credencial funcione.
 
-Faltan `RESEND_API_KEY`, `NOTIF_EMAIL_FROM`. `EXPO_ACCESS_TOKEN` es condicional a la configuración de seguridad push de Expo. Validar dominio/remitente con el proveedor antes de activar email. Rotar `WEBHOOK_SECRET` según `fase3-push-secretos.md`, de forma coordinada con Vault y los dos emisores. No regenerar las llaves de licencia ni Android.
+Faltan `RESEND_API_KEY`, `NOTIF_EMAIL_FROM`. `EXPO_ACCESS_TOKEN` es condicional a la configuración de seguridad push de Expo. Validar dominio/remitente con el proveedor antes de activar email. WEBHOOK_SECRET ya se rotó coordinadamente con Vault y se comprobó mediante una petición vacía autenticada sin destinatarios. Las llaves de licencia y Android se preservaron.
 
 `FISCAL_PERMITIR_LEGADO` no existe. Decidir expresamente si hay POS fiscales antiguos: habilitarlo solo durante una transición controlada, usando las restricciones del handler; retirarlo cuando se haya actualizado el último cliente. No habilitarlo por conveniencia del QA.
 
@@ -96,7 +98,7 @@ Guardar valores nuevos en archivo local ignorado bajo `.secrets/` o en el gestor
 
 ## Vault
 
-Configurar `wybix_webhook_secret`, `wybix_alerta_push_url`, `wybix_notif_url`. El primero debe coincidir con WEBHOOK_SECRET; las URL apuntan a `/functions/v1/send-alert-push` y `/functions/v1/notificaciones` del proyecto. Usar el panel SQL seguro con `vault.create_secret`/`vault.update_secret`; guardar solo nombres en la evidencia. Las referencias están vacías ahora.
+`wybix_webhook_secret`, `wybix_alerta_push_url` y `wybix_notif_url` ya están configurados. El primero coincide con WEBHOOK_SECRET; las URL apuntan a `/functions/v1/send-alert-push` y `/functions/v1/notificaciones`. Valores y SQL con credenciales permanecen bajo .secrets; la evidencia versionable incluye solo nombres/resultados.
 
 ## Dependencias
 
@@ -122,4 +124,4 @@ Después de cada etapa: SELECT de tablas/columnas/RPCs/RLS/triggers del bloque, 
 
 Consulta repetible sin datos sensibles: `supabase db query --linked --file supabase/scripts/fase3-preflight.sql -o json`. No ejecutar las suites que siembran pruebas contra el proyecto remoto.
 
-**Gate pendiente:** autorización explícita para las acciones SQL, reparación del historial, secrets/Vault, despliegues Edge y activación del worker descritas arriba. El trabajo local continúa sin esa autorización. EAS productivo permanece bloqueado hasta pasar la matriz de compatibilidad.
+**Pendientes:** proveedor/remitente email, recepción push/email, Auth TOTP real y prueba Owner AAL2, conciliación de la app Owner no verificada y hardware. Cron sigue apagado hasta verificar la entrega. Las cinco licencias excluidas no bloquean estas tareas. El backend pasó enrolamiento/snapshot/PIN/venta/turno/cierre reales en dos empresas QA aisladas. Se solicitó APK interno EAS con la llave existente; revisar RELEASE-EAS.md para resultado de build/firma. No se publicó en tiendas ni se hizo push Git.

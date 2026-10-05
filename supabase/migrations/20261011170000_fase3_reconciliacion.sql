@@ -13,6 +13,8 @@ language sql stable security definer set search_path = public as $$
  where st.location_id=p_location and st.qty<>0
 $$;
 revoke all on function public.wx_stock_desglose(uuid) from public;
+revoke all on function public.wx_stock_desglose(uuid) from anon, authenticated;
+grant execute on function public.wx_stock_desglose(uuid) to service_role;
 
 create or replace function public.evento_cambiar_estado(p jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$

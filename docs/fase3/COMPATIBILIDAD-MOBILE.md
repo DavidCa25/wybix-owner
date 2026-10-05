@@ -1,24 +1,26 @@
 # Mobile actual frente al backend remoto
 
-Proyecto consultado: `swlpspgmkwzlrowllvvj`, 4 de octubre de 2026. La evidencia actual tiene prioridad sobre el historial documental. No se construirá un APK productivo antes de pasar los contratos requeridos.
+Proyecto: `swlpspgmkwzlrowllvvj`, actualizado el 5 de octubre de 2026. Backend Fase 1/2/3 aplicado, catorce versiones registradas y once funciones actualizadas. Smoke positivo realizado a través de la ruta pública de la landing con dos empresas QA nuevas; las cinco licencias antiguas sin empresa quedan excluidas.
 
 | Componente Mobile | Contrato backend requerido | Disponible remoto | Evidencia |
 |---|---|---|---|
-| Enrolamiento | `enroll` → `pos_enroll`, devices/registers/entitlements, kind MOBILE_POS | NO | pos-sync v1; devices/registers ausentes |
-| Login/PIN | Snapshot staff, rol por evento, hashes y bloqueo SQLite | Local sí; provisión remota NO | Auth/local tests; employees/location_staff ausentes |
-| Snapshot | `mobile_snapshot`, catalog_publications/personal/caja | NO | RPC/tablas ausentes |
-| Turnos | SHIFT events → sync_ingest/shift_facts | NO | Hechos/RPC ausentes |
-| Ventas | SALE events → sales_facts/sale_line_facts | NO | Tablas ausentes |
-| Sync/outbox | events, sync_ingest, device scope/idempotencia | NO | sync_events/dispositivos ausentes; outbox es local |
-| Inbox/latido | mobile_inbox/mobile_heartbeat/app_releases | NO | RPC/tablas ausentes |
-| Rechazo/cuarentena | Respuesta por event_uuid y auditoría; local conserva estado | NO | Nuevo ingest ausente |
-| Impresión | Ticket y print_jobs SQLite; LAN/Android fuera de transacción | Sin RPC propia; ventas requeridas NO | Pruebas locales y diálogo Android |
-| Remote approvals | approval_request/status/consume/cancel → aprobacion_* | NO | approval_requests/policies/RPCs ausentes |
-| Business date | Fecha de turno, validación de drift en proyección | NO | Nuevo ingest/shift_facts ausentes |
-| Reconciliación | Owner owner_evento_estado/evento_cambiar_estado, ledger y desglose | NO | RPC/tablas ausentes |
-| Background | Mismo events/snapshot/inbox/latido, worker headless cifrado | Local sí; backend remoto NO | Caso con proceso cerrado local y faltantes anteriores |
+| Enrolamiento | `enroll` → `pos_enroll`, devices/registers/entitlements, kind MOBILE_POS | SÍ | PASS real; código consumido no reutilizable |
+| Login/PIN | Snapshot staff, rol por evento, hashes y bloqueo SQLite | SÍ | Snapshot remoto aplicado a SQLite; PIN QA validado |
+| Snapshot | `mobile_snapshot`, catalog_publications/personal/caja | SÍ | PASS catálogo y personal por evento |
+| Turnos | SHIFT events → sync_ingest/shift_facts | SÍ | Apertura/cierre QA proyectados |
+| Ventas | SALE events → sales_facts/sale_line_facts | SÍ | Una venta QA tras envío y repetición |
+| Sync/outbox | events, sync_ingest, device scope/idempotencia | SÍ | Outbox cero; sin rechazo/cuarentena ni duplicados |
+| Inbox/latido | mobile_inbox/mobile_heartbeat/app_releases | SÍ | Motor completo remoto PASS |
+| Rechazo/cuarentena | Respuesta por event_uuid y auditoría; local conserva estado | SÍ | Contratos/grants smoke; casos detallados locales |
+| Impresión | Ticket y print_jobs SQLite; LAN/Android fuera de transacción | SÍ, sin RPC propia | Backend venta PASS; hardware pendiente |
+| Remote approvals | approval_request/status/consume/cancel → aprobacion_* | SÍ | PENDING/status/CANCELLED; scope ajeno y consumo prematuro negados; decisión Owner AAL2 pendiente |
+| Business date | Fecha de turno, validación de drift en proyección | SÍ | Venta/cierre QA aceptados; límites de fecha locales |
+| Reconciliación | Owner owner_evento_estado/evento_cambiar_estado, ledger y desglose | SÍ | Smoke contratos/grants y SQL local; piloto Owner pendiente |
+| Background | Mismo events/snapshot/inbox/latido, worker headless cifrado | SÍ | Backend completo PASS; prueba física del nuevo APK pendiente |
 
-Owner requiere además membresías, eventos/personal/dispositivos, `mfa_estado`, `mfa_generar_codigos`, `mfa_registrar`, recuperación owner-mfa, preferencias/avisos y owner_aprobaciones/owner_decidir_aprobacion. El inventario remoto no tiene estos contratos. La presencia del antiguo link-owner no demuestra membresías/invitaciones seguras.
+Owner dispone remotamente de membresías, eventos/personal/dispositivos, RPCs MFA, recuperación owner-mfa, preferencias/avisos y aprobaciones. Los smokes verifican cuerpos/permisos; las rutas sin sesión rechazan con 401. Esto no certifica Auth TOTP, decisión Owner AAL2 o recepción push/email físicos. Cron está apagado hasta verificar proveedor/remitente y recepción. La app Owner antigua no verificada sigue necesitando evidencia para conciliarla.
+
+Comprobación adicional remota: Supabase Auth enroló/verificó TOTP para una cuenta sintética QA; AAL1 no pudo decidir, AAL2 aprobó y la tablet consumió una vez. Código de recuperación Edge consumido una vez y factores QA retirados: PASS, 20 controles. Esta prueba verifica el protocolo real; UI/autenticador físicos y recepción siguen pendientes. El APK interno final pasó firma/certificado/runtime, y la tablet virtual sincronizada fue revocada con Owner AAL2 para liberar el cupo del piloto físico.
 
 ## Licencia decidida
 

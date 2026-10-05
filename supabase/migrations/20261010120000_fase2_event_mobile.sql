@@ -1235,7 +1235,9 @@ create policy "miembro ve lineas de venta" on public.sale_line_facts for select 
 
 -- La vista de stock respeta la RLS de quien consulta.
 alter view public.location_stock set (security_invoker = true);
-revoke all on public.location_stock from anon;
+-- El entorno Supabase concede privilegios por omisión a authenticated:
+-- retirar también esos grants antes de abrir únicamente lectura.
+revoke all on public.location_stock from anon, authenticated;
 grant select on public.location_stock to authenticated, service_role;
 
 -- Los hashes de PIN NUNCA son legibles desde la app: solo columnas no sensibles.

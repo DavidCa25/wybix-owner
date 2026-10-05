@@ -52,6 +52,7 @@ end $$;
 revoke all on function public.wx_alerta_push() from public;
 do $$ begin
   if exists (select 1 from pg_roles where rolname = 'anon') then revoke all on function public.wx_alerta_push() from anon, authenticated; end if;
+  if exists (select 1 from pg_roles where rolname = 'service_role') then grant execute on function public.wx_alerta_push() to service_role; end if;
 end $$;
 
 -- El trigger del panel (con el secreto escrito) se reemplaza.

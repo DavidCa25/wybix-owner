@@ -6,6 +6,8 @@
 --    wybix_notif_url        https://<proyecto>.supabase.co/functions/v1/notificaciones
 --    wybix_webhook_secret   igual a WEBHOOK_SECRET de las funciones
 --  Sin configuración en Vault no llama a nadie (falla cerrado).
+--  El job se crea INACTIVO: el propietario lo activa después de validar
+--  worker, Vault y proveedores. Aplicar esta migración no habilita entregas.
 --
 --  Donde no hay pg_cron (Postgres de pruebas) solo se crea la función; el
 --  ciclo se prueba llamando a la función de borde directamente.
@@ -37,6 +39,7 @@ end $$;
 revoke all on function public.wx_notif_disparar() from public;
 do $$ begin
   if exists (select 1 from pg_roles where rolname = 'anon') then revoke all on function public.wx_notif_disparar() from anon, authenticated; end if;
+  if exists (select 1 from pg_roles where rolname = 'service_role') then grant execute on function public.wx_notif_disparar() to service_role; end if;
 end $$;
 
 do $$
@@ -47,6 +50,7 @@ begin
       perform cron.unschedule('wybix-notificaciones');
     end if;
     perform cron.schedule('wybix-notificaciones', '* * * * *', 'select public.wx_notif_disparar()');
+    perform cron.alter_job((select jobid from cron.job where jobname = 'wybix-notificaciones'), active := false);
   else
     raise notice 'pg_cron no está disponible aquí: el ciclo de notificaciones no se programa';
   end if;

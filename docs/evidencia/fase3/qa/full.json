@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-04T20:12:55.463Z",
+  "at": "2026-10-05T06:56:21.573Z",
   "level": "full",
   "ok": true,
   "evidence": [
@@ -13,7 +13,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\apps\\owner",
       "exit": 0,
-      "seconds": 9.377
+      "seconds": 3.4
     },
     {
       "command": [
@@ -25,7 +25,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\apps\\pos-mobile",
       "exit": 0,
-      "seconds": 3.988
+      "seconds": 3.016
     },
     {
       "command": [
@@ -37,7 +37,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\api",
       "exit": 0,
-      "seconds": 1.257
+      "seconds": 1.348
     },
     {
       "command": [
@@ -49,7 +49,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\auth",
       "exit": 0,
-      "seconds": 0.803
+      "seconds": 0.853
     },
     {
       "command": [
@@ -61,7 +61,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\database",
       "exit": 0,
-      "seconds": 1.255
+      "seconds": 1.159
     },
     {
       "command": [
@@ -73,7 +73,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\domain",
       "exit": 0,
-      "seconds": 0.99
+      "seconds": 0.917
     },
     {
       "command": [
@@ -85,7 +85,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\sync",
       "exit": 0,
-      "seconds": 1.225
+      "seconds": 1.182
     },
     {
       "command": [
@@ -97,7 +97,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\ui",
       "exit": 0,
-      "seconds": 1.587
+      "seconds": 1.367
     },
     {
       "command": [
@@ -123,7 +123,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner",
       "exit": 0,
-      "seconds": 7.846
+      "seconds": 6.993
     },
     {
       "command": [
@@ -132,7 +132,7 @@
       ],
       "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner",
       "exit": 0,
-      "seconds": 14.54
+      "seconds": 13.132
     }
   ]
 }

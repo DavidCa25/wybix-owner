@@ -1,6 +1,6 @@
 # Paso 0 — Preparación
 
-Guía del piloto QA desde instalación limpia. Todos los casos empiezan **PENDIENTES**; la evidencia automática existente no equivale a una ejecución manual. Leer [PLAN-DEPLOY.md](PLAN-DEPLOY.md), [COMPATIBILIDAD-MOBILE.md](COMPATIBILIDAD-MOBILE.md) y [RELEASE-EAS.md](RELEASE-EAS.md). El remoto actual es incompatible: no instalar un APK productivo para certificarlo hasta resolver ese gate.
+Guía del piloto QA desde instalación limpia. Todos los casos manuales empiezan **PENDIENTES**; la evidencia automática no equivale a una ejecución física. Leer [PLAN-DEPLOY.md](PLAN-DEPLOY.md), [COMPATIBILIDAD-MOBILE.md](COMPATIBILIDAD-MOBILE.md) y [RELEASE-EAS.md](RELEASE-EAS.md). Al 5 de octubre el backend está aplicado y pasó el smoke Mobile positivo. Usar únicamente el nuevo APK después de verificar su firma y metadatos; correo/push físicos y Owner AAL2 siguen pendientes.
 
 ## Licencia y escenarios — Opción D
 
@@ -22,7 +22,7 @@ Disponer de tablet Android compatible con el APK verificado, Wi-Fi, PC Windows c
 
 ### Pasos
 
-Confirmar backend completo siguiendo PLAN-DEPLOY.md y COMPATIBILIDAD-MOBILE.md. Guardar hash, firma, versión, versionCode y modelo/Android. Reservar tablet y cuentas exclusivamente QA. Usar buzón de prueba real y acceso a su correo. No empezar con el backend actual incompleto.
+Confirmar backend completo siguiendo PLAN-DEPLOY.md y COMPATIBILIDAD-MOBILE.md. Guardar hash, firma, versión, versionCode y modelo/Android. Reservar tablet y cuentas exclusivamente QA. Usar buzón de prueba real y acceso a su correo. El backend ya pasó smoke; proveedor de correo, recepción push, Owner AAL2 y hardware siguen pendientes.
 
 ### Resultado esperado
 

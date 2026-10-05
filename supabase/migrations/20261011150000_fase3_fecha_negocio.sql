@@ -35,6 +35,7 @@ end $$;
 revoke all on function public.wx_fecha_verificar_venta() from public;
 do $$ begin
   if exists (select 1 from pg_roles where rolname = 'anon') then revoke all on function public.wx_fecha_verificar_venta() from anon, authenticated; end if;
+  if exists (select 1 from pg_roles where rolname = 'service_role') then grant execute on function public.wx_fecha_verificar_venta() to service_role; end if;
 end $$;
 drop trigger if exists wx_fecha_verificar on public.sync_events;
 create trigger wx_fecha_verificar after insert on public.sync_events for each row

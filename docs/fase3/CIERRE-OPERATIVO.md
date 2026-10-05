@@ -1,20 +1,31 @@
 # 1. Veredicto
 
-**PARCIALMENTE LISTA.** Implementación local y QA técnico verificados. Backend remoto incompatible, firma EAS productiva y validación física pendientes; no declarar Fase 3 cerrada.
+**BACKEND Y APK FIRMADO LISTOS PARA PILOTO FÍSICO.** Al 5 de octubre están instaladas Fases 1/2/3, el historial tiene catorce versiones y las once Edge Functions del delta están verificadas. El APK interno terminó y su firma coincide con la llave definitiva. MFA/TOTP, aprobaciones AAL2 y recuperación Edge reales pasaron con una cuenta sintética. Cron permanece apagado hasta verificar proveedor/remitente y recepción. No declarar la fase cerrada antes del piloto físico.
 
 # 2. Backend
 
-Consulta remota de metadatos, sin deploy ni cambios de datos/esquema. Proyecto swlpspgmkwzlrowllvvj; no hay staging accesible ni branches. Historial de migraciones remoto vacío pese al esquema legado: baseline requiere equivalencia antes de reparar historial. Faltan Fase 1/2/3, tablas/RPCs y Edge owner-mfa/notificaciones/fiscal-claim-history; pos-sync remoto v1. pg_net/Vault instalados, Vault sin referencias, pg_cron ausente. PLAN-DEPLOY.md contiene 14 migraciones en orden, funciones, secrets, dependencias, riesgos, rollback y smokes. COMPATIBILIDAD-MOBILE.md identifica contratos faltantes.
+Proyecto swlpspgmkwzlrowllvvj. Backup lógico restaurado y verificado: 55 tablas/8783 filas. Baseline y Fase 1 verificados previamente; las nueve etapas nuevas se ensayaron con pg_cron real en un contenedor aislado sin red y luego se aplicaron individualmente en remoto, con smoke antes de registrar historial. Las catorce versiones están registradas; 60 tablas/vistas públicas. Se corrigieron grants heredados en location_stock y helpers internos, y el cron se instala inactivo.
+
+Once funciones actualizadas, ACTIVE, código descargado coincidente y rechazo sin identidad comprobado. WEBHOOK_SECRET rotado y tres referencias Vault configuradas; rechazo sin secreto 401. license-check, trial-license y fiscal-catalogs se preservaron. No se activó FISCAL_PERMITIR_LEGADO ni se hicieron operaciones fiscales con datos reales.
+
+El propietario excluyó las cinco licencias antiguas de prueba sin empresa: permanecen sin vincular ni borrar. El piloto usa dos licencias origin=QA nuevas previstas en la guía, con Mobile efectivo, vigencia de 14 días y empresas aisladas. Smoke por la URL pública: enrolamiento, código de un uso, snapshot, PIN local, scope ajeno, venta/turno/cierre, sync e idempotencia PASS. Solicitud/consulta/cancelación de aprobación PASS; consumo prematuro y empresa ajena negados. Decisión Owner AAL2 física pendiente.
 
 # 3. Release
 
-EAS configurado para production-apk, credentialsSource remote, canal pos-production, runtime fingerprint, SDK 54 y package com.wybix.posmobile. No hay builds/canales EAS en la consulta. JKS definitivo preservado, sin regeneración. Huella remota aún no certificada; build bloqueado por backend. RELEASE-EAS.md contiene comandos y controles de firma/hash/metadatos.
+El propietario confirmó EAS y APK productivo previos. Configuración production-apk/internal, remote credentials, pos-production, SDK 54, com.wybix.posmobile. Certificado remoto comparado con JKS definitivo: huella SHA-256 coincidente, sin regeneración. El primer build falló por rutas Windows en Fingerprint y plataformas implícitas distintas; se corrigió conservando la política fingerprint. Segundo build 20b1a630-2a35-475f-ab52-2e78ab7b97ce FINISHED. APK 120465293 bytes, firma v2 PASS, certificado definitivo coincidente, minSdk 24, target 36, cuatro ABI. Runtime incorporado 6895f7b5917621db7e90e2fb8f79c7a45ee1e915 idéntico a EAS; perfil produccion, canal y backend correctos. RELEASE-EAS.md conserva hash y controles. Fuente enviada con cambios de trabajo: no se hizo un cuarto commit ni push.
+
+MFA real remoto: 20 comprobaciones PASS, incluidas TOTP, AAL1 denegado, decisión AAL2, payload alterado/empresa ajena denegados, consumo único, recovery codes y owner-mfa con recuperación de un uso. El piloto dispone de código de enrolamiento nuevo y acceso QA privado; el equipo virtual fue revocado con AAL2 para liberar cupo, sin borrar sus hechos. Validación visual Owner/autenticador y actualización firmada pendientes.
 
 # 4. Pruebas automáticas
 
 | Comando / campaña | Resultado | Vigencia |
 |---|---|---|
-| npm run test:full | PASS: TypeScript, Node 94/94, SQL 72/72 | Esta sesión; qa/full.json |
+| npm run test:full | PASS: TypeScript, Node 94/94, SQL 75/75 | Esta sesión; qa/full.json |
+| Ensayo sobre backup + nueve etapas + repetición | PASS con pg_cron y grants por defecto de Supabase | Evidencia protegida; cron inactivo |
+| Backend público Mobile + SQLite | PASS venta/turno/cierre y repetición única; aislamiento | Dos empresas QA nuevas; sin datos de clientes |
+| Aprobaciones remotas desde tablet QA | PASS solicitud/estado/cancelación, scope y consumo prematuro | Decisión física Owner AAL2 pendiente |
+| MFA/TOTP y recuperación Edge remotos | PASS 20 controles con identidad QA real de Supabase Auth | Incluye decisión AAL2 y consumo único; UI física pendiente |
+| APK EAS interno y firma final | FINISHED; firma v2/certificado/hash/runtime/package PASS | Build 20b1a630; Android 7+; piloto preparado |
 | Ocho migraciones F3 aplicadas dos veces | PASS | Incluido en full |
 | Script licencias QA local | PASS creación, grants efectivos, rechazo duplicado y transacción rollback | Esta sesión; manual-estructura.json |
 | MFA GoTrue/TOTP/Edge local | PASS 15/15 | Relevo previo; no repetido sin cambio |
@@ -53,6 +64,6 @@ Windows conserva deliberadamente cambios previos de Fase 2 (cloud/catalogo/trans
 
 # 10. Acciones pendientes del propietario
 
-Autorizar el conjunto de acciones remoto definido en PLAN-DEPLOY.md: equivalencia y reparación del baseline, SQL por migración con smoke entre etapas, despliegue individual Edge, configuración secrets/Vault y activación cron. Se requiere autorización nueva porque el encargo §5 la reserva expresamente; los commits no la conceden.
+La autorización para continuar los siguientes pasos ya se recibió y las migraciones/funciones/Vault se ejecutaron. No volver a pedir autorización para acciones ya cubiertas. Las cinco licencias excluidas quedan fuera del cierre y no se asignan a una empresa.
 
-Proveer/verificar Resend y remitente, rotación coordinada WEBHOOK_SECRET, Auth TOTP, FCM/Expo y huella del keystore remoto existente. Decidir transición fiscal legado si aplica. Tras backend compatible, ejecutar build EAS preparado, verificar firma y realizar piloto físico. Astra cierra decisiones visuales. Publicación/store queda para solicitud posterior.
+Faltan clave local Resend y remitente verificado, recepción push/email, interacción física Owner/autenticador, evidencia para conciliar la app Owner antigua, impresión/Doze y actualización. Auth TOTP/decisión AAL2/recuperación y firma del APK ya pasaron. Si hay POS fiscales anteriores, decidir la transición por scope antes de liberarlos; no habilitar legado automáticamente. En futuras fases las migraciones se desarrollan y validan junto con sus contratos, según AGENTS.md. Publicación/store y push Git quedan fuera de esta ejecución.
