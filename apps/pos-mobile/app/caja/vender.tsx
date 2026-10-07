@@ -1,3 +1,6 @@
+import {usePreciosComerciales} from '../../components/usePreciosComerciales';
+import {Comercial} from '../../components/Comercial';
+import {congelarLinea,uuidv7} from '@wybix/domain';
 /**
  * VENDER, sin Internet. La venta se guarda completa en la tablet (venta,
  * líneas congeladas, pagos, inventario, caja, outbox) en UNA transacción. La
@@ -70,6 +73,9 @@ export default function Vender() {
   const [stock, setStock] = useState<Record<string, string>>({});
   const [turno, setTurno] = useState<boolean | null>(null);
   const [carrito, setCarrito] = useState<Linea[]>([]);
+  const [channel,setChannel]=useState('LOCAL'),[audiences,setAudiences]=useState<string[]>([]);
+  const {total:commercialTotal,discount:commercialDiscount,pricing,error:pricingError,lines:linePrices}=usePreciosComerciales(pos,cat,carrito,channel,audiences);
+  const catalogPrice=(p:ProductoCat)=>{const policy=cat?.commercial,c=policy?.channels.find(c=>c.id===channel),price=policy?.prices.find(x=>x.channel===channel&&x.product===p.uuid&&!x.variant);return price?.price??((!c||c.inheritBase)?p.price:null);};
   const [opciones, setOpciones] = useState<ProductoCat | null>(null);
   const [cobrando, setCobrando] = useState(false);
   const [aviso, setAviso] = useState<{
@@ -118,10 +124,8 @@ export default function Vender() {
   );
   const total = useMemo(
     () =>
-      Dec.suma(carrito.map((l) => Dec.de(l.precio).por(l.quantity)))
-        .redondear(2)
-        .fijo(2),
-    [carrito],
+      commercialTotal ?? Dec.suma(carrito.map((l) => Dec.de(l.precio).por(l.quantity))).redondear(2).fijo(2),
+    [carrito,commercialTotal],
   );
 
   const cantidadPorProducto = useMemo(() => {
@@ -210,16 +214,16 @@ export default function Vender() {
     try {
       const r = await pos.registrarVenta(
         persona,
-        carrito.map(({ product_uuid, quantity, options }) => ({
+        carrito.map(({ product_uuid, quantity, options,combo }) => ({
           product_uuid,
           quantity,
-          options,
+          options,combo,
         })),
         pagos,
-        { factura },
+        { factura,commercial:{channel,audiences} },
       );
       setCobrando(false);
-      setCarrito([]);
+      setCarrito([]);setChannel('LOCAL');setAudiences([]);
       setAviso({
         tono: "exito",
         texto: `Venta ${r.folio} guardada${Number(r.cambio) > 0 ? ` · Cambio ${dinero(r.cambio)}` : ""}`,
@@ -248,12 +252,13 @@ export default function Vender() {
                 {l.etiqueta}
               </Text>
             )}
-            <Text style={tipo.tenue}>{dinero(l.precio)} c/u</Text>
+            <Text style={tipo.tenue}>{dinero(linePrices[l.key]?.amount??Dec.de(l.precio).por(l.quantity).fijo(2))} por esta línea</Text>
+            {!!linePrices[l.key]?.label&&<Text style={[tipo.tenue,{color:t.acentoTexto}]}>{linePrices[l.key].label}</Text>}
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Quitar uno de ${l.nombre}`}
-            onPress={() => cambiar(l.key, -1)}
+            accessibilityLabel={l.combo?`Quitar combo ${l.etiqueta}`:`Quitar uno de ${l.nombre}`}
+            onPress={() => l.combo?setCarrito(c=>c.filter(x=>x.combo?.instance!==l.combo!.instance)):cambiar(l.key, -1)}
             style={s.paso}
           >
             <Text style={s.pasoTxt}>−</Text>
@@ -263,6 +268,8 @@ export default function Vender() {
           </Text>
           <Pressable
             accessibilityRole="button"
+            disabled={!!l.combo}
+            accessibilityState={{disabled:!!l.combo}}
             accessibilityLabel={`Agregar uno de ${l.nombre}`}
             onPress={() => cambiar(l.key, 1)}
             style={s.paso}
@@ -281,6 +288,9 @@ export default function Vender() {
   return (
     <Pantalla>
       <Encabezado titulo="Vender" />
+      {cat&&persona&&<Comercial cat={cat} channel={channel} onChannel={setChannel} audiences={audiences} onAudiences={setAudiences} role={persona.role} onAdd={lines=>{try{const added=lines.map(l=>{const frozen=congelarLinea(cat,l,1);return {...l,key:uuidv7(),nombre:frozen.product_name,precio:frozen.unit_price,etiqueta:(cat.commercial?.combos.find(c=>c.id===l.combo?.id)?.name??'')+' · '+frozen.modifiers.map(m=>m.option_name).join(', ')};});setCarrito(c=>[...c,...added]);}catch(e){setAviso({tono:'peligro',texto:(e as Error).message});}}}/>}
+      {pricing?<Text style={[tipo.tenue,{padding:12}]}>Calculando precios…</Text>:Number(commercialDiscount)>0?<Text style={[tipo.cuerpo,{padding:12}]}>Ahorro de esta cuenta: {dinero(commercialDiscount)}</Text>:null}
+      {pricingError?<Aviso tono="peligro" texto={pricingError}/>:null}
       {turno === false && (
         <View style={{ padding: 16 }}>
           <Aviso texto="No hay turno abierto en esta caja. Ábrelo para empezar a vender." />
@@ -355,12 +365,12 @@ export default function Vender() {
                   selectionColor="#EAF8FA"
                   testID={`producto-${item.nombre}`}
                   accessibilityRole="button"
-                  accessibilityLabel={`${item.nombre}, ${dinero(item.price)}${direct ? `, existencias ${q ?? "0"}` : ""}`}
+                  accessibilityLabel={`${item.nombre}, ${catalogPrice(item)==null?"Precio sin configurar":dinero(catalogPrice(item)!)}${direct ? `, existencias ${q ?? "0"}` : ""}`}
                   accessibilityState={{
-                    disabled: !turno,
+                    disabled: !turno||catalogPrice(item)==null,
                     selected: cantidad > 0,
                   }}
-                  disabled={!turno}
+                  disabled={!turno||catalogPrice(item)==null}
                   onPress={() => tocar(item)}
                   style={[
                     s.producto,
@@ -440,7 +450,7 @@ export default function Vender() {
                         },
                       ]}
                     >
-                      {dinero(item.price)}
+                      {catalogPrice(item)==null?"Precio sin configurar":dinero(catalogPrice(item)!)}
                     </Text>
                     {direct && (
                       <Text style={[tipo.tenue, { fontSize: 11 }]}>
@@ -514,7 +524,7 @@ export default function Vender() {
             testID="cobrar"
             titulo="Cobrar"
             onPress={() => setCobrando(true)}
-            deshabilitado={!carrito.length || !turno}
+            deshabilitado={!carrito.length || !turno || pricing || !!pricingError}
           />
         </View>
       </View>
@@ -757,7 +767,7 @@ function Cobro({
           marginVertical: 8,
         }}
       >
-        {(["EFECTIVO", "TARJETA", "TRANSFERENCIA"] as MetodoPago[]).map((m) => (
+        {(["EFECTIVO", "TARJETA", "TRANSFERENCIA", "PLATAFORMA"] as MetodoPago[]).map((m) => (
           <Pulse
             active={metodo === m}
             selectionColor={t.acento}
@@ -788,7 +798,7 @@ function Cobro({
                 ? "Efectivo"
                 : m === "TARJETA"
                   ? "Tarjeta"
-                  : "Transferencia"}
+                  : m === "PLATAFORMA" ? "Plataforma" : "Transferencia"}
             </Text>
           </Pulse>
         ))}
@@ -851,7 +861,7 @@ function Cobro({
             texto={
               metodo === "TARJETA"
                 ? "Cobra en la terminal y confirma solo cuando diga APROBADO. La venta no toca el efectivo de la caja."
-                : "Confirma la transferencia antes de cerrar la venta."
+                : metodo === "PLATAFORMA" ? "Confirma que el pedido está pagado en la plataforma. No suma efectivo al cajón." : "Confirma la transferencia antes de cerrar la venta."
             }
           />
           <TextInput

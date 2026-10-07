@@ -1,3 +1,4 @@
+import type {PoliticaComercial} from './comercial.ts';
 /**
  * CATÁLOGO QUE VIAJA A LA TABLET (publicación versionada de la sucursal base).
  *
@@ -55,6 +56,7 @@ export interface GrupoCat {
 }
 
 export interface Catalogo {
+  commercial?:PoliticaComercial;
   catalog_version: number;
   products: ProductoCat[];
   recipes: RecetaCat[];
@@ -64,6 +66,7 @@ export interface Catalogo {
 
 /** Índices para resolver rápido (una vez por versión de catálogo). */
 export interface CatalogoIndexado {
+  commercial?:PoliticaComercial;
   version: number;
   producto: Map<string, ProductoCat>;
   recetasDe: Map<string, RecetaCat[]>;
@@ -85,7 +88,7 @@ export function indexar(c: Catalogo): CatalogoIndexado {
     grupo.set(g.uuid, g);
     for (const o of g.options) opcion.set(o.uuid, { opcion: o, grupo: g });
   }
-  return { version: c.catalog_version, producto, recetasDe, opcion, grupo };
+  return { commercial:c.commercial,version: c.catalog_version, producto, recetasDe, opcion, grupo };
 }
 
 /** Lo que se puede vender en esta versión (lo desactivado ya no aparece). */

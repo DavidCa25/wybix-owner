@@ -53,3 +53,19 @@ test('errores de la nube llegan con su código', async () => {
   assert.equal(j.code, 'PAYLOAD_CHANGED');
   assert.match(j.error, /cambió/);
 });
+
+test('snapshot comercial: la capacidad viaja sanitizada y el equipo sigue saliendo de la credencial', async () => {
+  for (const [capability,expected] of [[undefined,0],[1,1],[2,0],['invalido',0]] as const) {
+    const {d,llamadas}=deps({mobile_snapshot:{ok:true}});
+    const r=await manejarPosSync(req({action:'mobile_snapshot',commercial_schema:capability,device_id:'OTRO',company_id:'OTRA'}),d);
+    assert.equal(r.status,200);
+    const call=llamadas.find(x=>x.fn==='mobile_snapshot')!;
+    assert.equal(call.args.device_id,'tablet-1');assert.equal(call.args.commercial_schema,expected);assert.ok(!('company_id' in call.args));
+  }
+});
+
+test('snapshot incompatible pide actualizar y nunca entrega el catálogo', async () => {
+  const {d}=deps({mobile_snapshot:{ok:false,code:'UPDATE_REQUIRED'}});
+  const r=await manejarPosSync(req({action:'mobile_snapshot'}),d),body=await r.json();
+  assert.equal(r.status,409);assert.equal(body.code,'UPDATE_REQUIRED');assert.match(body.error,/Actualiza/);assert.ok(!('catalog' in body));
+});

@@ -96,7 +96,7 @@ export function crearClienteNube(o: OpcionesCliente) {
       });
       return { results: r.results ?? [] };
     },
-    async snapshot(): Promise<Snapshot> { return llamar('mobile_snapshot', {}); },
+    async snapshot(): Promise<Snapshot> { return llamar('mobile_snapshot', {commercial_schema:1}); },
     async inbox(cursor: number) { const r = await llamar('mobile_inbox', { cursor }); return { events: r.events ?? [], cursor: Number(r.cursor ?? cursor) }; },
     async latido(info) { await llamar('mobile_heartbeat', info as Record<string, unknown>); },
     desfase: () => ultimoDesfase,

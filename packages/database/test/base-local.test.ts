@@ -12,7 +12,7 @@ const stockDe = async (pos: any, u: string) => (await pos.stock()).find((s: any)
 test('migraciones: instalación limpia y re-ejecución sin efecto', async () => {
   const db = adaptadorNode(new DatabaseSync(':memory:'));
   const r = await migrar(db);
-  assert.deepEqual(r.aplicadas, [1, 2]);
+  assert.deepEqual(r.aplicadas, [1, 2, 3]);
   assert.equal(await versionActual(db), MIGRACIONES.length);
   assert.deepEqual((await migrar(db)).aplicadas, [], 'correr otra vez no aplica nada');
 });
@@ -24,7 +24,7 @@ test('migraciones: una tablet en v1 CON datos sube a v2 sin perderlos', async ()
   await db.run(`INSERT INTO shifts (uuid, status, register_uuid, employee_uuid, business_date, opening_cash, opened_at) VALUES ('s1', 'OPEN', 'r', 'e', '2026-11-01', '500.00', '2026-11-01T10:00:00Z')`);
   await db.run(`INSERT INTO sales (uuid, folio, shift_uuid, employee_uuid, catalog_version, total, cash_net, change, status, business_date, occurred_at) VALUES ('v1', 'F1-000001', 's1', 'e', 1, '25.00', '25.00', '0.00', 'COMPLETED', '2026-11-01', 'x')`);
   const r = await migrar(db);
-  assert.deepEqual(r, { desde: 1, hasta: 2, aplicadas: [2] });
+  assert.deepEqual(r, { desde: 1, hasta: 3, aplicadas: [2, 3] });
   assert.equal((await db.get<any>(`SELECT v FROM kv WHERE k = 'dato'`)).v, 'conservado');
   assert.equal((await db.get<any>(`SELECT printed FROM sales WHERE uuid = 'v1'`)).printed, 0, 'la columna nueva llega con su default');
 });

@@ -110,8 +110,8 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
     case 'transfer_inbox':
       return responder(await deps.rpc('pos_transfer_inbox', conEquipo()));
     case 'mobile_snapshot': {
-      const r = await deps.rpc('mobile_snapshot', conEquipo({ channel: str(body.channel, 30) }));
-      return r?.ok ? json({ success: true, ...r }) : json({ success: false, code: r?.code ?? 'DENIED', error: 'Sin acceso a los datos del evento.' }, 403);
+      const r = await deps.rpc('mobile_snapshot', conEquipo({ channel: str(body.channel, 30),commercial_schema:Number(body.commercial_schema??0)===1?1:0 }));
+      return r?.ok ? json({ success: true, ...r }) : json({ success: false, code: r?.code ?? 'DENIED', error: r?.code==='UPDATE_REQUIRED'?'Actualiza Wybix POS Mobile para usar los precios y ofertas.':'Sin acceso a los datos del evento.' }, r?.code==='UPDATE_REQUIRED'?409:403);
     }
     case 'mobile_inbox': {
       const r = await deps.rpc('mobile_inbox', conEquipo({ cursor: Number(body.cursor ?? 0) || 0 }));

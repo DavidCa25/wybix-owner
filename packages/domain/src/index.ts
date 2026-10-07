@@ -6,3 +6,5 @@ export * from './inventario.ts';
 export * from './caja.ts';
 export * from './permisos.ts';
 export * from './uuid.ts';
+export * from './comercial.ts';
+export * from './precios-venta.ts';

@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-07T17:29:54.663Z",
+  "gitHead": "b375aece2f2e501ff9b0c81124360b33c80fa967",
+  "workingTreeChanges": true,
+  "version": "0.2.0",
+  "ownerPwa": {
+    "app": "owner",
+    "version": "3e4272fe3a716fd6",
+    "builtAt": "2026-10-07T14:20:32.543Z"
+  },
+  "posPwa": {
+    "app": "pos-mobile",
+    "version": "b456edaa139b3eff",
+    "builtAt": "2026-10-07T14:18:28.195Z"
+  },
+  "published": false
+}

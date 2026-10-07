@@ -20,7 +20,7 @@ export class ErrorVenta extends Error {
   constructor(code: string, mensaje: string) { super(mensaje); this.code = code; }
 }
 
-export interface LineaCarrito { product_uuid: string; quantity: string | number; options?: OpcionElegida[]; note?: string | null; }
+export interface LineaCarrito { combo?:{id:string;instance:string;group:string}; product_uuid: string; quantity: string | number; options?: OpcionElegida[]; note?: string | null; }
 
 export interface ConsumoCongelado {
   product_uuid: string;
@@ -33,6 +33,7 @@ export interface ConsumoCongelado {
 }
 
 export interface LineaCongelada {
+  commercial?:import('./comercial.ts').PrecioResuelto;
   line_no: number;
   product_uuid: string;
   product_name: string;
@@ -147,8 +148,8 @@ export function congelarLinea(cat: CatalogoIndexado, linea: LineaCarrito, lineNo
 }
 
 // ---------------------------------------------------------------- pagos
-export type MetodoPago = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'OTRO';
-export const METODOS: MetodoPago[] = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'OTRO'];
+export type MetodoPago = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'OTRO' | 'PLATAFORMA';
+export const METODOS: MetodoPago[] = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'OTRO', 'PLATAFORMA'];
 
 export interface Pago { method: MetodoPago; amount: string; received?: string | null; reference?: string | null; }
 

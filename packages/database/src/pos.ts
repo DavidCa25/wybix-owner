@@ -10,7 +10,7 @@
  * cuando haya red (ver @wybix/sync).
  */
 import {
-  Dec, indexar, congelarLinea, cobrar, totalDe, folio as armarFolio, proyectarStock, efecto, efectivoEsperado,
+  prepararVenta, type SeleccionComercial, Dec, indexar, congelarLinea, cobrar, totalDe, folio as armarFolio, proyectarStock, efecto, efectivoEsperado,
   corte as calcularCorte, puede, corteCiego, uuidv7, ErrorVenta,
   type Catalogo, type CatalogoIndexado, type LineaCarrito, type Pago, type TipoMovimiento, type RolEvento, type Accion, type MovCaja,
 } from '@wybix/domain';
@@ -200,8 +200,10 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
      * VENTA COMPLETA EN UNA TRANSACCIÓN: venta, líneas (precio/costo/receta/
      * consumos congelados), pagos, inventario, caja, proyección y outbox.
      */
-    async registrarVenta(p: Persona, carrito: LineaCarrito[], pagos: Pago[], extra: { factura?: boolean; sale_uuid?: string } = {}) {
+    async cotizarVenta(carrito:LineaCarrito[],seleccion:SeleccionComercial={}){const id=await identidad(),cat=await catalogoActual();const offset=await desfaseGuardado(db);return prepararVenta(cat,carrito,seleccion,new Date(reloj.ahora().getTime()+(offset?.ms??0)),id.timezone);},
+    async registrarVenta(p: Persona, carrito: LineaCarrito[], pagos: Pago[], extra: { factura?: boolean; sale_uuid?: string; commercial?:SeleccionComercial } = {}) {
       exigir(p, 'VENDER');
+      if(extra.commercial?.audiences?.length&&p.role==='CASHIER')throw new ErrorPos('AUTORIZACION','La elegibilidad del descuento debe confirmarla un encargado.');
       if (!carrito.length) throw new ErrorVenta('VACIA', 'La venta no tiene productos.');
       return db.transaccion(async (tx) => {
         await exigirActiva(tx);
@@ -209,8 +211,9 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
         const turno = await turnoAbierto(tx, id.register.uuid);
         if (!turno) throw new ErrorPos('SIN_TURNO', 'Abre el turno antes de vender.');
         const cat = await catalogoActual(tx);
-        const lineas = carrito.map((l, i) => congelarLinea(cat, l, i + 1));
-        const total = totalDe(lineas);
+        const offset=await desfaseGuardado(tx);
+        const prepared=prepararVenta(cat,carrito,extra.commercial??{},new Date(reloj.ahora().getTime()+(offset?.ms??0)),id.timezone);
+        const {lineas,total,commercial}=prepared;
         const c = cobrar(total, pagos);
         const ahora = reloj.ahora();
         // Con terminal, la venta ya tenía UUID (es la referencia del cobro).
@@ -230,6 +233,7 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
             [uuid, l.line_no, l.product_uuid, l.product_name, l.quantity, l.unit_price, l.subtotal, l.unit_cost, l.inventory_mode,
              l.recipe_uuid, l.variant_option_uuid, l.scale, JSON.stringify(l.modifiers), JSON.stringify(l.consumos)]);
         }
+        if(commercial){await tx.run('UPDATE sales SET commercial_snapshot=? WHERE uuid=?',[JSON.stringify(commercial),uuid]);for(const l of lineas)await tx.run('UPDATE sale_lines SET commercial_snapshot=? WHERE sale_uuid=? AND line_no=?',[JSON.stringify(l.commercial),uuid,l.line_no]);}
         let seq = 0;
         for (const pg of c.pagos) {
           await tx.run('INSERT INTO payments (sale_uuid, seq, method, amount, received, change, reference) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -257,7 +261,7 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
           balance: '0.00', payment_method: metodo, refunded_total: '0.00', cash_net: c.efectivo_neto, change: c.cambio,
           catalog_version: cat.version, shift_uuid: turno.uuid, invoice_requested: !!extra.factura,
           register: id.register, user: { uuid: p.uuid, name: p.name },
-          lines: lineas, payments: c.pagos, movements: movs,
+          commercial, lines: lineas, payments: c.pagos, movements: movs,
         });
         await tx.run(`INSERT INTO print_jobs (sale_uuid, kind, status, created_at) VALUES (?, 'TICKET', 'PENDING', ?)`, [uuid, ahora.toISOString()]);
         return { sale_uuid: uuid, folio: fol, total: c.total, cambio: c.cambio, lineas, catalog_version: cat.version };
@@ -425,14 +429,14 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
       if (!s) throw new ErrorPos('VENTA', 'No existe esa venta en esta tablet.');
       const id = await identidad();
       const cajero = await db.get<{ name: string }>('SELECT name FROM staff WHERE uuid = ?', [s.employee_uuid]);
-      const lineas = await db.all<{ quantity: string; product_name: string; subtotal: string }>(
-        'SELECT quantity, product_name, subtotal FROM sale_lines WHERE sale_uuid = ? ORDER BY line_no', [saleUuid]);
+      const lineas = await db.all<{ quantity: string; product_name: string; subtotal: string; commercial_snapshot:string|null }>(
+        'SELECT quantity, product_name, subtotal,commercial_snapshot FROM sale_lines WHERE sale_uuid = ? ORDER BY line_no', [saleUuid]);
       const pagos = await db.all<{ method: string; amount: string; received: string | null }>(
         'SELECT method, amount, received FROM payments WHERE sale_uuid = ? ORDER BY seq', [saleUuid]);
       const impreso = await db.get<{ n: number }>(`SELECT COUNT(*) AS n FROM print_jobs WHERE sale_uuid = ? AND status = 'PRINTED'`, [saleUuid]);
       return {
         negocio: id.location_name, caja: id.register.code, folio: s.folio, occurred_at: s.occurred_at, cajero: cajero?.name ?? '',
-        lineas: lineas.map((l) => ({ cantidad: Dec.de(l.quantity).toString(), nombre: l.product_name, subtotal: Dec.de(l.subtotal).redondear(2).fijo(2) })),
+        lineas: lineas.map((l) => ({ cantidad: Dec.de(l.quantity).toString(), nombre: l.product_name+(l.commercial_snapshot&&JSON.parse(l.commercial_snapshot).ruleName?' · '+JSON.parse(l.commercial_snapshot).ruleName:''), subtotal: Dec.de(l.subtotal).redondear(2).fijo(2) })),
         total: s.total, cambio: s.change, pagos: pagos.map((p) => ({ metodo: p.method, monto: p.received ?? p.amount })),
         copia: Number(impreso?.n ?? 0) > 0,
       };

@@ -214,6 +214,7 @@ CREATE TABLE print_jobs (
 ALTER TABLE sales ADD COLUMN printed INTEGER NOT NULL DEFAULT 0;
 `,
   },
+  {version:3,nombre:'precios-promociones-combos',sql:`ALTER TABLE sales ADD COLUMN commercial_snapshot TEXT;ALTER TABLE sale_lines ADD COLUMN commercial_snapshot TEXT;`},
 ];
 
 export async function versionActual(db: BaseLocal): Promise<number> {

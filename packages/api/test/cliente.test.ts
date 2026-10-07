@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { crearClienteNube } from '../src/index.ts';
+import { crearClienteNube, ErrorNube } from '../src/index.ts';
 
 function cliente(respuestas: Array<{ status?: number; body: unknown; date?: string }>) {
   const peticiones: any[] = [];
@@ -42,4 +42,10 @@ test('aprobaciones: el cuerpo lleva la acción y el payload, nunca un device_id'
   await c.aprobaciones.solicitar({ id: 'a1', accion: 'MERMA', solicita: { uuid: 'e', name: 'lupita', role: 'CASHIER' }, payload: { cantidad: '3' } });
   assert.deepEqual(peticiones[0], { action: 'approval_request', id: 'a1', approval_action: 'MERMA', requested_by: { uuid: 'e', name: 'lupita', role: 'CASHIER' }, payload: { cantidad: '3' } });
   assert.ok(!('device_id' in peticiones[0]));
+});
+
+test('snapshot anuncia soporte comercial y conserva UPDATE_REQUIRED sin revocar el equipo', async () => {
+  const {c,peticiones}=cliente([{body:{success:true,catalog:{}}},{status:409,body:{success:false,code:'UPDATE_REQUIRED',error:'Actualiza Wybix'}}]);
+  await c.snapshot();assert.deepEqual(peticiones[0],{action:'mobile_snapshot',commercial_schema:1});
+  await assert.rejects(c.snapshot(),e=>e instanceof ErrorNube && e.status===409 && e.code==='UPDATE_REQUIRED');
 });

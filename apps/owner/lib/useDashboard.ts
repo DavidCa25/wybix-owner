@@ -12,6 +12,8 @@ export interface ResumenVentas {
   utilidad: number;
 }
 
+export interface CanalVentas {channel:string;name:string;tickets:number;gross:number;discount:number;total:number;refunds:number;net:number}
+
 export interface TopProducto {
   producto: string;
   cantidad: number;
@@ -61,6 +63,7 @@ export function useDashboard(empresaId: string | null = null) {
   const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [sucursalId, setSucursalId] = useState<string | null>(null);
   const [resumen, setResumen] = useState<ResumenVentas | null>(null);
+  const [canales,setCanales]=useState<CanalVentas[]>([]);
   const [top, setTop] = useState<TopProducto[]>([]);
   const [cortes, setCortes] = useState<Corte[]>([]);
   const [trend, setTrend] = useState<PuntoTendencia[]>([]);
@@ -85,14 +88,17 @@ export function useDashboard(empresaId: string | null = null) {
     setError(null);
     const fecha = hoyStr();
 
-    const [rv, tp, cc, tr] = await Promise.all([
+    const [rv, tp, cc, tr,cp] = await Promise.all([
       supabase.from('resumen_ventas').select('*').eq('sucursal_id', sid).eq('fecha', fecha).maybeSingle(),
       supabase.from('top_productos').select('producto, cantidad, importe').eq('sucursal_id', sid).eq('fecha', fecha).order('importe', { ascending: false }).limit(10),
       supabase.from('cortes_caja').select('closure_id_local, caja, abierto_at, cerrado_at, esperado, entregado, diferencia, movimientos').eq('sucursal_id', sid).order('abierto_at', { ascending: false }),
-      supabase.from('tendencia_ventas').select('fecha, total').eq('sucursal_id', sid).order('fecha', { ascending: true })
+      supabase.from('tendencia_ventas').select('fecha, total').eq('sucursal_id', sid).order('fecha', { ascending: true }),
+      supabase.rpc('commercial_sales_summary',{p_location:sid})
     ]);
 
     if (rv.error) setError(rv.error.message);
+    setCanales((cp.data?.channels??[]) as CanalVentas[]);
+    if(cp.error)setError(cp.error.message);
     setResumen((rv.data as ResumenVentas) ?? null);
     setTop((tp.data as TopProducto[]) ?? []);
     setCortes((cc.data as Corte[]) ?? []);
@@ -127,7 +133,7 @@ export function useDashboard(empresaId: string | null = null) {
   }, [sucursalId, cargarDatos]);
 
   return {
-    sucursales, sucursalId, setSucursalId,
+    canales, sucursales, sucursalId, setSucursalId,
     resumen, top, cortes, trend,
     loading, refreshing, error,
     refrescar

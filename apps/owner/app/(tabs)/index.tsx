@@ -28,7 +28,7 @@ function margenPct(utilidad: number | null | undefined, total: number | null | u
 export default function Dashboard() {
   const { signOut } = useAuth();
   const empresa = useEmpresa();
-  const { sucursales, sucursalId, setSucursalId, resumen, top, trend, loading, refreshing, error, refrescar: refrescarSucursal } = useDashboard(empresa.empresaId);
+  const { canales, sucursales, sucursalId, setSucursalId, resumen, top, trend, loading, refreshing, error, refrescar: refrescarSucursal } = useDashboard(empresa.empresaId);
   const refrescar = async () => { await Promise.all([refrescarSucursal(), empresa.refrescar()]); };
   const nombreEmpresa = empresa.empresas.find(e => e.company_id === empresa.empresaId)?.nombre;
   const respListener = useRef<Notifications.EventSubscription | null>(null);
@@ -139,6 +139,7 @@ export default function Dashboard() {
           <View style={styles.payCard}><Text style={styles.payLbl}>Credito</Text><Text style={styles.payVal}>{money(resumen?.total_credito)}</Text></View>
         </View>
 
+        <Text style={styles.sectionTitle}>Ventas por canal</Text><View style={styles.card}><Text style={styles.empty}>Cobrado menos devoluciones, antes de comisiones de plataformas.</Text>{canales.map(c=><View key={c.channel} style={styles.topRow}><View style={{flex:1}}><Text style={styles.topName}>{c.name}</Text><Text style={styles.topQty}>{c.tickets} tickets · Antes de ofertas {money(c.gross)} · Descuentos {money(c.discount)}</Text></View><Text style={styles.topImporte}>{money(c.net)}</Text></View>)}{!canales.length&&<Text style={styles.empty}>Aún no hay ventas sincronizadas hoy.</Text>}</View>
         <Text style={styles.sectionTitle}>Ventas de la semana</Text>
         <View style={styles.card}>
           <TrendChart data={trend} />
