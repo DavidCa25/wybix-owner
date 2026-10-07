@@ -1,0 +1,126 @@
+{
+  "version": "5",
+  "redirects": {
+    "https://esm.sh/@supabase/supabase-js@2": "https://esm.sh/@supabase/supabase-js@2.117.2"
+  },
+  "remote": {
+    "https://esm.sh/@supabase/supabase-js@2.117.2": "6da4477d96ad4392b5a8be8f423384a3812cdd651df483e433ba422a69ff879b"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@types/node@^26.1.0",
+        "npm:typescript@~5.9.2"
+      ]
+    },
+    "members": {
+      "apps/owner": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@expo-google-fonts/poppins@~0.4.1",
+            "npm:@expo/vector-icons@^15.0.3",
+            "npm:@react-native-async-storage/async-storage@2.2.0",
+            "npm:@supabase/supabase-js@^2.110.0",
+            "npm:@types/node@^26.1.0",
+            "npm:@types/react@19.1",
+            "npm:expo-camera@~17.0.10",
+            "npm:expo-constants@~18.0.13",
+            "npm:expo-device@~8.0.10",
+            "npm:expo-font@~14.0.12",
+            "npm:expo-linking@~8.0.12",
+            "npm:expo-notifications@~0.32.17",
+            "npm:expo-router@~6.0.24",
+            "npm:expo-splash-screen@~31.0.13",
+            "npm:expo-status-bar@~3.0.9",
+            "npm:expo-updates@~29.0.19",
+            "npm:expo@~54.0.34",
+            "npm:react-native-safe-area-context@5.6",
+            "npm:react-native-screens@4.16",
+            "npm:react-native-url-polyfill@3",
+            "npm:react-native@0.81.5",
+            "npm:react@19.1.0",
+            "npm:typescript@~5.9.2"
+          ]
+        }
+      },
+      "apps/pos-mobile": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@expo-google-fonts/poppins@~0.4.1",
+            "npm:@expo/vector-icons@^15.0.3",
+            "npm:@types/react@19.1",
+            "npm:@wybix/api@*",
+            "npm:@wybix/auth@*",
+            "npm:@wybix/database@*",
+            "npm:@wybix/domain@*",
+            "npm:@wybix/sync@*",
+            "npm:@wybix/ui@*",
+            "npm:expo-application@~7.0.8",
+            "npm:expo-background-task@~1.0.10",
+            "npm:expo-build-properties@~1.0.10",
+            "npm:expo-camera@~17.0.10",
+            "npm:expo-constants@~18.0.13",
+            "npm:expo-crypto@~15.0.9",
+            "npm:expo-device@~8.0.10",
+            "npm:expo-file-system@~19.0.24",
+            "npm:expo-font@~14.0.12",
+            "npm:expo-keep-awake@~15.0.8",
+            "npm:expo-linking@~8.0.12",
+            "npm:expo-network@~8.0.8",
+            "npm:expo-print@~15.0.8",
+            "npm:expo-router@~6.0.24",
+            "npm:expo-secure-store@~15.0.8",
+            "npm:expo-splash-screen@~31.0.13",
+            "npm:expo-sqlite@~16.0.10",
+            "npm:expo-status-bar@~3.0.9",
+            "npm:expo-task-manager@~14.0.9",
+            "npm:expo-updates@~29.0.19",
+            "npm:expo@~54.0.34",
+            "npm:react-native-safe-area-context@5.6",
+            "npm:react-native-screens@4.16",
+            "npm:react-native-tcp-socket@^6.4.3",
+            "npm:react-native@0.81.5",
+            "npm:react@19.1.0",
+            "npm:typescript@~5.9.2"
+          ]
+        }
+      },
+      "packages/api": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@wybix/database@*",
+            "npm:@wybix/domain@*",
+            "npm:@wybix/sync@*"
+          ]
+        }
+      },
+      "packages/auth": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@noble/curves@^1.9.0",
+            "npm:@noble/hashes@^1.8.0",
+            "npm:@wybix/domain@*"
+          ]
+        }
+      },
+      "packages/database": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@wybix/auth@*",
+            "npm:@wybix/domain@*"
+          ]
+        }
+      },
+      "packages/sync": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@noble/curves@^1.9.0",
+            "npm:@noble/hashes@^1.8.0",
+            "npm:@wybix/database@*",
+            "npm:@wybix/domain@*"
+          ]
+        }
+      }
+    }
+  }
+}

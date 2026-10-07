@@ -1,0 +1,2900 @@
+{
+  "at": "2026-10-04T19:56:48.614Z",
+  "project": "swlpspgmkwzlrowllvvj",
+  "remoteMigrations": [],
+  "remoteExtensions": [
+    "pg_net",
+    "pg_stat_statements",
+    "pgcrypto",
+    "plpgsql",
+    "supabase_vault",
+    "uuid-ossp"
+  ],
+  "remoteCounts": {
+    "tables": 26,
+    "columns": 259,
+    "rpcs": 25,
+    "policies": 9,
+    "triggers": 2
+  },
+  "missing": {
+    "tables": [
+      {
+        "rls": true,
+        "table": "accounts"
+      },
+      {
+        "rls": true,
+        "table": "app_releases"
+      },
+      {
+        "rls": true,
+        "table": "approval_policies"
+      },
+      {
+        "rls": true,
+        "table": "approval_requests"
+      },
+      {
+        "rls": true,
+        "table": "cash_movement_facts"
+      },
+      {
+        "rls": true,
+        "table": "catalog_publications"
+      },
+      {
+        "rls": true,
+        "table": "cloud_audit"
+      },
+      {
+        "rls": true,
+        "table": "company_invites"
+      },
+      {
+        "rls": true,
+        "table": "company_memberships"
+      },
+      {
+        "rls": true,
+        "table": "device_enrollments"
+      },
+      {
+        "rls": true,
+        "table": "devices"
+      },
+      {
+        "rls": true,
+        "table": "employees"
+      },
+      {
+        "rls": false,
+        "table": "fase1_conciliacion"
+      },
+      {
+        "rls": true,
+        "table": "fiscal_invoice_claims"
+      },
+      {
+        "rls": true,
+        "table": "fiscal_invoices"
+      },
+      {
+        "rls": true,
+        "table": "fiscal_issuer_claims"
+      },
+      {
+        "rls": true,
+        "table": "fiscal_issuers"
+      },
+      {
+        "rls": true,
+        "table": "inventory_ledger"
+      },
+      {
+        "rls": true,
+        "table": "location_staff"
+      },
+      {
+        "rls": false,
+        "table": "location_stock"
+      },
+      {
+        "rls": true,
+        "table": "mfa_recovery_attempts"
+      },
+      {
+        "rls": true,
+        "table": "mfa_recovery_codes"
+      },
+      {
+        "rls": true,
+        "table": "notification_deliveries"
+      },
+      {
+        "rls": true,
+        "table": "notification_kinds"
+      },
+      {
+        "rls": true,
+        "table": "notification_outbox"
+      },
+      {
+        "rls": true,
+        "table": "notification_preferences"
+      },
+      {
+        "rls": true,
+        "table": "reconciliation_items"
+      },
+      {
+        "rls": true,
+        "table": "registers"
+      },
+      {
+        "rls": true,
+        "table": "sale_line_facts"
+      },
+      {
+        "rls": true,
+        "table": "sales_facts"
+      },
+      {
+        "rls": true,
+        "table": "shift_facts"
+      },
+      {
+        "rls": true,
+        "table": "stock_transfer_lines"
+      },
+      {
+        "rls": true,
+        "table": "stock_transfers"
+      },
+      {
+        "rls": true,
+        "table": "sync_events"
+      }
+    ],
+    "columns": [
+      {
+        "type": "uuid",
+        "table": "accounts",
+        "column": "id"
+      },
+      {
+        "type": "text",
+        "table": "accounts",
+        "column": "name"
+      },
+      {
+        "type": "uuid",
+        "table": "accounts",
+        "column": "billing_user_id"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "accounts",
+        "column": "created_at"
+      },
+      {
+        "type": "text",
+        "table": "app_releases",
+        "column": "app"
+      },
+      {
+        "type": "text",
+        "table": "app_releases",
+        "column": "channel"
+      },
+      {
+        "type": "text",
+        "table": "app_releases",
+        "column": "latest_version"
+      },
+      {
+        "type": "text",
+        "table": "app_releases",
+        "column": "min_supported_version"
+      },
+      {
+        "type": "text",
+        "table": "app_releases",
+        "column": "notes"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "app_releases",
+        "column": "published_at"
+      },
+      {
+        "type": "text",
+        "table": "approval_policies",
+        "column": "action"
+      },
+      {
+        "type": "boolean",
+        "table": "approval_policies",
+        "column": "remota"
+      },
+      {
+        "type": "interval",
+        "table": "approval_policies",
+        "column": "ttl"
+      },
+      {
+        "type": "ARRAY",
+        "table": "approval_policies",
+        "column": "roles"
+      },
+      {
+        "type": "text",
+        "table": "approval_policies",
+        "column": "etiqueta"
+      },
+      {
+        "type": "uuid",
+        "table": "approval_requests",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "approval_requests",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "approval_requests",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "approval_requests",
+        "column": "device_id"
+      },
+      {
+        "type": "text",
+        "table": "approval_requests",
+        "column": "action"
+      },
+      {
+        "type": "jsonb",
+        "table": "approval_requests",
+        "column": "requested_by"
+      },
+      {
+        "type": "jsonb",
+        "table": "approval_requests",
+        "column": "payload"
+      },
+      {
+        "type": "text",
+        "table": "approval_requests",
+        "column": "payload_hash"
+      },
+      {
+        "type": "text",
+        "table": "approval_requests",
+        "column": "status"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "approval_requests",
+        "column": "expires_at"
+      },
+      {
+        "type": "uuid",
+        "table": "approval_requests",
+        "column": "decided_by"
+      },
+      {
+        "type": "text",
+        "table": "approval_requests",
+        "column": "decided_name"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "approval_requests",
+        "column": "decided_at"
+      },
+      {
+        "type": "text",
+        "table": "approval_requests",
+        "column": "decision_note"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "approval_requests",
+        "column": "consumed_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "approval_requests",
+        "column": "created_at"
+      },
+      {
+        "type": "uuid",
+        "table": "cash_movement_facts",
+        "column": "movement_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "cash_movement_facts",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "cash_movement_facts",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "cash_movement_facts",
+        "column": "shift_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "cash_movement_facts",
+        "column": "register_uuid"
+      },
+      {
+        "type": "text",
+        "table": "cash_movement_facts",
+        "column": "type"
+      },
+      {
+        "type": "numeric",
+        "table": "cash_movement_facts",
+        "column": "amount"
+      },
+      {
+        "type": "date",
+        "table": "cash_movement_facts",
+        "column": "business_date"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "cash_movement_facts",
+        "column": "occurred_at"
+      },
+      {
+        "type": "text",
+        "table": "cash_movement_facts",
+        "column": "reference"
+      },
+      {
+        "type": "text",
+        "table": "cash_movement_facts",
+        "column": "note"
+      },
+      {
+        "type": "uuid",
+        "table": "cash_movement_facts",
+        "column": "user_uuid"
+      },
+      {
+        "type": "bigint",
+        "table": "cash_movement_facts",
+        "column": "version"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "cash_movement_facts",
+        "column": "updated_at"
+      },
+      {
+        "type": "bigint",
+        "table": "catalog_publications",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "catalog_publications",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "catalog_publications",
+        "column": "company_id"
+      },
+      {
+        "type": "integer",
+        "table": "catalog_publications",
+        "column": "version"
+      },
+      {
+        "type": "text",
+        "table": "catalog_publications",
+        "column": "content_hash"
+      },
+      {
+        "type": "jsonb",
+        "table": "catalog_publications",
+        "column": "payload"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "catalog_publications",
+        "column": "published_at"
+      },
+      {
+        "type": "uuid",
+        "table": "catalog_publications",
+        "column": "published_by_device"
+      },
+      {
+        "type": "bigint",
+        "table": "cloud_audit",
+        "column": "id"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "cloud_audit",
+        "column": "at"
+      },
+      {
+        "type": "text",
+        "table": "cloud_audit",
+        "column": "actor_kind"
+      },
+      {
+        "type": "text",
+        "table": "cloud_audit",
+        "column": "actor_id"
+      },
+      {
+        "type": "uuid",
+        "table": "cloud_audit",
+        "column": "company_id"
+      },
+      {
+        "type": "text",
+        "table": "cloud_audit",
+        "column": "action"
+      },
+      {
+        "type": "text",
+        "table": "cloud_audit",
+        "column": "result"
+      },
+      {
+        "type": "jsonb",
+        "table": "cloud_audit",
+        "column": "detail"
+      },
+      {
+        "type": "uuid",
+        "table": "company_invites",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "company_invites",
+        "column": "company_id"
+      },
+      {
+        "type": "text",
+        "table": "company_invites",
+        "column": "role"
+      },
+      {
+        "type": "ARRAY",
+        "table": "company_invites",
+        "column": "location_ids"
+      },
+      {
+        "type": "text",
+        "table": "company_invites",
+        "column": "code_hash"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "company_invites",
+        "column": "expires_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "company_invites",
+        "column": "used_at"
+      },
+      {
+        "type": "uuid",
+        "table": "company_invites",
+        "column": "used_by"
+      },
+      {
+        "type": "uuid",
+        "table": "company_invites",
+        "column": "created_by_device"
+      },
+      {
+        "type": "uuid",
+        "table": "company_invites",
+        "column": "created_by_user"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "company_invites",
+        "column": "created_at"
+      },
+      {
+        "type": "uuid",
+        "table": "company_memberships",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "company_memberships",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "company_memberships",
+        "column": "user_id"
+      },
+      {
+        "type": "text",
+        "table": "company_memberships",
+        "column": "role"
+      },
+      {
+        "type": "text",
+        "table": "company_memberships",
+        "column": "status"
+      },
+      {
+        "type": "ARRAY",
+        "table": "company_memberships",
+        "column": "location_ids"
+      },
+      {
+        "type": "text",
+        "table": "company_memberships",
+        "column": "origin"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "company_memberships",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "company_memberships",
+        "column": "updated_at"
+      },
+      {
+        "type": "uuid",
+        "table": "device_enrollments",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "device_enrollments",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "device_enrollments",
+        "column": "location_id"
+      },
+      {
+        "type": "text",
+        "table": "device_enrollments",
+        "column": "purpose"
+      },
+      {
+        "type": "ARRAY",
+        "table": "device_enrollments",
+        "column": "kinds"
+      },
+      {
+        "type": "text",
+        "table": "device_enrollments",
+        "column": "code_hash"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "device_enrollments",
+        "column": "expires_at"
+      },
+      {
+        "type": "integer",
+        "table": "device_enrollments",
+        "column": "max_uses"
+      },
+      {
+        "type": "integer",
+        "table": "device_enrollments",
+        "column": "uses"
+      },
+      {
+        "type": "uuid",
+        "table": "device_enrollments",
+        "column": "created_by_device"
+      },
+      {
+        "type": "uuid",
+        "table": "device_enrollments",
+        "column": "created_by_user"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "device_enrollments",
+        "column": "revoked_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "device_enrollments",
+        "column": "created_at"
+      },
+      {
+        "type": "uuid",
+        "table": "device_enrollments",
+        "column": "register_id"
+      },
+      {
+        "type": "uuid",
+        "table": "devices",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "devices",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "devices",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "devices",
+        "column": "register_id"
+      },
+      {
+        "type": "text",
+        "table": "devices",
+        "column": "kind"
+      },
+      {
+        "type": "uuid",
+        "table": "devices",
+        "column": "device_uuid"
+      },
+      {
+        "type": "text",
+        "table": "devices",
+        "column": "name"
+      },
+      {
+        "type": "text",
+        "table": "devices",
+        "column": "machine_fingerprint"
+      },
+      {
+        "type": "text",
+        "table": "devices",
+        "column": "status"
+      },
+      {
+        "type": "text",
+        "table": "devices",
+        "column": "credential_hash"
+      },
+      {
+        "type": "boolean",
+        "table": "devices",
+        "column": "legacy_token"
+      },
+      {
+        "type": "text",
+        "table": "devices",
+        "column": "app_version"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "devices",
+        "column": "activated_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "devices",
+        "column": "last_seen_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "devices",
+        "column": "last_sync_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "devices",
+        "column": "revoked_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "devices",
+        "column": "created_at"
+      },
+      {
+        "type": "text",
+        "table": "devices",
+        "column": "signing_public_key"
+      },
+      {
+        "type": "integer",
+        "table": "devices",
+        "column": "pending_events"
+      },
+      {
+        "type": "bigint",
+        "table": "devices",
+        "column": "last_seq"
+      },
+      {
+        "type": "integer",
+        "table": "devices",
+        "column": "clock_skew_seconds"
+      },
+      {
+        "type": "uuid",
+        "table": "employees",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "employees",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "employees",
+        "column": "pos_user_uuid"
+      },
+      {
+        "type": "text",
+        "table": "employees",
+        "column": "display_name"
+      },
+      {
+        "type": "uuid",
+        "table": "employees",
+        "column": "home_location_id"
+      },
+      {
+        "type": "text",
+        "table": "employees",
+        "column": "status"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "employees",
+        "column": "first_seen_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "employees",
+        "column": "last_seen_at"
+      },
+      {
+        "type": "text",
+        "table": "employees",
+        "column": "pin_hash"
+      },
+      {
+        "type": "text",
+        "table": "employees",
+        "column": "pin_sal"
+      },
+      {
+        "type": "text",
+        "table": "employees",
+        "column": "pin_algo"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "employees",
+        "column": "pin_set_at"
+      },
+      {
+        "type": "text",
+        "table": "employees",
+        "column": "branch_role"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "employees",
+        "column": "published_at"
+      },
+      {
+        "type": "text",
+        "table": "fase1_conciliacion",
+        "column": "kind"
+      },
+      {
+        "type": "text",
+        "table": "fase1_conciliacion",
+        "column": "status"
+      },
+      {
+        "type": "bigint",
+        "table": "fase1_conciliacion",
+        "column": "total"
+      },
+      {
+        "type": "bigint",
+        "table": "fiscal_invoice_claims",
+        "column": "id"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_invoice_claims",
+        "column": "fiscalapi_invoice_id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_invoice_claims",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_invoice_claims",
+        "column": "device_id"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "fiscal_invoice_claims",
+        "column": "created_at"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_invoices",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_invoices",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_invoices",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_invoices",
+        "column": "device_id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_invoices",
+        "column": "issuer_id"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_invoices",
+        "column": "fiscalapi_invoice_id"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_invoices",
+        "column": "sat_uuid"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_invoices",
+        "column": "series"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_invoices",
+        "column": "folio"
+      },
+      {
+        "type": "numeric",
+        "table": "fiscal_invoices",
+        "column": "total"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_invoices",
+        "column": "status"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_invoices",
+        "column": "ownership"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "fiscal_invoices",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "fiscal_invoices",
+        "column": "updated_at"
+      },
+      {
+        "type": "bigint",
+        "table": "fiscal_issuer_claims",
+        "column": "id"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuer_claims",
+        "column": "fiscalapi_person_id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_issuer_claims",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_issuer_claims",
+        "column": "device_id"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuer_claims",
+        "column": "rfc"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "fiscal_issuer_claims",
+        "column": "created_at"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_issuers",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_issuers",
+        "column": "company_id"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuers",
+        "column": "fiscalapi_person_id"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuers",
+        "column": "rfc"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuers",
+        "column": "legal_name"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuers",
+        "column": "tax_regime"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuers",
+        "column": "zip_code"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuers",
+        "column": "status"
+      },
+      {
+        "type": "text",
+        "table": "fiscal_issuers",
+        "column": "origin"
+      },
+      {
+        "type": "uuid",
+        "table": "fiscal_issuers",
+        "column": "created_by_device"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "fiscal_issuers",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "fiscal_issuers",
+        "column": "updated_at"
+      },
+      {
+        "type": "uuid",
+        "table": "inventory_ledger",
+        "column": "movement_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "inventory_ledger",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "inventory_ledger",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "inventory_ledger",
+        "column": "product_uuid"
+      },
+      {
+        "type": "text",
+        "table": "inventory_ledger",
+        "column": "type"
+      },
+      {
+        "type": "numeric",
+        "table": "inventory_ledger",
+        "column": "quantity"
+      },
+      {
+        "type": "text",
+        "table": "inventory_ledger",
+        "column": "ref_type"
+      },
+      {
+        "type": "uuid",
+        "table": "inventory_ledger",
+        "column": "ref_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "inventory_ledger",
+        "column": "device_id"
+      },
+      {
+        "type": "uuid",
+        "table": "inventory_ledger",
+        "column": "event_uuid"
+      },
+      {
+        "type": "text",
+        "table": "inventory_ledger",
+        "column": "reason"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "inventory_ledger",
+        "column": "occurred_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "inventory_ledger",
+        "column": "received_at"
+      },
+      {
+        "type": "uuid",
+        "table": "license_activations",
+        "column": "device_id"
+      },
+      {
+        "type": "uuid",
+        "table": "license_activations",
+        "column": "location_id"
+      },
+      {
+        "type": "text",
+        "table": "license_activations",
+        "column": "kind"
+      },
+      {
+        "type": "uuid",
+        "table": "licenses",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "licenses",
+        "column": "account_id"
+      },
+      {
+        "type": "uuid",
+        "table": "location_staff",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "location_staff",
+        "column": "employee_id"
+      },
+      {
+        "type": "uuid",
+        "table": "location_staff",
+        "column": "company_id"
+      },
+      {
+        "type": "text",
+        "table": "location_staff",
+        "column": "role"
+      },
+      {
+        "type": "boolean",
+        "table": "location_staff",
+        "column": "active"
+      },
+      {
+        "type": "uuid",
+        "table": "location_staff",
+        "column": "assigned_by"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "location_staff",
+        "column": "updated_at"
+      },
+      {
+        "type": "uuid",
+        "table": "location_stock",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "location_stock",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "location_stock",
+        "column": "product_uuid"
+      },
+      {
+        "type": "numeric",
+        "table": "location_stock",
+        "column": "qty"
+      },
+      {
+        "type": "bigint",
+        "table": "mfa_recovery_attempts",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "mfa_recovery_attempts",
+        "column": "user_id"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "mfa_recovery_attempts",
+        "column": "at"
+      },
+      {
+        "type": "boolean",
+        "table": "mfa_recovery_attempts",
+        "column": "ok"
+      },
+      {
+        "type": "uuid",
+        "table": "mfa_recovery_codes",
+        "column": "user_id"
+      },
+      {
+        "type": "text",
+        "table": "mfa_recovery_codes",
+        "column": "code_hash"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "mfa_recovery_codes",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "mfa_recovery_codes",
+        "column": "used_at"
+      },
+      {
+        "type": "uuid",
+        "table": "negocios",
+        "column": "account_id"
+      },
+      {
+        "type": "text",
+        "table": "negocios",
+        "column": "status"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "negocios",
+        "column": "updated_at"
+      },
+      {
+        "type": "bigint",
+        "table": "notification_deliveries",
+        "column": "id"
+      },
+      {
+        "type": "bigint",
+        "table": "notification_deliveries",
+        "column": "outbox_id"
+      },
+      {
+        "type": "uuid",
+        "table": "notification_deliveries",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "notification_deliveries",
+        "column": "user_id"
+      },
+      {
+        "type": "text",
+        "table": "notification_deliveries",
+        "column": "canal"
+      },
+      {
+        "type": "text",
+        "table": "notification_deliveries",
+        "column": "destino"
+      },
+      {
+        "type": "text",
+        "table": "notification_deliveries",
+        "column": "titulo"
+      },
+      {
+        "type": "text",
+        "table": "notification_deliveries",
+        "column": "cuerpo"
+      },
+      {
+        "type": "jsonb",
+        "table": "notification_deliveries",
+        "column": "datos"
+      },
+      {
+        "type": "text",
+        "table": "notification_deliveries",
+        "column": "status"
+      },
+      {
+        "type": "integer",
+        "table": "notification_deliveries",
+        "column": "attempts"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_deliveries",
+        "column": "next_attempt_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_deliveries",
+        "column": "lease_until"
+      },
+      {
+        "type": "text",
+        "table": "notification_deliveries",
+        "column": "provider_ref"
+      },
+      {
+        "type": "text",
+        "table": "notification_deliveries",
+        "column": "last_error"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_deliveries",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_deliveries",
+        "column": "sent_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_deliveries",
+        "column": "receipt_at"
+      },
+      {
+        "type": "text",
+        "table": "notification_kinds",
+        "column": "kind"
+      },
+      {
+        "type": "text",
+        "table": "notification_kinds",
+        "column": "descripcion"
+      },
+      {
+        "type": "ARRAY",
+        "table": "notification_kinds",
+        "column": "roles"
+      },
+      {
+        "type": "ARRAY",
+        "table": "notification_kinds",
+        "column": "canales"
+      },
+      {
+        "type": "boolean",
+        "table": "notification_kinds",
+        "column": "activo"
+      },
+      {
+        "type": "interval",
+        "table": "notification_kinds",
+        "column": "vigencia"
+      },
+      {
+        "type": "bigint",
+        "table": "notification_outbox",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "notification_outbox",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "notification_outbox",
+        "column": "location_id"
+      },
+      {
+        "type": "text",
+        "table": "notification_outbox",
+        "column": "kind"
+      },
+      {
+        "type": "uuid",
+        "table": "notification_outbox",
+        "column": "ref_uuid"
+      },
+      {
+        "type": "jsonb",
+        "table": "notification_outbox",
+        "column": "payload"
+      },
+      {
+        "type": "ARRAY",
+        "table": "notification_outbox",
+        "column": "channels"
+      },
+      {
+        "type": "text",
+        "table": "notification_outbox",
+        "column": "status"
+      },
+      {
+        "type": "integer",
+        "table": "notification_outbox",
+        "column": "attempts"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_outbox",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_outbox",
+        "column": "sent_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_outbox",
+        "column": "planned_at"
+      },
+      {
+        "type": "uuid",
+        "table": "notification_preferences",
+        "column": "user_id"
+      },
+      {
+        "type": "uuid",
+        "table": "notification_preferences",
+        "column": "company_id"
+      },
+      {
+        "type": "text",
+        "table": "notification_preferences",
+        "column": "kind"
+      },
+      {
+        "type": "text",
+        "table": "notification_preferences",
+        "column": "canal"
+      },
+      {
+        "type": "boolean",
+        "table": "notification_preferences",
+        "column": "activo"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "notification_preferences",
+        "column": "updated_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "push_tokens",
+        "column": "disabled_at"
+      },
+      {
+        "type": "text",
+        "table": "push_tokens",
+        "column": "last_error"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "push_tokens",
+        "column": "updated_at"
+      },
+      {
+        "type": "bigint",
+        "table": "reconciliation_items",
+        "column": "id"
+      },
+      {
+        "type": "text",
+        "table": "reconciliation_items",
+        "column": "kind"
+      },
+      {
+        "type": "text",
+        "table": "reconciliation_items",
+        "column": "ref"
+      },
+      {
+        "type": "uuid",
+        "table": "reconciliation_items",
+        "column": "company_id"
+      },
+      {
+        "type": "jsonb",
+        "table": "reconciliation_items",
+        "column": "detail"
+      },
+      {
+        "type": "text",
+        "table": "reconciliation_items",
+        "column": "status"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "reconciliation_items",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "reconciliation_items",
+        "column": "resolved_at"
+      },
+      {
+        "type": "uuid",
+        "table": "registers",
+        "column": "id"
+      },
+      {
+        "type": "uuid",
+        "table": "registers",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "registers",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "registers",
+        "column": "register_uuid"
+      },
+      {
+        "type": "text",
+        "table": "registers",
+        "column": "code"
+      },
+      {
+        "type": "text",
+        "table": "registers",
+        "column": "name"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "registers",
+        "column": "first_seen_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "registers",
+        "column": "last_seen_at"
+      },
+      {
+        "type": "uuid",
+        "table": "sale_line_facts",
+        "column": "sale_uuid"
+      },
+      {
+        "type": "integer",
+        "table": "sale_line_facts",
+        "column": "line_no"
+      },
+      {
+        "type": "uuid",
+        "table": "sale_line_facts",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "sale_line_facts",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "sale_line_facts",
+        "column": "product_uuid"
+      },
+      {
+        "type": "text",
+        "table": "sale_line_facts",
+        "column": "product_name"
+      },
+      {
+        "type": "numeric",
+        "table": "sale_line_facts",
+        "column": "quantity"
+      },
+      {
+        "type": "numeric",
+        "table": "sale_line_facts",
+        "column": "unit_price"
+      },
+      {
+        "type": "numeric",
+        "table": "sale_line_facts",
+        "column": "unit_cost"
+      },
+      {
+        "type": "integer",
+        "table": "sale_line_facts",
+        "column": "catalog_version"
+      },
+      {
+        "type": "uuid",
+        "table": "sales_facts",
+        "column": "sale_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "sales_facts",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "sales_facts",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "sales_facts",
+        "column": "register_uuid"
+      },
+      {
+        "type": "bigint",
+        "table": "sales_facts",
+        "column": "folio"
+      },
+      {
+        "type": "date",
+        "table": "sales_facts",
+        "column": "business_date"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sales_facts",
+        "column": "occurred_at"
+      },
+      {
+        "type": "numeric",
+        "table": "sales_facts",
+        "column": "total"
+      },
+      {
+        "type": "numeric",
+        "table": "sales_facts",
+        "column": "paid_amount"
+      },
+      {
+        "type": "numeric",
+        "table": "sales_facts",
+        "column": "balance"
+      },
+      {
+        "type": "numeric",
+        "table": "sales_facts",
+        "column": "refunded_total"
+      },
+      {
+        "type": "text",
+        "table": "sales_facts",
+        "column": "payment_method"
+      },
+      {
+        "type": "text",
+        "table": "sales_facts",
+        "column": "service_mode"
+      },
+      {
+        "type": "boolean",
+        "table": "sales_facts",
+        "column": "venta_esencial"
+      },
+      {
+        "type": "uuid",
+        "table": "sales_facts",
+        "column": "user_uuid"
+      },
+      {
+        "type": "bigint",
+        "table": "sales_facts",
+        "column": "version"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sales_facts",
+        "column": "updated_at"
+      },
+      {
+        "type": "integer",
+        "table": "sales_facts",
+        "column": "catalog_version"
+      },
+      {
+        "type": "text",
+        "table": "sales_facts",
+        "column": "folio_text"
+      },
+      {
+        "type": "boolean",
+        "table": "sales_facts",
+        "column": "invoice_requested"
+      },
+      {
+        "type": "uuid",
+        "table": "shift_facts",
+        "column": "shift_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "shift_facts",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "shift_facts",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "shift_facts",
+        "column": "register_uuid"
+      },
+      {
+        "type": "integer",
+        "table": "shift_facts",
+        "column": "closure_id_local"
+      },
+      {
+        "type": "text",
+        "table": "shift_facts",
+        "column": "status"
+      },
+      {
+        "type": "date",
+        "table": "shift_facts",
+        "column": "business_date"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "shift_facts",
+        "column": "opened_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "shift_facts",
+        "column": "closed_at"
+      },
+      {
+        "type": "numeric",
+        "table": "shift_facts",
+        "column": "opening_cash"
+      },
+      {
+        "type": "numeric",
+        "table": "shift_facts",
+        "column": "cash_expected"
+      },
+      {
+        "type": "numeric",
+        "table": "shift_facts",
+        "column": "cash_counted"
+      },
+      {
+        "type": "numeric",
+        "table": "shift_facts",
+        "column": "difference"
+      },
+      {
+        "type": "boolean",
+        "table": "shift_facts",
+        "column": "blind_count"
+      },
+      {
+        "type": "uuid",
+        "table": "shift_facts",
+        "column": "opened_by_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "shift_facts",
+        "column": "closed_by_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "shift_facts",
+        "column": "authorized_by_uuid"
+      },
+      {
+        "type": "text",
+        "table": "shift_facts",
+        "column": "opened_device"
+      },
+      {
+        "type": "text",
+        "table": "shift_facts",
+        "column": "closed_device"
+      },
+      {
+        "type": "bigint",
+        "table": "shift_facts",
+        "column": "version"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "shift_facts",
+        "column": "updated_at"
+      },
+      {
+        "type": "uuid",
+        "table": "stock_transfer_lines",
+        "column": "transfer_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "stock_transfer_lines",
+        "column": "product_uuid"
+      },
+      {
+        "type": "text",
+        "table": "stock_transfer_lines",
+        "column": "product_name"
+      },
+      {
+        "type": "numeric",
+        "table": "stock_transfer_lines",
+        "column": "qty_sent"
+      },
+      {
+        "type": "numeric",
+        "table": "stock_transfer_lines",
+        "column": "qty_received"
+      },
+      {
+        "type": "numeric",
+        "table": "stock_transfer_lines",
+        "column": "claimed_sent"
+      },
+      {
+        "type": "uuid",
+        "table": "stock_transfers",
+        "column": "transfer_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "stock_transfers",
+        "column": "company_id"
+      },
+      {
+        "type": "text",
+        "table": "stock_transfers",
+        "column": "kind"
+      },
+      {
+        "type": "uuid",
+        "table": "stock_transfers",
+        "column": "from_location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "stock_transfers",
+        "column": "to_location_id"
+      },
+      {
+        "type": "text",
+        "table": "stock_transfers",
+        "column": "status"
+      },
+      {
+        "type": "text",
+        "table": "stock_transfers",
+        "column": "signature"
+      },
+      {
+        "type": "boolean",
+        "table": "stock_transfers",
+        "column": "branch_confirmed"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "stock_transfers",
+        "column": "sent_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "stock_transfers",
+        "column": "received_at"
+      },
+      {
+        "type": "uuid",
+        "table": "stock_transfers",
+        "column": "origin_device"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "stock_transfers",
+        "column": "created_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "stock_transfers",
+        "column": "updated_at"
+      },
+      {
+        "type": "text",
+        "table": "sucursales",
+        "column": "tipo"
+      },
+      {
+        "type": "text",
+        "table": "sucursales",
+        "column": "status"
+      },
+      {
+        "type": "uuid",
+        "table": "sucursales",
+        "column": "instance_uuid"
+      },
+      {
+        "type": "text",
+        "table": "sucursales",
+        "column": "install_secret_hash"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sucursales",
+        "column": "starts_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sucursales",
+        "column": "ends_at"
+      },
+      {
+        "type": "uuid",
+        "table": "sucursales",
+        "column": "home_location_id"
+      },
+      {
+        "type": "text",
+        "table": "sucursales",
+        "column": "timezone"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sucursales",
+        "column": "updated_at"
+      },
+      {
+        "type": "text",
+        "table": "sucursales",
+        "column": "event_status"
+      },
+      {
+        "type": "text",
+        "table": "sucursales",
+        "column": "codigo"
+      },
+      {
+        "type": "text",
+        "table": "sucursales",
+        "column": "server_fingerprint"
+      },
+      {
+        "type": "integer",
+        "table": "sucursales",
+        "column": "security_revision"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sucursales",
+        "column": "reconciled_at"
+      },
+      {
+        "type": "jsonb",
+        "table": "sucursales",
+        "column": "reconciliation"
+      },
+      {
+        "type": "uuid",
+        "table": "sync_events",
+        "column": "event_uuid"
+      },
+      {
+        "type": "uuid",
+        "table": "sync_events",
+        "column": "company_id"
+      },
+      {
+        "type": "uuid",
+        "table": "sync_events",
+        "column": "location_id"
+      },
+      {
+        "type": "uuid",
+        "table": "sync_events",
+        "column": "device_id"
+      },
+      {
+        "type": "text",
+        "table": "sync_events",
+        "column": "aggregate_type"
+      },
+      {
+        "type": "uuid",
+        "table": "sync_events",
+        "column": "aggregate_uuid"
+      },
+      {
+        "type": "bigint",
+        "table": "sync_events",
+        "column": "aggregate_version"
+      },
+      {
+        "type": "text",
+        "table": "sync_events",
+        "column": "event_type"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sync_events",
+        "column": "occurred_at"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "sync_events",
+        "column": "received_at"
+      },
+      {
+        "type": "smallint",
+        "table": "sync_events",
+        "column": "payload_version"
+      },
+      {
+        "type": "jsonb",
+        "table": "sync_events",
+        "column": "payload"
+      },
+      {
+        "type": "text",
+        "table": "sync_events",
+        "column": "result"
+      },
+      {
+        "type": "bigint",
+        "table": "sync_events",
+        "column": "seq"
+      },
+      {
+        "type": "bigint",
+        "table": "sync_events",
+        "column": "local_seq"
+      }
+    ],
+    "rpcs": [
+      {
+        "args": "p jsonb",
+        "hash": "e266ca79a464e40bf818cc08cba85be4",
+        "name": "aprobacion_cancelar",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "4b8faa0961ce34f6ed16afb0f97b426f",
+        "name": "aprobacion_consumir",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "c756dbfcc19ec969cbd598f1a5de5512",
+        "name": "aprobacion_estado",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "fc4a325a49f98a56f0cdd1465508945f",
+        "name": "aprobacion_solicitar",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid",
+        "hash": "b77e61c40d38bb77d68347dbddf19666",
+        "name": "company_entitlements",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "0381e29750bc4ff0a00aa60bfc9c59f6",
+        "name": "conciliar_automatico",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "36c7426ec60014798e9510036e993e8d",
+        "name": "conciliar_licencia",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "63b0c08a1b72bb6dbccb5ed98a2d0161",
+        "name": "conciliar_owner_app",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "fec3cbf94ac59e9e0022d4eccc4dbe2b",
+        "name": "device_autenticar",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "8c75f7bd4d6513cb4099b7ede7a1c2d3",
+        "name": "dispositivo_revocar",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid",
+        "hash": "15f6b77d0c1edfdb481771f9daf2c2c2",
+        "name": "estado_dispositivos",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "a7cd471a46d24c9e630063917e3b85de",
+        "name": "evento_asignar_personal",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "279e75e83cb602f59148194d1030fd60",
+        "name": "evento_cambiar_estado",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "2badf39b2b174e9c36c32b2b9dac72c7",
+        "name": "evento_codigo_tablet",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "414c2eac736329cec7c5732016a7c6a3",
+        "name": "fiscal_autorizar",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "549e787b0d0929c8230e531432699ce9",
+        "name": "fiscal_conciliar_emisor",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "3ea82853bf440aafecc41e847678fb6a",
+        "name": "fiscal_legado_libre",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "a1225f1890a273f8e80547b091fbdecb",
+        "name": "fiscal_marcar_cancelacion",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "d3f9aa2ffe5b793fb3c0b4c34397ba5a",
+        "name": "fiscal_persona_de_empresa",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "bbe97681337ebeb3a10413445c4dcc7f",
+        "name": "fiscal_reclamar_historico",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "b0fb1b12a0d6aa46f902a6c1dcd1b8bf",
+        "name": "fiscal_registrar_emisor",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "25e639eafcfc7e4b829857ef8cb49300",
+        "name": "fiscal_registrar_factura",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "6cdd552dbedea147f5e415c3b8e190ad",
+        "name": "membresia_aceptar_invitacion",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "e187303653d01df64aceab03841a436e",
+        "name": "membresia_crear_invitacion",
+        "security_definer": true
+      },
+      {
+        "args": "p_user uuid, p_codigo text",
+        "hash": "d9717c97a3291506769096146efe50b2",
+        "name": "mfa_consumir_codigo",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "e37a483339800636d8daae645a0945d4",
+        "name": "mfa_estado",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "dddd1ca3852c60d3f8a8c337c3cf2475",
+        "name": "mfa_generar_codigos",
+        "security_definer": true
+      },
+      {
+        "args": "p_user uuid, p_factores_quitados integer",
+        "hash": "21895b12f16ae853d0d8d8bbccc5f867",
+        "name": "mfa_recuperacion_completada",
+        "security_definer": true
+      },
+      {
+        "args": "p_evento text",
+        "hash": "4da473d68719f1d6e0a36499fdd7633c",
+        "name": "mfa_registrar",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "a545b5d224f6787459b5298e30d0d3a6",
+        "name": "mis_empresas",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "e47b7663a3ef9c26742bd1ada2696214",
+        "name": "mobile_inbox",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "9ba1604d043d44c4bca7da37be8574ef",
+        "name": "mobile_latido",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "765bc090029581b21da4c8381dd24543",
+        "name": "mobile_snapshot",
+        "security_definer": true
+      },
+      {
+        "args": "p_limite integer",
+        "hash": "5e7731b2d2a28f7e0f3ae650e23806fc",
+        "name": "notif_planear",
+        "security_definer": true
+      },
+      {
+        "args": "p_limite integer, p_espera interval",
+        "hash": "0818d733c1012e78814af38d0558d6a4",
+        "name": "notif_por_recibo",
+        "security_definer": true
+      },
+      {
+        "args": "p_id bigint, p_ok boolean, p_error text, p_token_invalido boolean",
+        "hash": "a9590fca90342c7eb675bfa9e81d6a8e",
+        "name": "notif_recibo",
+        "security_definer": true
+      },
+      {
+        "args": "p_id bigint, p_ok boolean, p_ref text, p_error text, p_permanente boolean, p_token_invalido boolean",
+        "hash": "3f6bba4b7d18c028ad1a5786912adade",
+        "name": "notif_resultado",
+        "security_definer": true
+      },
+      {
+        "args": "p_canal text, p_limite integer",
+        "hash": "8ba48a745958f074cdf1d298551ade79",
+        "name": "notif_tomar",
+        "security_definer": true
+      },
+      {
+        "args": "p_horas integer",
+        "hash": "661e5f7a2b3d721c7f8175466e82fc32",
+        "name": "notif_vencer",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid",
+        "hash": "8b99c5529dc34cf546dc80246b612003",
+        "name": "owner_aprobaciones",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p_location uuid, p_employee uuid, p_role text, p_active boolean",
+        "hash": "788fc42e212cb56a388d0ed760aa1b07",
+        "name": "owner_asignar_personal",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p_location uuid, p_register_name text",
+        "hash": "705ca1a7a93d2608e2d7be0ef5b96010",
+        "name": "owner_codigo_tablet",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p jsonb",
+        "hash": "c35113fddfce50b880d8ccc8b47db4e1",
+        "name": "owner_crear_evento",
+        "security_definer": true
+      },
+      {
+        "args": "p_id uuid, p_decision text, p_hash text, p_nota text",
+        "hash": "b2ffcab1148fc6e952c757effb77f054",
+        "name": "owner_decidir_aprobacion",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid",
+        "hash": "3b09858f3d3dd441c1899b4745018ea4",
+        "name": "owner_empleados",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p_location uuid, p_status text, p_forzar boolean, p_motivo text",
+        "hash": "dee47184473ec42e7a01b6eca640b250",
+        "name": "owner_evento_estado",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p_location uuid, p_decision text",
+        "hash": "c0471391ec630a198c8df5bc23e2c89a",
+        "name": "owner_resolver_clon",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p_device uuid",
+        "hash": "4f2a702c153336a1246f9f9b45759c93",
+        "name": "owner_revocar_dispositivo",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "d0ca22fbf9b20493b2dcaf5c87fcab7a",
+        "name": "pos_bootstrap",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "4a68bc59d39af0af8e57eaa2a4fd73e4",
+        "name": "pos_borrar_cuenta",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "afca481785b29c87a80c7cb503de09bc",
+        "name": "pos_create_enrollment",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "75aaf5b653e5bdc8637c9b458b55a000",
+        "name": "pos_create_location",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "c6a4acc56c0dfc6bea791270ffa6b031",
+        "name": "pos_enroll",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "4cbecc83928ab52fc2c9ec7b3b2a61ef",
+        "name": "pos_install_secret",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "06ff3ae70cd8aea3748079ef1bbd2b89",
+        "name": "pos_provision_legado",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "acf7e472bdd348ec05bc40a51f8b91fa",
+        "name": "pos_publicar",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "8d7bcc88e770e1d27cbe16bb1f57d195",
+        "name": "pos_registrar_llave",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "4abd9491c86c98ebdecdb7a69c4dc4eb",
+        "name": "pos_transfer_inbox",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "744549bb1b1f35d889e9da9bf87151e7",
+        "name": "pos_vincular_licencia",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "fed05cf79bfc3f5bbac1ea4711917b7a",
+        "name": "pos_whoami",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p_fecha date",
+        "hash": "3950846c43ec7758f6317a34f114f9de",
+        "name": "resumen_empresa",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "de47d8741c8801a08d8dd63cd5916e56",
+        "name": "sync_ingest",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "9824bd5c94f63f41de5ebcf78a17694b",
+        "name": "ubicacion_resolver_clon",
+        "security_definer": true
+      },
+      {
+        "args": "p jsonb",
+        "hash": "b8164694c4d7e644618cdf987400cb09",
+        "name": "wx_actor_admin",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "0f6b46ba51e79abddb00e132f2f5380a",
+        "name": "wx_alerta_push",
+        "security_definer": true
+      },
+      {
+        "args": "d devices, ev jsonb",
+        "hash": "6bf55b9a8530f393b201625a97da31b8",
+        "name": "wx_aprob_exigir_evento",
+        "security_definer": true
+      },
+      {
+        "args": "p_action text, p_payload jsonb",
+        "hash": "4427e06d2fccd7684aaf2929b297cba4",
+        "name": "wx_aprob_hash",
+        "security_definer": false
+      },
+      {
+        "args": "r approval_requests",
+        "hash": "0658d428b55c10fc8fc68b0a64e66814",
+        "name": "wx_aprob_salida",
+        "security_definer": false
+      },
+      {
+        "args": "p_id uuid",
+        "hash": "0d3c892dfcdfc70ef893b383730ec002",
+        "name": "wx_aprob_vencer",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "006885529da0abb571d2485ec3993615",
+        "name": "wx_aprob_verificar_evento",
+        "security_definer": true
+      },
+      {
+        "args": "p_actor_kind text, p_actor_id text, p_company uuid, p_action text, p_result text, p_detail jsonb",
+        "hash": "058a27bd0421fcffabd447f2bbe6031f",
+        "name": "wx_audit",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "d12b821c4041bf1c6f41b531bb6f7582",
+        "name": "wx_claims",
+        "security_definer": false
+      },
+      {
+        "args": "p text",
+        "hash": "cc68200d7dad04f7e73dbeea2cb1255c",
+        "name": "wx_codigo_hash",
+        "security_definer": false
+      },
+      {
+        "args": "",
+        "hash": "db45075ef145f32a35bcbe74137a8ba6",
+        "name": "wx_codigo_nuevo",
+        "security_definer": false
+      },
+      {
+        "args": "p_location uuid, p_kind text, p_device_uuid uuid, p jsonb",
+        "hash": "800fb3531863d2af1d5499723f3189fb",
+        "name": "wx_emitir_dispositivo",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid",
+        "hash": "25baaeafb55131992424d34e962c83b7",
+        "name": "wx_es_miembro",
+        "security_definer": true
+      },
+      {
+        "args": "p text",
+        "hash": "d87ba0d8fbd36f8c8b0e5eb7b280fe75",
+        "name": "wx_hash",
+        "security_definer": false
+      },
+      {
+        "args": "p_company uuid, p_loc sucursales, p_mov uuid, p_prod uuid, p_type text, p_qty numeric, p_ref_type text, p_ref uuid, p_device uuid, p_event uuid, p_reason text, p_at timestamp with time zone",
+        "hash": "a2a1bd9da9140fddbaf207c8b565ee70",
+        "name": "wx_ledger",
+        "security_definer": true
+      },
+      {
+        "args": "p_user uuid",
+        "hash": "09c02c066f534d68d6e37cd53fc7d3d0",
+        "name": "wx_mfa_bloqueo",
+        "security_definer": true
+      },
+      {
+        "args": "p_user uuid",
+        "hash": "ee4634f38202e5a0e69fe094aa56b55c",
+        "name": "wx_mfa_factores",
+        "security_definer": true
+      },
+      {
+        "args": "p_user uuid, p_codigo text",
+        "hash": "126b3140c79ad084a54d15c345bbb4c9",
+        "name": "wx_mfa_hash",
+        "security_definer": false
+      },
+      {
+        "args": "p text",
+        "hash": "653bf1b15fb0ca455966da2cd3ea4903",
+        "name": "wx_mfa_normalizar",
+        "security_definer": false
+      },
+      {
+        "args": "ev jsonb, p_tz text",
+        "hash": "b6fe9620d4b3f21be70d5da01fd21391",
+        "name": "wx_normalizar_evento",
+        "security_definer": false
+      },
+      {
+        "args": "",
+        "hash": "8fdd06cd5a0cb45767f16c624afd6346",
+        "name": "wx_notif_desde_auditoria",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "b02b4230807241582f15f9b1b0e48907",
+        "name": "wx_notif_desde_cuarentena",
+        "security_definer": true
+      },
+      {
+        "args": "",
+        "hash": "c709dbc862d15eb308b5b0fe438be806",
+        "name": "wx_notif_disparar",
+        "security_definer": true
+      },
+      {
+        "args": "p_intentos integer",
+        "hash": "39fecd05dd4ae98dcdc8f61707d75664",
+        "name": "wx_notif_espera",
+        "security_definer": false
+      },
+      {
+        "args": "p_kind text, p_payload jsonb, p_ubicacion text",
+        "hash": "e0a793a6a860a96468fa2d828660ccc3",
+        "name": "wx_notif_texto",
+        "security_definer": false
+      },
+      {
+        "args": "p_kind text, p_ref text, p_company uuid, p_detail jsonb",
+        "hash": "d099df85fe710935e537e9df7484a844",
+        "name": "wx_pendiente",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid, p_accion text",
+        "hash": "4da59e61a521162a498b5d9c71c8ee61",
+        "name": "wx_permite",
+        "security_definer": true
+      },
+      {
+        "args": "d devices, v_tz text, ev jsonb",
+        "hash": "0f00c46383f0ddd96adfaac37419dcaf",
+        "name": "wx_proyectar",
+        "security_definer": true
+      },
+      {
+        "args": "d devices, v_loc sucursales, ev jsonb, p_event uuid",
+        "hash": "12635dd2c21277504e5173fb904a7893",
+        "name": "wx_proyectar_f2",
+        "security_definer": true
+      },
+      {
+        "args": "p_location uuid",
+        "hash": "4413366307292181d11c950709b10b44",
+        "name": "wx_puede_ubicacion",
+        "security_definer": true
+      },
+      {
+        "args": "p_company uuid",
+        "hash": "3531e1b0fab1e6948b6a2aa6caac0be0",
+        "name": "wx_rol",
+        "security_definer": true
+      },
+      {
+        "args": "p_location uuid",
+        "hash": "dc55d6bdb072dcbcccbd2a0770fa8ca4",
+        "name": "wx_stock_desglose",
+        "security_definer": true
+      },
+      {
+        "args": "p_prefijo text",
+        "hash": "4a26370f8e105984b2eafd5a95c29acc",
+        "name": "wx_token_nuevo",
+        "security_definer": false
+      },
+      {
+        "args": "",
+        "hash": "e4271ddbe6174361ee2e9a1f3bb8ee17",
+        "name": "wx_tr_token_legado",
+        "security_definer": true
+      },
+      {
+        "args": "p text",
+        "hash": "a023d977bb6ce605124375f205e9d096",
+        "name": "wx_uuid",
+        "security_definer": false
+      },
+      {
+        "args": "p text",
+        "hash": "0adae4ba51e9717759cacc28910f86b4",
+        "name": "wx_uuid_det",
+        "security_definer": false
+      }
+    ],
+    "policies": [
+      {
+        "name": "miembro marca alertas",
+        "check": "wx_puede_ubicacion(sucursal_id)",
+        "roles": [
+          "authenticated"
+        ],
+        "table": "alertas",
+        "using": "wx_puede_ubicacion(sucursal_id)",
+        "command": "UPDATE"
+      },
+      {
+        "name": "miembro ve alertas",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "alertas",
+        "using": "wx_puede_ubicacion(sucursal_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve movimientos",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "cash_movement_facts",
+        "using": "wx_puede_ubicacion(location_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve su membresia",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "company_memberships",
+        "using": "((user_id = ( SELECT auth.uid() AS uid)) OR (wx_rol(company_id) = ANY (ARRAY['OWNER'::text, 'ADMIN'::text])))",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve cortes",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "cortes_caja",
+        "using": "wx_puede_ubicacion(sucursal_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve empleados",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "employees",
+        "using": "wx_es_miembro(company_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve inventario",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "inventory_ledger",
+        "using": "wx_puede_ubicacion(location_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve personal de eventos",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "location_staff",
+        "using": "wx_puede_ubicacion(location_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve su empresa",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "negocios",
+        "using": "wx_es_miembro(id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "tipos visibles",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "notification_kinds",
+        "using": "true",
+        "command": "SELECT"
+      },
+      {
+        "name": "cada quien sus preferencias",
+        "check": "((user_id = auth.uid()) AND wx_es_miembro(company_id))",
+        "roles": [
+          "authenticated"
+        ],
+        "table": "notification_preferences",
+        "using": "((user_id = auth.uid()) AND wx_es_miembro(company_id))",
+        "command": "ALL"
+      },
+      {
+        "name": "cada quien sus tokens",
+        "check": "(owner_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "table": "push_tokens",
+        "using": "(owner_id = auth.uid())",
+        "command": "ALL"
+      },
+      {
+        "name": "miembro ve cajas",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "registers",
+        "using": "wx_puede_ubicacion(location_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve resumen",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "resumen_ventas",
+        "using": "wx_puede_ubicacion(sucursal_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve lineas de venta",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "sale_line_facts",
+        "using": "wx_puede_ubicacion(location_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve ventas",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "sales_facts",
+        "using": "wx_puede_ubicacion(location_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve riesgo",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "seguridad_riesgo",
+        "using": "wx_puede_ubicacion(sucursal_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve turnos",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "shift_facts",
+        "using": "wx_puede_ubicacion(location_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve lineas de transferencia",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "stock_transfer_lines",
+        "using": "(EXISTS ( SELECT 1\n   FROM stock_transfers t\n  WHERE ((t.transfer_uuid = stock_transfer_lines.transfer_uuid) AND (wx_puede_ubicacion(t.from_location_id) OR wx_puede_ubicacion(t.to_location_id)))))",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve transferencias",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "stock_transfers",
+        "using": "(wx_puede_ubicacion(from_location_id) OR wx_puede_ubicacion(to_location_id))",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve sus ubicaciones",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "sucursales",
+        "using": "wx_puede_ubicacion(id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve tendencia",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "tendencia_ventas",
+        "using": "wx_puede_ubicacion(sucursal_id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "miembro ve top",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "top_productos",
+        "using": "wx_puede_ubicacion(sucursal_id)",
+        "command": "SELECT"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "wx_notif_auditoria",
+        "table": "cloud_audit",
+        "enabled": "O",
+        "function": "wx_notif_desde_auditoria",
+        "definition_hash": "e3d97e7d9dd7fc21f20f195dac4d4269"
+      },
+      {
+        "name": "tr_sucursales_token_legado",
+        "table": "sucursales",
+        "enabled": "O",
+        "function": "wx_tr_token_legado",
+        "definition_hash": "722c167c538d9f77b40a702123b3dfb1"
+      },
+      {
+        "name": "wx_aprob_verificar",
+        "table": "sync_events",
+        "enabled": "O",
+        "function": "wx_aprob_verificar_evento",
+        "definition_hash": "b68a02394716f921154e0e5f856d0dbe"
+      },
+      {
+        "name": "wx_notif_cuarentena",
+        "table": "sync_events",
+        "enabled": "O",
+        "function": "wx_notif_desde_cuarentena",
+        "definition_hash": "9e8a59623f228561951dd8e66ec57d7d"
+      }
+    ]
+  },
+  "changedRpcs": [
+    "license_activate",
+    "license_add_vertical",
+    "license_catalog_audit",
+    "license_catalog_update",
+    "license_create_from_order",
+    "license_for_machine",
+    "license_legacy_max_registers",
+    "license_log",
+    "license_mark_cancel_candidate",
+    "license_paid_until",
+    "license_qa_grant",
+    "license_quote",
+    "license_record_purchase",
+    "license_register_code_change",
+    "license_registers_max",
+    "license_release",
+    "license_remove_vertical",
+    "license_renew",
+    "license_runtime",
+    "license_set_screen_tier",
+    "license_trial_grants",
+    "license_trial_select_vertical",
+    "license_upgrade_to_multi"
+  ]
+}

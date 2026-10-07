@@ -42,3 +42,33 @@ yarn-error.*
 
 # Claves de firma de licencias (la privada va SOLO a los secretos de Supabase)
 .secrets/
+
+# Proyectos nativos generados (CNG): se regeneran con expo prebuild.
+apps/*/android/
+apps/*/ios/
+
+# Salidas de compilación de los módulos nativos locales. El código del módulo
+# (build.gradle, src/) SÍ se versiona; lo que genera Gradle/CMake, no.
+apps/*/modules/*/android/build/
+apps/*/modules/*/android/.cxx/
+apps/*/modules/*/android/.gradle/
+
+# Llaves de firma de Android en cualquier formato (además de *.jks).
+*.keystore
+
+# Metadatos locales de la CLI de Supabase.
+supabase/.temp/
+
+# Capturas locales de QA que pueden contener material de enrolamiento MFA.
+docs/evidencia/fase3/01-mfa-enrolar-qr-web.jpg
+docs/evidencia/fase3/02-mfa-codigos-recuperacion.jpg
+docs/evidencia/fase3/07-mfa-recuperacion-con-codigo.jpg
+
+# Evidencia visual y logs de ejecución se mantienen locales; versionar JSON depurado.
+docs/evidencia/**/*.png
+docs/evidencia/**/*.jpg
+docs/evidencia/**/*.log
+docs/diseno-pos-mobile/evidencia/
+.expo-cierre-qa.log
+apps/pos-mobile/public/sqlite/
+docs/evidencia/fase3/relevo/codex-relevo-deps.json

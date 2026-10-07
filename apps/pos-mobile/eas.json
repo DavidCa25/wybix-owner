@@ -1,0 +1,52 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "base": {
+      "node": "24.19.0",
+      "env": {
+        "WYBIX_PERFIL": "produccion"
+      },
+      "channel": "base"
+    },
+    "preview-apk": {
+      "extends": "base",
+      "distribution": "internal",
+      "channel": "pos-preview",
+      "env": {
+        "WYBIX_CANAL": "pos-preview"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production-apk": {
+      "extends": "base",
+      "distribution": "internal",
+      "channel": "pos-production",
+      "env": {
+        "WYBIX_CANAL": "pos-production"
+      },
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "remote"
+      }
+    },
+    "production": {
+      "extends": "base",
+      "channel": "pos-production",
+      "env": {
+        "WYBIX_CANAL": "pos-production"
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "credentialsSource": "remote"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

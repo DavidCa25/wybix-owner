@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "Wybix: Control de Negocio",
+    "slug": "wybix-owner",
+    "platforms": [
+      "android",
+      "ios",
+      "web"
+    ],
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F2A3F"
+    },
+    "scheme": "wybix",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.wybix.pos",
+      "buildNumber": "2"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F2A3F"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.wybix.pos",
+      "versionCode": 2,
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite escanear el codigo de tu negocio."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "09e1e7fb-e39f-416e-9f49-49d9ae705a31"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/09e1e7fb-e39f-416e-9f49-49d9ae705a31"
+    }
+  }
+}

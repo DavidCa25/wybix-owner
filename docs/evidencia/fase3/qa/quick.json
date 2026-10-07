@@ -1,0 +1,129 @@
+{
+  "at": "2026-10-04T19:27:50.856Z",
+  "level": "quick",
+  "ok": true,
+  "evidence": [
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\apps\\owner",
+      "exit": 0,
+      "seconds": 4.48
+    },
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\apps\\pos-mobile",
+      "exit": 0,
+      "seconds": 3.15
+    },
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\api",
+      "exit": 0,
+      "seconds": 1.265
+    },
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\auth",
+      "exit": 0,
+      "seconds": 0.773
+    },
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\database",
+      "exit": 0,
+      "seconds": 1.126
+    },
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\domain",
+      "exit": 0,
+      "seconds": 0.986
+    },
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\sync",
+      "exit": 0,
+      "seconds": 1.153
+    },
+    {
+      "command": [
+        "node",
+        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\ui",
+      "exit": 0,
+      "seconds": 1.263
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "apps/pos-mobile/test/entrada.test.ts",
+        "apps/pos-mobile/test/escpos.test.ts",
+        "apps/pos-mobile/test/reimpresion.test.ts",
+        "supabase/functions/_shared/test/alerta-push.test.ts",
+        "supabase/functions/_shared/test/notificaciones.test.ts",
+        "supabase/functions/_shared/test/owner-mfa.test.ts",
+        "supabase/functions/_shared/test/pos-sync-aprobaciones.test.ts",
+        "packages/api/test/cliente.test.ts",
+        "packages/auth/test/pin-motor.test.ts",
+        "packages/auth/test/pin.test.ts",
+        "packages/database/test/base-local.test.ts",
+        "packages/database/test/cobros.test.ts",
+        "packages/database/test/fecha-negocio.test.ts",
+        "packages/database/test/impresion.test.ts",
+        "packages/database/test/pin.test.ts",
+        "packages/domain/test/dominio.test.ts",
+        "packages/sync/test/sync.test.ts"
+      ],
+      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner",
+      "exit": 0,
+      "seconds": 6.917
+    }
+  ]
+}

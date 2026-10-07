@@ -1,0 +1,16 @@
+{
+  "command": "npm run db:test-giros",
+  "temporaryDatabaseRemoved": true,
+  "ok": true,
+  "realDemoIdentityUnchanged": true,
+  "limitation": "Identidad/fecha comparadas, no backup ni comparación de cada fila",
+  "relatedPrior": {
+    "demo": "73/73",
+    "persistentSql": "29/29"
+  },
+  "passed": 106,
+  "database": "Wybix_Demo_PruebaServicios",
+  "total": 106,
+  "at": "2026-10-04T20:18:34.186567Z",
+  "desktopCommit": "bcbf9d7"
+}
