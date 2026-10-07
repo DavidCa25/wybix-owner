@@ -2,6 +2,7 @@
   "expo": {
     "name": "Wybix: Control de Negocio",
     "slug": "wybix-owner",
+    "platforms": ["android", "ios"],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +16,7 @@
     "scheme": "wybix",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.wybix.owner",
+      "bundleIdentifier": "com.wybix.pos",
       "buildNumber": "1.0.0"
     },
     "android": {
@@ -25,8 +26,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.wybix.owner",
-      "versionCode": 1,
+      "package": "com.wybix.pos",
+      "versionCode": 3,
       "permissions": [
         "android.permission.CAMERA"
       ]
