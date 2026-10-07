@@ -2,7 +2,8 @@
   "expo": {
     "name": "Wybix POS Mobile",
     "slug": "wybix-pos-mobile",
-    "platforms": ["android", "ios"],
+    "platforms": ["android", "ios", "web"],
+    "web": { "output": "single", "favicon": "./assets/icon.png" },
     "version": "0.1.0",
     "orientation": "default",
     "icon": "./assets/icon.png",

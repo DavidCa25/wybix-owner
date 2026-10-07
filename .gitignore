@@ -70,4 +70,5 @@ docs/evidencia/**/*.jpg
 docs/evidencia/**/*.log
 docs/diseno-pos-mobile/evidencia/
 .expo-cierre-qa.log
+apps/pos-mobile/public/sqlite/
 docs/evidencia/fase3/relevo/codex-relevo-deps.json

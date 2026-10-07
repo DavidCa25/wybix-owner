@@ -16,6 +16,7 @@ import {
   StyleSheet,
   Pressable,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import {
@@ -132,9 +133,10 @@ export default function Sincronia() {
           alignSelf: "center",
         }}
       >
+        {Platform.OS === 'web' && <Aviso texto="En la versión web, mantén la app abierta para sincronizar. Antes de borrar los datos de Safari o quitar el icono, comprueba que no haya ventas pendientes. La impresión usa el diálogo del navegador." />}
         {desfaseMin != null && Math.abs(desfaseMin) >= 5 && (
           <Aviso
-            texto={`La hora de esta tablet está ${Math.abs(desfaseMin)} min ${desfaseMin > 0 ? "atrasada" : "adelantada"}. Corrígela en los ajustes de Android; mientras tanto, la fecha del turno usa la hora de Wybix.`}
+            texto={`La hora de esta tablet está ${Math.abs(desfaseMin)} min ${desfaseMin > 0 ? "atrasada" : "adelantada"}. Corrígela en los ajustes del dispositivo; mientras tanto, la fecha del turno usa la hora de Wybix.`}
           />
         )}
         <Tarjeta estilo={{ gap: 8 }}>
@@ -207,7 +209,7 @@ export default function Sincronia() {
               {impresora.tipo === "red"
                 ? "impresora de red (ESC/POS)"
                 : impresora.tipo === "sistema"
-                  ? "impresión de Android"
+                  ? (Platform.OS === 'web' ? "impresión del navegador" : "impresión de Android")
                   : "sin impresora"}
             </Text>
             {fallidos > 0 && (
@@ -226,24 +228,24 @@ export default function Sincronia() {
                   onPress={() => reimprimir(ticket.sale_uuid)} />
               </View>
             ))}
-            <TextInput
+            {Platform.OS !== 'web' && <TextInput
               accessibilityLabel="Dirección IP de la impresora"
               value={host}
               onChangeText={setHost}
               placeholder="IP de la impresora de red (p. ej. 192.168.1.50)"
-              keyboardType="numbers-and-punctuation"
+                keyboardType="numbers-and-punctuation"
               style={s.input}
-            />
+            />}
             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
               <Boton
                 titulo="Usar red"
                 variante="secundario"
                 onPress={() => elegirImpresora({tipo: "red", host: host.trim()})}
-                deshabilitado={configurando || !/^\d+\.\d+\.\d+\.\d+$/.test(host.trim())}
+                deshabilitado={Platform.OS === 'web' || configurando || !/^\d+\.\d+\.\d+\.\d+$/.test(host.trim())}
                 estilo={{ flex: 1 }}
               />
               <Boton
-                titulo="Usar Android"
+                titulo={Platform.OS === 'web' ? 'Usar sistema' : 'Usar Android'}
                 variante="secundario"
                 onPress={() => elegirImpresora({tipo: "sistema"})}
                 deshabilitado={configurando}

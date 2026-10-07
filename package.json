@@ -19,7 +19,9 @@
     "test:quick": "node scripts/qa.mjs quick",
     "test:affected": "node scripts/qa.mjs affected",
     "test:integration": "node scripts/qa.mjs integration",
-    "test:full": "node scripts/qa.mjs full"
+    "test:full": "node scripts/qa.mjs full",
+    "build:pwa:owner": "node scripts/build-pwa.mjs owner",
+    "build:pwa:pos": "node scripts/build-pwa.mjs pos-mobile"
   },
   "devDependencies": {
     "typescript": "~5.9.2",

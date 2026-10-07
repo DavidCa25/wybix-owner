@@ -10,5 +10,11 @@ Deno.serve((req: Request) => {
   const app = new URL(req.url).searchParams.get('app');
   const destino = app && Object.hasOwn(instaladores, app) ? instaladores[app] : null;
   if (!destino) return Response.json({ error: 'Selecciona owner o mobile' }, { status: 400, headers: { 'Cache-Control': 'no-store' } });
-  return new Response(null, { status: 302, headers: { Location: destino, 'Cache-Control': 'public, max-age=300', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' } });
+  const platform = new URL(req.url).searchParams.get('platform');
+  if (platform && !['web','android'].includes(platform)) return Response.json({error:'Plataforma no válida'}, {status:400});
+  const agent = req.headers.get('user-agent') ?? '';
+  const ios = /iPhone|iPad|iPod/i.test(agent) || (/Macintosh/i.test(agent) && /Mobile\//i.test(agent));
+  const web = platform === 'web' || (!platform && ios);
+  const location = web ? (app === 'owner' ? 'https://wybix-owner.expo.app' : 'https://wybix-pos-mobile.expo.app') : destino;
+  return new Response(null, { status: 302, headers: { Location: location, 'Cache-Control': 'no-store', Vary: 'User-Agent', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' } });
 });

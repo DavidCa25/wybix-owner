@@ -13,7 +13,7 @@ export default function PwaInstallHint() {
     try {
       const nav: any = window.navigator;
       const ua = String(nav.userAgent || '');
-      const isIOS = /iphone|ipad|ipod/i.test(ua);
+      const isIOS = /iphone|ipad|ipod/i.test(ua) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
       const standalone = nav.standalone === true ||
         (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
       const dismissed = window.localStorage?.getItem('wybix_pwa_hint') === '1';
@@ -34,7 +34,7 @@ export default function PwaInstallHint() {
       <Text style={styles.txt}>
         Instala Wybix: toca <Text style={styles.b}>Compartir</Text> y luego <Text style={styles.b}>Agregar a inicio</Text>.
       </Text>
-      <Pressable onPress={cerrar} hitSlop={8}>
+      <Pressable onPress={cerrar} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cerrar instrucciones de instalación">
         <Ionicons name="close" size={20} color="#94a3b8" />
       </Pressable>
     </View>

@@ -9,6 +9,7 @@ import { useFonts } from "expo-font";
 import { MotionProvider } from "../components/ui";
 import { View, ActivityIndicator } from "react-native";
 import { PosProvider } from "../lib/contexto";
+import PwaInstallHint from '../components/PwaInstallHint';
 
 export default function Raiz() {
   useKeepAwake(); // en una feria la pantalla no se apaga a mitad de un cobro
@@ -35,6 +36,7 @@ export default function Raiz() {
               contentStyle: { backgroundColor: t.fondo },
             }}
           />
+          <PwaInstallHint />
         </PosProvider>
       </MotionProvider>
     </SafeAreaProvider>

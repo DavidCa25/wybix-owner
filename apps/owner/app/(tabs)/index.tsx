@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
@@ -34,6 +34,7 @@ export default function Dashboard() {
   const respListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     registerForPush().catch(() => {});
     // Tocar un aviso abre lo que corresponde (el detalle siempre se lee con permisos, nunca del aviso).
     respListener.current = Notifications.addNotificationResponseReceivedListener((r) => {

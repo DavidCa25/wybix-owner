@@ -16,3 +16,7 @@ La firma y la presencia de configuración se probaron sobre el binario. Las prue
 Fuente: HEAD 199c83f y cambios de configuración incluidos desde el working tree. No afirmar reproducción de un commit limpio. Los secretos, respaldos, llaves privadas y datos del piloto permanecen locales y excluidos de los releases.
 
 Para instalar: cámara → QR de descarga → APK → permitir instalación desde el navegador cuando Android lo solicite → abrir la app. Después Owner se vincula con la invitación del negocio. POS Mobile recibe un código de 24 h desde Owner → Eventos → evento → Tablets → Agregar tablet, con MFA y cupo disponible.
+
+## Versiones web
+
+Owner y POS Mobile también están disponibles como PWA para iPhone/iPad y navegador. La función app-download ahora reconoce iOS y admite platform=web / platform=android; los APK y sus firmas no cambian. El POS Windows 1.3.2 permite escoger la plataforma. Consulta PWA-CLIENTES.md para instalación, vinculación, límites y validación de la entrega web.

@@ -1,0 +1,127 @@
+{
+  "at": "2026-10-07T06:55:09.055Z",
+  "scope": "PWA Owner/POS Mobile y POS Windows 1.3.2",
+  "typecheck": true,
+  "nodeTests": {
+    "passed": 94,
+    "failed": 0
+  },
+  "electronTests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "downloadRouting": {
+    "passed": 10,
+    "prototypeQueryBlockedByCloudflare": true
+  },
+  "sqlRerun": {
+    "executed": false,
+    "reason": "Docker Desktop Linux engine no disponible; sin cambios SQL"
+  },
+  "physicalIosVerified": false,
+  "checks": {
+    "pwa-browser-evidence": [
+      {
+        "app": "owner",
+        "url": "https://wybix-owner.expo.app",
+        "errors": [],
+        "body": "Crea tu cuenta\nPrimero escanea el codigo de tu negocio.\nCorreo\nContrasena\nCrear cuenta\nEscanear codigo del negocio\nYa tengo cuenta\n\nInstala Wybix: toca Compartir y luego Agregar a",
+        "offlineBody": "Crea tu cuenta\nPrimero escanea el codigo de tu negocio.\nCorreo\nContrasena\nCrear cuenta\nEscanear codigo del negocio\nYa tengo cuenta\n\nInstala Wybix: toca Compartir y luego Agregar a",
+        "installedAssets": true
+      },
+      {
+        "app": "mobile",
+        "url": "https://wybix-pos-mobile.expo.app",
+        "errors": [],
+        "body": "Wybix.\nPOS MOBILE\nEnrolar caja\nVincula esta tablet al evento para comenzar a vender.\n\nCódigo de esta tablet\nSolicita el código o QR al dueño o administrador desde Wybix Owner, den",
+        "offlineBody": "Wybix.\nPOS MOBILE\nEnrolar caja\nVincula esta tablet al evento para comenzar a vender.\n\nCódigo de esta tablet\nSolicita el código o QR al dueño o administrador desde Wybix Owner, den",
+        "installedAssets": true
+      }
+    ],
+    "pwa-storage-evidence": {
+      "engine": "WebKit",
+      "initial": {
+        "fk": true,
+        "quota": true,
+        "rows": 3
+      },
+      "restored": {
+        "totals": [
+          "10.00",
+          "20.00",
+          "30.00"
+        ],
+        "encryptedHeader": true,
+        "nonExportable": true
+      },
+      "offlineReload": true,
+      "duplicateTabBlocked": true,
+      "errors": []
+    },
+    "pwa-owner-webkit-evidence": {
+      "engine": "WebKit",
+      "ownerLogin": true,
+      "qrManualValidation": true,
+      "qrImageDecoded": true,
+      "errors": []
+    },
+    "pwa-sale-evidence": {
+      "engine": "Chromium",
+      "isolatedFixture": true,
+      "offlinePinLogin": true,
+      "shiftOpened": true,
+      "sales": [
+        [
+          "25.00",
+          "COMPLETED"
+        ]
+      ],
+      "total": "25.00",
+      "reloadPreservesSale": true,
+      "errors": []
+    },
+    "public-windows-release-evidence": {
+      "version": "1.3.2",
+      "verifiedAt": "2026-10-07T06:54:19.290Z",
+      "publicDownloadsVerified": true,
+      "updaterMetadataMatches": true,
+      "assets": [
+        {
+          "name": "Wybix-Setup.exe",
+          "sha256": "04e4367eacec9fb4721863de1d60cf07a2ef72d77bf423289cb55ccfe823c2e7",
+          "bytes": 925881802,
+          "http": 200,
+          "url": "https://github.com/DavidCa25/POS_Hidromec/releases/download/v1.3.2/Wybix-Setup.exe"
+        },
+        {
+          "name": "Wybix-Setup.exe.blockmap",
+          "sha256": "74a7a2ac03b57bef428a296845d7da6744e4d6243fced6226d0dc8078511aa92",
+          "bytes": 959924,
+          "http": 200,
+          "url": "https://github.com/DavidCa25/POS_Hidromec/releases/download/v1.3.2/Wybix-Setup.exe.blockmap"
+        },
+        {
+          "name": "latest.yml",
+          "sha256": "757366f24bf1afe7dde2ba7a661cefa04bae09883e3263c8f05dbf26c1e86dd4",
+          "bytes": 327,
+          "http": 200,
+          "url": "https://github.com/DavidCa25/POS_Hidromec/releases/download/v1.3.2/latest.yml"
+        }
+      ]
+    }
+  },
+  "webBuilds": [
+    {
+      "app": "owner",
+      "version": "a5d9a25d67ba820c",
+      "url": "https://wybix-owner.expo.app"
+    },
+    {
+      "app": "pos-mobile",
+      "version": "7a8991b4aedb3525",
+      "url": "https://wybix-pos-mobile.expo.app"
+    }
+  ],
+  "privateCredentialsAbsentInWebExports": true,
+  "windowsPackagedAppsMatchBuild": true
+}
