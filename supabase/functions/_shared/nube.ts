@@ -86,6 +86,12 @@ export function negado(code?: string): Response {
     NOT_APPROVED: 'La solicitud no está aprobada.',
     NOT_PENDING: 'La solicitud ya no está pendiente.',
     PAYLOAD_CHANGED: 'La operación cambió después de pedir la autorización. Pide una nueva.',
+    // MultiSucursal
+    NO_ENTITLEMENT_MULTIBRANCH: 'La licencia de la empresa no incluye MultiSucursal.',
+    NOT_MATRIZ: 'Solo la matriz puede hacer esto.',
+    BAD_PRICE: 'Un precio especial no puede ser negativo.',
+    CANCELLED: 'Quien lo envió canceló este traspaso.',
+    ALREADY_RECEIVED: 'El traspaso ya se recibió: no se puede cancelar.',
   };
   return json({ success: false, code: code ?? 'DENIED', error: msg[code ?? ''] ?? 'No autorizado.' }, s);
 }

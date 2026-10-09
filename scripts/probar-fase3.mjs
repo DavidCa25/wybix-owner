@@ -62,6 +62,7 @@ try {
   console.log('\nFASE 3 · pruebas\n');
   for (const x of correrPruebas('tests/fase3.test.sql', 'F3-')) check(x.id, x.ok, x.msg);
   const comercial=aplicar('tests/comercial.test.sql');check('COMERCIAL',comercial.ok,'snapshot comercial, partidas, reintentos y permisos',comercial.err);
+  const multi=aplicar('tests/multisucursal.test.sql');check('MULTI',multi.ok,'matriz, catálogo corporativo, excepciones, reglas y traspasos',multi.err);
 } catch (e) {
   check('F3-Z', false, 'la prueba se interrumpió', e.message);
 } finally {

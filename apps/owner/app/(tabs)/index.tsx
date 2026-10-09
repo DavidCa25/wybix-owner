@@ -57,6 +57,10 @@ export default function Dashboard() {
         </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <View style={styles.iconBtn}>
+            <Ionicons name="business-outline" size={22} color="#fff" onPress={() => router.push('/sucursales')}
+              accessibilityRole="button" accessibilityLabel="Sucursales" />
+          </View>
+          <View style={styles.iconBtn}>
             <Ionicons name="hand-left-outline" size={22} color="#fff" onPress={() => router.push('/aprobaciones')}
               accessibilityRole="button" accessibilityLabel="Autorizaciones" />
           </View>

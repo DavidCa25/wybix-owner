@@ -26,6 +26,10 @@
 //      events. Una tablet REVOCADA solo puede entregar `events` (la nube
 //      acepta lo anterior a la baja y pone en cuarentena lo posterior).
 //
+//  MULTISUCURSAL (caja principal de una sucursal fija; exige MULTIBRANCH):
+//    multi_estado, multi_recibir, multi_publicar y multi_excepciones(_listar)
+//    (solo la matriz), multi_traspaso_enviar / _bandeja / _recibir / _cancelar.
+//
 //  Este módulo no importa nada de Deno: scripts/probar-fase1.mjs lo prueba.
 // ============================================================================
 import { credencialDe, equipoDe, json, negado, type Rpc } from './nube.ts';
@@ -50,6 +54,8 @@ export interface DepsPosSync {
 }
 
 const str = (v: unknown, max = 200) => (v == null ? null : String(v).slice(0, max));
+/** Un objeto JSON o null: un arreglo o un texto no pasan por objeto. */
+const objeto = (v: unknown) => (v && typeof v === 'object' && !Array.isArray(v) ? v : null);
 
 /** Lo que el alta de un equipo acepta del cuerpo (nada de empresa ni ubicación). */
 function alta(body: any) {
@@ -132,6 +138,29 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
       })));
     case 'approval_cancel':
       return responder(await deps.rpc('aprobacion_cancelar', conEquipo({ id: str(body.id, 36) })));
+    // MultiSucursal: la sucursal sale de la credencial; la nube decide si es la matriz.
+    case 'multi_estado':
+      return responder(await deps.rpc('multi_estado', conEquipo()));
+    case 'multi_publicar':
+      return responder(await deps.rpc('multi_publicar', conEquipo({ catalog: objeto(body.catalog) })));
+    case 'multi_recibir':
+      return responder(await deps.rpc('multi_recibir', conEquipo({ version: Number(body.version ?? 0) || 0,
+        overrides_revision: Number.isInteger(body.overrides_revision) ? body.overrides_revision : -1 })));
+    case 'multi_excepciones':
+      return responder(await deps.rpc('multi_excepciones', conEquipo({ location_id: str(body.location_id, 36),
+        items: Array.isArray(body.items) ? body.items.slice(0, 5000) : null, reglas: objeto(body.reglas) })));
+    case 'multi_excepciones_listar':
+      return responder(await deps.rpc('multi_excepciones_listar', conEquipo({ location_id: str(body.location_id, 36) })));
+    case 'multi_traspaso_enviar':
+      return responder(await deps.rpc('multi_traspaso_enviar', conEquipo({ id: str(body.id, 36), to_location_id: str(body.to_location_id, 36),
+        lines: Array.isArray(body.lines) ? body.lines.slice(0, 500) : null, note: str(body.note, 255), sent_by_name: str(body.sent_by_name, 120) })));
+    case 'multi_traspaso_bandeja':
+      return responder(await deps.rpc('multi_traspaso_bandeja', conEquipo()));
+    case 'multi_traspaso_recibir':
+      return responder(await deps.rpc('multi_traspaso_recibir', conEquipo({ id: str(body.id, 36),
+        received_lines: Array.isArray(body.received_lines) ? body.received_lines.slice(0, 500) : null, received_by_name: str(body.received_by_name, 120) })));
+    case 'multi_traspaso_cancelar':
+      return responder(await deps.rpc('multi_traspaso_cancelar', conEquipo({ id: str(body.id, 36) })));
     case 'mobile_heartbeat':
       return responder(await deps.rpc('mobile_latido', conEquipo({ pendientes: Number(body.pendientes ?? 0) || 0, app_version: str(body.app_version, 40), last_seq: Number(body.last_seq ?? 0) || 0 })));
     case 'create_location':
