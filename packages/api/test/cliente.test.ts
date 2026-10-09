@@ -46,6 +46,6 @@ test('aprobaciones: el cuerpo lleva la acción y el payload, nunca un device_id'
 
 test('snapshot anuncia soporte comercial y conserva UPDATE_REQUIRED sin revocar el equipo', async () => {
   const {c,peticiones}=cliente([{body:{success:true,catalog:{}}},{status:409,body:{success:false,code:'UPDATE_REQUIRED',error:'Actualiza Wybix'}}]);
-  await c.snapshot();assert.deepEqual(peticiones[0],{action:'mobile_snapshot',commercial_schema:1});
-  await assert.rejects(c.snapshot(),e=>e instanceof ErrorNube && e.status===409 && e.code==='UPDATE_REQUIRED');
+  await c.snapshot({snapshot_version:0,catalog_version:0,security_revision:0});assert.deepEqual(peticiones[0],{action:'mobile_snapshot',commercial_schema:2});
+  await assert.rejects(c.snapshot({snapshot_version:0,catalog_version:0,security_revision:0}),e=>e instanceof ErrorNube && e.status===409 && e.code==='UPDATE_REQUIRED');
 });

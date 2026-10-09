@@ -55,7 +55,7 @@ test('errores de la nube llegan con su código', async () => {
 });
 
 test('snapshot comercial: la capacidad viaja sanitizada y el equipo sigue saliendo de la credencial', async () => {
-  for (const [capability,expected] of [[undefined,0],[1,1],[2,0],['invalido',0]] as const) {
+  for (const [capability,expected] of [[undefined,0],[1,1],[2,2],[3,0],['invalido',0]] as const) {
     const {d,llamadas}=deps({mobile_snapshot:{ok:true}});
     const r=await manejarPosSync(req({action:'mobile_snapshot',commercial_schema:capability,device_id:'OTRO',company_id:'OTRA'}),d);
     assert.equal(r.status,200);
