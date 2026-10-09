@@ -7,7 +7,7 @@
  * Baja el APK de un build TERMINADO de EAS y lo sube, con nombre fijo, a la
  * publicación `apps` de GitHub (DavidCa25/POS_Hidromec). La gente lo descarga de:
  *
- *     https://www.wybixpos.com.mx/descargas/dueno        (app del dueño)
+ *     https://www.wybixpos.com.mx/descargas/dueño        (app del dueño; también /owner)
  *     https://www.wybixpos.com.mx/descargas/pos-mobile   (POS Mobile)
  *
  * El enlace nunca dice Expo y no cambia de una versión a otra (vercel.json de
@@ -30,7 +30,7 @@ import { join } from 'node:path';
 
 const DUENO = 'DavidCa25', REPO = 'POS_Hidromec', TAG = 'apps';
 const APPS = {
-  dueno: { carpeta: 'apps/owner', archivo: 'wybix-dueno.apk', nombre: 'Wybix (app del dueño)' },
+  dueno: { carpeta: 'apps/owner', archivo: 'wybix-dueno.apk', nombre: 'Wybix (app del dueño)', enlace: 'dueño' },
   'pos-mobile': { carpeta: 'apps/pos-mobile', archivo: 'wybix-pos-mobile.apk', nombre: 'Wybix POS Mobile' },
 };
 const [app, buildId] = process.argv.slice(2);
@@ -98,4 +98,4 @@ Accept: application/vnd.github+json
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
-console.log(`Publicado: https://www.wybixpos.com.mx/descargas/${app}`);
+console.log(`Publicado: https://www.wybixpos.com.mx/descargas/${APPS[app].enlace ?? app}`);
