@@ -154,6 +154,9 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
     case 'multi_traspaso_enviar':
       return responder(await deps.rpc('multi_traspaso_enviar', conEquipo({ id: str(body.id, 36), to_location_id: str(body.to_location_id, 36),
         lines: Array.isArray(body.lines) ? body.lines.slice(0, 500) : null, note: str(body.note, 255), sent_by_name: str(body.sent_by_name, 120) })));
+    /* 0063 · Club: lo que cambió en las demás sucursales (membresías, canjes, dobles). */
+    case 'club_pull':
+      return responder(await deps.rpc('club_pull', conEquipo({ desde: str(body.desde, 40) })));
     case 'multi_traspaso_bandeja':
       return responder(await deps.rpc('multi_traspaso_bandeja', conEquipo()));
     case 'multi_traspaso_recibir':
