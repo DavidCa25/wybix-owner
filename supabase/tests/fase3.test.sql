@@ -316,7 +316,7 @@ select t_check('F3-NOT13',
 select t_check('F3-NOT14',
   t_qa(t_duena(), 'aal2', 'select notif_planear(1)::text') = 'ERR:42501'
   and t_qa(t_duena(), 'aal2', 'select count(*)::text from notification_deliveries') = 'ERR:42501'
-  and t_qa(t_duena(), 'aal2', 'select count(*)::text from notification_kinds') = '5'
+  and t_qa(t_duena(), 'aal2', 'select count(*)::text from notification_kinds')::int >= 5   -- 5 de Fase 3; despues se agregan mas (aprobaciones, corte detallado)
   and t_qa(t_duena(), 'aal2', format('select count(*)::text from (select 1 from notif_tomar(%L, 1)) x', 'push')) = 'ERR:42501',
   'desde la app: no se planea, no se toma ni se leen entregas; los tipos sí se pueden leer');
 select t_check('F3-NOT15',
