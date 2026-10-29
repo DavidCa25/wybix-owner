@@ -26,6 +26,9 @@
 //      events. Una tablet REVOCADA solo puede entregar `events` (la nube
 //      acepta lo anterior a la baja y pone en cuarentena lo posterior).
 //
+//  MENÚ EN LÍNEA (POS 0067, caja principal): menu_publicar, menu_imagen,
+//    menu_bandeja (latido + estados + confirmación; devuelve pedidos nuevos).
+//
 //  MULTISUCURSAL (caja principal de una sucursal fija; exige MULTIBRANCH):
 //    multi_estado, multi_recibir, multi_publicar y multi_excepciones(_listar)
 //    (solo la matriz), multi_traspaso_enviar / _bandeja / _recibir / _cancelar.
@@ -157,6 +160,22 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
     /* 0063 · Club: lo que cambió en las demás sucursales (membresías, canjes, dobles). */
     case 'club_pull':
       return responder(await deps.rpc('club_pull', conEquipo({ desde: str(body.desde, 40) })));
+    /* 0067 · Menú en línea. Solo la caja principal de la sucursal (lo decide SQL). */
+    case 'menu_publicar':
+      return responder(await deps.rpc('menu_publicar', conEquipo({
+        activo: body.activo === true, slug: str(body.slug, 40), recibe_pedidos: body.recibe_pedidos !== false,
+        minutos_estimados: Number(body.minutos_estimados) || 15, mensaje: str(body.mensaje, 200), negocio: str(body.negocio, 120),
+        marca: objeto(body.marca), catalogo: objeto(body.catalogo),
+      })));
+    case 'menu_imagen':
+      return responder(await deps.rpc('menu_imagen', conEquipo({
+        product_id: Number(body.product_id) || null, version: Number(body.version) || null, mime: str(body.mime, 20), data: str(body.data, 90000),
+      })));
+    case 'menu_bandeja':
+      return responder(await deps.rpc('menu_bandeja', conEquipo({
+        estados: Array.isArray(body.estados) ? body.estados.slice(0, 200) : [],
+        confirmar: Array.isArray(body.confirmar) ? body.confirmar.slice(0, 200).map((x: unknown) => str(x, 36)) : [],
+      })));
     case 'multi_traspaso_bandeja':
       return responder(await deps.rpc('multi_traspaso_bandeja', conEquipo()));
     case 'multi_traspaso_recibir':

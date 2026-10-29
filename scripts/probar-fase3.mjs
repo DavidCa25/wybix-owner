@@ -15,7 +15,8 @@ import { fileURLToPath } from 'node:url';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SB = join(RAIZ, 'supabase');
-const NOMBRE = 'wybix-fase3-prueba';
+/* Otro nombre de contenedor para correr en paralelo (p. ej. probar-menu-en-linea.mjs). */
+const NOMBRE = process.env.WYBIX_PRUEBA_CONTENEDOR || 'wybix-fase3-prueba';
 const CADENA = ['tests/auth-emulado.sql', 'migrations/20260901000000_base_nube_legado.sql', 'migrations/20260926120000_licenciamiento_v2.sql',
   'migrations/20260926130000_pos_sync_sin_service_role.sql', 'migrations/20260927120000_licenciamiento_v2_final.sql',
   'tests/fase1-datos-legado.sql', 'migrations/20261002120000_fase1_multiempresa.sql'];
