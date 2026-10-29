@@ -4,7 +4,8 @@
 //  Sin credencial: la usa cualquiera que escanee el QR. Por eso solo hay:
 //
 //    GET  ?slug=<s>                    el menú publicado y si recibe pedidos
-//    GET  ?slug=<s>&img=<id>[&v=<n>]   la foto de un producto
+//    GET  ?slug=<s>&img=<id>[&v=<n>]   la miniatura de un producto
+//    GET  ?slug=<s>&foto=<clave>[&v=<n>] una foto grande (0070): portada, logo, promo-<id>, producto-<id>
 //    GET  ?pedido=<token>              el estado de UN pedido (token de 128 bits)
 //    POST { slug, cliente_nombre, cliente_telefono, nota?, origen?, idem, lineas }
 //
@@ -77,6 +78,19 @@ export async function manejarMenuPublico(req: Request, deps: DepsMenu): Promise<
     }
     const slug = String(url.searchParams.get('slug') ?? '').toLowerCase();
     if (!SLUG.test(slug)) return fallo({ code: 'NOT_FOUND' });
+    /* 0070 · Fotos grandes de la plantilla (portada, logo, promos, productos). */
+    const foto = url.searchParams.get('foto');
+    if (foto != null) {
+      if (!/^(portada|logo|promo-[0-9]{1,9}|producto-[0-9]{1,9})$/.test(foto)) return fallo({ code: 'NOT_FOUND' });
+      const r = await deps.rpc('menu_foto_publica', { slug, clave: foto });
+      if (!r?.ok) return new Response('', { status: 404, headers: { 'Cache-Control': 'public, max-age=60' } });
+      const fija = url.searchParams.get('v') === String(r.version);
+      return new Response(base64ABytes(String(r.data)), {
+        status: 200,
+        headers: { 'Content-Type': String(r.mime), 'X-Content-Type-Options': 'nosniff',
+                   'Cache-Control': fija ? 'public, max-age=31536000, immutable' : 'public, max-age=300' },
+      });
+    }
     const img = url.searchParams.get('img');
     if (img != null) {
       if (!/^[0-9]{1,9}$/.test(img)) return fallo({ code: 'NOT_FOUND' });

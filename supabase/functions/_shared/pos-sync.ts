@@ -26,7 +26,7 @@
 //      events. Una tablet REVOCADA solo puede entregar `events` (la nube
 //      acepta lo anterior a la baja y pone en cuarentena lo posterior).
 //
-//  MENÚ EN LÍNEA (POS 0067, caja principal): menu_publicar, menu_imagen,
+//  MENÚ EN LÍNEA (POS 0067, caja principal): menu_publicar, menu_imagen, menu_foto (0070),
 //    menu_bandeja (latido + estados + confirmación; devuelve pedidos nuevos).
 //
 //  MULTISUCURSAL (caja principal de una sucursal fija; exige MULTIBRANCH):
@@ -170,6 +170,10 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
     case 'menu_imagen':
       return responder(await deps.rpc('menu_imagen', conEquipo({
         product_id: Number(body.product_id) || null, version: Number(body.version) || null, mime: str(body.mime, 20), data: str(body.data, 90000),
+      })));
+    case 'menu_foto':
+      return responder(await deps.rpc('menu_foto', conEquipo({
+        clave: str(body.clave, 40), version: Number(body.version) || null, mime: str(body.mime, 20), data: str(body.data, 620000),
       })));
     case 'menu_bandeja':
       return responder(await deps.rpc('menu_bandeja', conEquipo({

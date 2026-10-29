@@ -17,12 +17,11 @@
  * Imprime `LISTO <puerto>` cuando acepta peticiones.
  */
 import { createServer } from 'node:http';
-import { spawnSync, execFile } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID, createHash } from 'node:crypto';
-import { promisify } from 'node:util';
 import { manejarPosSync } from '../supabase/functions/_shared/pos-sync.ts';
 import { manejarMenuPublico } from '../supabase/functions/_shared/menu-publico.ts';
 
@@ -30,7 +29,6 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const NOMBRE = process.env.WYBIX_PRUEBA_CONTENEDOR || 'wybix-menu-prueba';
 const i = process.argv.indexOf('--puerto');
 const PUERTO = Number(i > 0 ? process.argv[i + 1] : process.env.PUERTO || 54399);
-const exec = promisify(execFile);
 const docker = (args) => spawnSync('docker', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 
 if (docker(['exec', NOMBRE, 'pg_isready', '-U', 'postgres']).status !== 0) {
@@ -38,17 +36,27 @@ if (docker(['exec', NOMBRE, 'pg_isready', '-U', 'postgres']).status !== 0) {
   spawnSync(process.execPath, ['--no-warnings', join(RAIZ, 'scripts', 'probar-fase3.mjs'), '--conservar'],
     { stdio: 'ignore', env: { ...process.env, WYBIX_PRUEBA_CONTENEDOR: NOMBRE } });
 }
-const mig = spawnSync('docker', ['exec', '-i', NOMBRE, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-X', '-q'],
-  { input: readFileSync(join(RAIZ, 'supabase', 'migrations', '20261028130000_menu_en_linea.sql'), 'utf8'), encoding: 'utf8' });
-if (mig.status !== 0) { console.error('migración del menú:', mig.stderr.slice(0, 400)); process.exit(1); }
+for (const f of ['20261028130000_menu_en_linea.sql', '20261028150000_menu_diseno.sql']) {
+  const mig = spawnSync('docker', ['exec', '-i', NOMBRE, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-X', '-q'],
+    { input: readFileSync(join(RAIZ, 'supabase', 'migrations', f), 'utf8'), encoding: 'utf8' });
+  if (mig.status !== 0) { console.error(`migración ${f}:`, mig.stderr.slice(0, 400)); process.exit(1); }
+}
 
 /* RPC como PostgREST: rol service_role, función jsonb -> jsonb. */
 const rpc = async (fn, p) => {
   if (!/^[a-z_]+$/.test(fn)) throw new Error('rpc inválida');
   const et = '$j' + randomUUID().replace(/-/g, '') + '$';
   const sql = `set role service_role; select public.${fn}(${et}${JSON.stringify(p)}${et}::jsonb)::text;`;
-  const { stdout } = await exec('docker', ['exec', NOMBRE, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A', '-c', sql],
-    { maxBuffer: 64 * 1024 * 1024 });
+  /* Por stdin: una foto grande no cabe en la línea de comandos. */
+  const stdout = await new Promise((ok, mal) => {
+    const p = spawn('docker', ['exec', '-i', NOMBRE, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-X', '-q', '-t', '-A']);
+    let out = '', err = '';
+    p.stdout.on('data', (d) => { out += d; });
+    p.stderr.on('data', (d) => { err += d; });
+    p.on('error', mal);
+    p.on('close', (c) => (c === 0 ? ok(out) : mal(new Error(`${fn}: ${err.slice(0, 300)}`))));
+    p.stdin.end(sql);
+  });
   return JSON.parse(stdout.trim() || 'null');
 };
 const depsSync = { rpc, espejo: { escribir: async () => null, existeAlerta: async () => false }, borrarUsuario: async () => {} };

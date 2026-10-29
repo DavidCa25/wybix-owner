@@ -26,7 +26,7 @@ import { rpcPostgrest } from '../supabase/functions/_shared/nube.ts';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const NOMBRE = 'wybix-menu-prueba';
-const MIG = join(RAIZ, 'supabase', 'migrations', '20261028130000_menu_en_linea.sql');
+const MIGS = ['20261028130000_menu_en_linea.sql', '20261028150000_menu_diseno.sql'].map((f) => join(RAIZ, 'supabase', 'migrations', f));
 let fallos = 0, pasos = 0;
 const check = (id, ok, msg, det = '') => { pasos++; if (!ok) fallos++; console.log(`   ${ok ? 'ok   ' : 'FALLA'}  ${id}. ${msg}${det ? '  · ' + det : ''}`); };
 const docker = (args, entrada) => { const r = spawnSync('docker', args, { input: entrada, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }); return { code: r.status, out: r.stdout || '', err: r.stderr || '' }; };
@@ -73,8 +73,8 @@ try {
     check('MENU-00', docker(['exec', NOMBRE, 'pg_isready', '-U', 'postgres']).code === 0, 'cadena completa de migraciones (Fase 3)', resumen);
   }
   console.log('\nMENÚ EN LÍNEA · migración\n');
-  for (const vez of [1, 2]) { const a = psql(readFileSync(MIG, 'utf8')); check(`MENU-MIG${vez}`, a.code === 0, `20261028130000 (vez ${vez})`, a.err.replace(/^(NOTICE|WARNING).*$/gm, '').trim().slice(0, 300)); }
-  const priv = uno(`select count(*) from information_schema.role_table_grants where table_name in ('menu_publicaciones','menu_imagenes','menu_pedidos') and grantee in ('anon','authenticated','PUBLIC');`);
+  for (const vez of [1, 2]) for (const m of MIGS) { const a = psql(readFileSync(m, 'utf8')); check(`MENU-MIG${vez}`, a.code === 0, `${m.split(/[\\/]/).pop()} (vez ${vez})`, a.err.replace(/^(NOTICE|WARNING).*$/gm, '').trim().slice(0, 300)); }
+  const priv = uno(`select count(*) from information_schema.role_table_grants where table_name in ('menu_publicaciones','menu_imagenes','menu_pedidos','menu_fotos') and grantee in ('anon','authenticated','PUBLIC');`);
   check('MENU-01', priv === '0', 'anon/authenticated no tienen ningún permiso sobre las tablas', `${priv} grants`);
   const fpriv = uno(`select count(*) from pg_proc p where p.proname like 'menu_%' and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'));`);
   check('MENU-02', fpriv === '0', 'ni pueden ejecutar sus funciones', `${fpriv} con execute`);
@@ -84,7 +84,7 @@ try {
                       where kind = 'POS_PRIMARY' and status = 'ACTIVE' order by location_id, id limit 2) x;`).split(',');
   const [A, B] = filas.map((f) => ({ id: f.split(':')[0], loc: f.split(':')[1], token: 'tok-' + randomUUID().replace(/-/g, '') }));
   for (const c of [A, B]) uno(`update devices set credential_hash = wx_hash('${c.token}') where id = '${c.id}'; delete from menu_publicaciones where location_id = '${c.loc}';
-    delete from menu_imagenes where location_id = '${c.loc}'; delete from menu_pedidos where location_id = '${c.loc}';`);
+    delete from menu_imagenes where location_id = '${c.loc}'; delete from menu_fotos where location_id = '${c.loc}'; delete from menu_pedidos where location_id = '${c.loc}';`);
   const sec = uno(`select id from devices where kind = 'POS_SECONDARY' and status = 'ACTIVE' limit 1;`);
   const tokSec = 'tok-' + randomUUID().replace(/-/g, '');
   if (sec) uno(`update devices set credential_hash = wx_hash('${tokSec}') where id = '${sec}';`);
@@ -119,6 +119,33 @@ try {
   check('MENU-07', !fo2.success, 'una "foto" que no es imagen no entra');
   const pubA2 = await caja(A.token, 'menu_publicar', { activo: true, slug, recibe_pedidos: true, minutos_estimados: 12, negocio: 'Café QA', marca, catalogo });
   check('MENU-08', pubA2.success && pubA2.faltan_imagenes.length === 0, 'al volver a publicar ya no falta la foto');
+
+  console.log('\nMENÚ EN LÍNEA · plantilla (0070)\n');
+  const grandeJpg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.alloc(300000, 9)]).toString('base64');
+  const conPlantilla = { ...catalogo,
+    productos: catalogo.productos.map((x) => x.id === 10 ? { ...x, descripcion: 'Espresso doble', etiquetas: ['NUEVO'], destacado: true, foto: 2 } : x),
+    diseno: { frase: 'Las donas, amordidas', direccion: 'Av. Juárez 120', horario: '8 a 21', portada: { v: 1 }, logo: null,
+              promos: [{ clave: 'promo-7', v: 1, titulo: '2x1 en glaseadas', product_id: 11 }] },
+    mas_pedidos: [11, 10],
+    fotos: [{ clave: 'portada', v: 1 }, { clave: 'promo-7', v: 1 }, { clave: 'producto-10', v: 2 }, { clave: '../etc', v: 1 }] };
+  const pubP = await caja(A.token, 'menu_publicar', { activo: true, slug, recibe_pedidos: true, minutos_estimados: 12, negocio: 'Café QA', marca, catalogo: conPlantilla });
+  check('MENU-15', pubP.success && JSON.stringify([...pubP.faltan_fotos].sort()) === JSON.stringify(['portada', 'producto-10', 'promo-7']),
+    'pide las fotos grandes del manifiesto (y descarta una clave inventada)', JSON.stringify(pubP.faltan_fotos));
+  for (const clave of pubP.faltan_fotos) {
+    const r = await caja(A.token, 'menu_foto', { clave, version: clave === 'producto-10' ? 2 : 1, mime: 'image/jpeg', data: grandeJpg });
+    if (!r.success) check('MENU-16', false, `sube ${clave}`, JSON.stringify(r));
+  }
+  check('MENU-16', (await caja(A.token, 'menu_publicar', { activo: true, slug, recibe_pedidos: true, minutos_estimados: 12, negocio: 'Café QA', marca, catalogo: conPlantilla })).faltan_fotos.length === 0,
+    'subidas las tres, ya no falta ninguna');
+  const enorme = Buffer.alloc(470000, 1).toString('base64');
+  check('MENU-17', !(await caja(A.token, 'menu_foto', { clave: 'logo', version: 1, mime: 'image/jpeg', data: enorme })).success, 'una foto de más de 450 KB no entra');
+  const port = await celular('GET', `?slug=${slug}&foto=portada&v=1`);
+  check('MENU-18', port.status === 200 && port.bytes === 300003 && /immutable/.test(port.cache), 'el celular baja la portada con caché larga');
+  check('MENU-19', (await celular('GET', `?slug=${slug}&foto=../x`)).status === 404, 'una clave rara: 404');
+  const sinPromo = { ...conPlantilla, diseno: { ...conPlantilla.diseno, promos: [] }, fotos: conPlantilla.fotos.filter((f) => f.clave !== 'promo-7') };
+  await caja(A.token, 'menu_publicar', { activo: true, slug, recibe_pedidos: true, minutos_estimados: 12, negocio: 'Café QA', marca, catalogo: sinPromo });
+  check('MENU-19b', (await celular('GET', `?slug=${slug}&foto=promo-7`)).status === 404, 'quitar la promo borra su foto de la nube');
+  await caja(A.token, 'menu_publicar', { activo: true, slug, recibe_pedidos: true, minutos_estimados: 12, negocio: 'Café QA', marca, catalogo: conPlantilla });
 
   console.log('\nMENÚ EN LÍNEA · el celular\n');
   const menu = await celular('GET', `?slug=${slug}`);
