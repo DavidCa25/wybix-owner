@@ -17,6 +17,7 @@
     "test:fase2": "node --no-warnings scripts/probar-fase2.mjs",
     "test:licenciamiento": "node --no-warnings scripts/probar-licenciamiento.mjs",
     "test:fase3": "node --no-warnings scripts/probar-fase3.mjs",
+    "test:whatsapp": "node --no-warnings scripts/probar-whatsapp.mjs",
     "test:quick": "node scripts/qa.mjs quick",
     "test:affected": "node scripts/qa.mjs affected",
     "test:integration": "node scripts/qa.mjs integration",
