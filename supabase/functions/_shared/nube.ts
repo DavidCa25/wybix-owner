@@ -92,6 +92,8 @@ export function negado(code?: string): Response {
     BAD_PRICE: 'Un precio especial no puede ser negativo.',
     CANCELLED: 'Quien lo envió canceló este traspaso.',
     ALREADY_RECEIVED: 'El traspaso ya se recibió: no se puede cancelar.',
+    // Menú en línea (0067)
+    SLUG_TAKEN: 'Esa dirección de menú ya la usa otro negocio. Elige otra.',
   };
   return json({ success: false, code: code ?? 'DENIED', error: msg[code ?? ''] ?? 'No autorizado.' }, s);
 }
