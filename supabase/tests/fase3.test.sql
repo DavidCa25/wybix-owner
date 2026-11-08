@@ -357,7 +357,8 @@ select t_check('F3-APR01',
   'la tablet pide autorización: queda PENDING, reintentar es idempotente y sale el aviso push');
 select t_check('F3-APR02',
   t_pedir(t_ap('ap1'), 'MERMA', '{"producto": "Dona glaseada", "cantidad": "30", "razon": "Se cayeron"}')->>'code' = 'CONFLICT'
-  and t_pedir(gen_random_uuid(), 'DEVOLUCION', '{}')->>'code' = 'NOT_REMOTE'
+  -- DEVOLUCION se volvió aprobable a distancia (20261014120000_aprobaciones_caja); una acción sin política sigue sin poder pedirse.
+  and t_pedir(gen_random_uuid(), 'ACCION_SIN_POLITICA', '{}')->>'code' = 'NOT_REMOTE'
   and aprobacion_solicitar(jsonb_build_object('device_id', t_tab(), 'id', gen_random_uuid(), 'action', 'MERMA',
         'requested_by', jsonb_build_object('uuid', gen_random_uuid(), 'name', 'intruso'), 'payload', '{}'::jsonb))->>'code' = 'DENIED',
   'mismo id con OTRO contenido: conflicto; acción no permitida a distancia; y quien pide tiene que trabajar en esa ubicación');

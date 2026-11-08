@@ -1,0 +1,85 @@
+# CI de la nube y las apps (Supabase + Expo). Corre en cada PR y en cada push a master.
+#
+# Algunas pruebas comparan contra el POS de Windows (mismo motor comercial,
+# mismo hash de PIN): por eso también se baja DavidCa25/POS_Hidromec en pos/.
+# Si ese repositorio es privado, agrega el secreto POS_REPO_TOKEN (token
+# fine-grained de solo lectura a ese repositorio).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  WYBIX_WINDOWS_ROOT: ${{ github.workspace }}/pos
+  WYBIX_POS: ${{ github.workspace }}/pos
+
+jobs:
+  rapidas:
+    name: Tipos y pruebas unitarias
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: owner
+      - uses: actions/checkout@v4
+        with:
+          repository: DavidCa25/POS_Hidromec
+          ref: main
+          path: pos
+          token: ${{ secrets.POS_REPO_TOKEN || github.token }}
+          sparse-checkout: |
+            shared
+            electron/local-host
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: owner/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: owner
+      - name: Typecheck y node --test
+        run: node scripts/qa.mjs quick
+        working-directory: owner
+
+  integracion:
+    name: Migraciones y SQL (Postgres en Docker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Cada script levanta su propio postgres:17-alpine, aplica las migraciones
+      # en orden y corre supabase/tests/*.sql.
+      - name: Fase 1 (multiempresa)
+        run: node scripts/probar-fase1.mjs
+      - name: Licenciamiento
+        run: node scripts/probar-licenciamiento.mjs
+      - name: Fase 3, comercial, multisucursal y Club
+        run: node scripts/probar-fase3.mjs
+
+  migraciones:
+    name: Migraciones pendientes en producción
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      # Solo lectura: dice qué migraciones aplicaría este PR al mergearse.
+      # Requiere SUPABASE_ACCESS_TOKEN y SUPABASE_DB_PASSWORD; sin ellos, se omite.
+      - name: supabase db push --dry-run
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then echo "Sin SUPABASE_ACCESS_TOKEN: se omite."; exit 0; fi
+          npx --yes supabase@2.109.0 link --project-ref swlpspgmkwzlrowllvvj --password "$SUPABASE_DB_PASSWORD"
+          npx --yes supabase@2.109.0 db push --dry-run --password "$SUPABASE_DB_PASSWORD"
