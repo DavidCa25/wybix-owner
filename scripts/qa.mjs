@@ -49,7 +49,11 @@ try {
     }
     if (dirs.length) bien = correr(['--test', ...dirs.flatMap(tests)]) && bien;
   }
-  if (nivel === 'integration' || nivel === 'full') bien = correr(['scripts/probar-fase3.mjs']) && bien;
+  if (nivel === 'integration' || nivel === 'full') {
+    bien = correr(['scripts/probar-fase3.mjs']) && bien;
+    // Grupos de empresas (POS 0080): su propio contenedor, sobre la misma cadena.
+    bien = correr(['scripts/probar-grupos.mjs']) && bien;
+  }
 } catch (e) {
   bien = false;
   evidencia.push({ error: e instanceof Error ? e.message : String(e) });

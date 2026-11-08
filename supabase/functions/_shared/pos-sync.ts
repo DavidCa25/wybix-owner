@@ -29,6 +29,11 @@
 //  MENÚ EN LÍNEA (POS 0067, caja principal): menu_publicar, menu_imagen, menu_foto (0070),
 //    menu_bandeja (latido + estados + confirmación; devuelve pedidos nuevos).
 //
+//  GRUPO DE EMPRESAS (POS 0080, MultiEmpresa; caja principal):
+//    grupo_codigo / _unir / _salir (enlace), grupo_listar, grupo_resumen,
+//    grupo_catalogo (consulta), grupo_comando / _comandos (pedir cambios),
+//    grupo_bandeja / grupo_comando_resultado (la empresa de destino los aplica).
+//
 //  MULTISUCURSAL (caja principal de una sucursal fija; exige MULTIBRANCH):
 //    multi_estado, multi_recibir, multi_publicar y multi_excepciones(_listar)
 //    (solo la matriz), multi_traspaso_enviar / _bandeja / _recibir / _cancelar.
@@ -187,6 +192,33 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
         received_lines: Array.isArray(body.received_lines) ? body.received_lines.slice(0, 500) : null, received_by_name: str(body.received_by_name, 120) })));
     case 'multi_traspaso_cancelar':
       return responder(await deps.rpc('multi_traspaso_cancelar', conEquipo({ id: str(body.id, 36) })));
+    /* 0080 · Grupo de empresas (MultiEmpresa). Solo la caja principal; la
+       empresa sale de la credencial, la otra empresa debe ser del mismo grupo
+       (lo decide SQL). Nada de esto escribe en la base de otra empresa: la
+       bandeja solo transporta el pedido. */
+    case 'grupo_codigo':
+      return responder(await deps.rpc('grupo_codigo', conEquipo()));
+    case 'grupo_unir':
+      return responder(await deps.rpc('grupo_unir', conEquipo({ code: str(body.code, 40) })));
+    case 'grupo_salir':
+      return responder(await deps.rpc('grupo_salir', conEquipo()));
+    case 'grupo_listar':
+      return responder(await deps.rpc('grupo_listar', conEquipo()));
+    case 'grupo_resumen':
+      return responder(await deps.rpc('grupo_resumen', conEquipo({ company_id: str(body.company_id, 36), desde: str(body.desde, 10), hasta: str(body.hasta, 10) })));
+    case 'grupo_catalogo':
+      return responder(await deps.rpc('grupo_catalogo', conEquipo({ company_id: str(body.company_id, 36) })));
+    case 'grupo_comando':
+      return responder(await deps.rpc('grupo_comando', conEquipo({
+        company_id: str(body.company_id, 36), kind: str(body.kind, 30), payload: objeto(body.payload),
+        client_key: str(body.client_key, 36), requested_by: str(body.requested_by, 50),
+      })));
+    case 'grupo_comandos':
+      return responder(await deps.rpc('grupo_comandos', conEquipo()));
+    case 'grupo_bandeja':
+      return responder(await deps.rpc('grupo_bandeja', conEquipo()));
+    case 'grupo_comando_resultado':
+      return responder(await deps.rpc('grupo_comando_resultado', conEquipo({ id: str(body.id, 36), ok: body.ok === true, detail: str(body.detail, 400) })));
     case 'mobile_heartbeat':
       return responder(await deps.rpc('mobile_latido', conEquipo({ pendientes: Number(body.pendientes ?? 0) || 0, app_version: str(body.app_version, 40), last_seq: Number(body.last_seq ?? 0) || 0 })));
     case 'create_location':

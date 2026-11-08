@@ -94,6 +94,11 @@ export function negado(code?: string): Response {
     ALREADY_RECEIVED: 'El traspaso ya se recibió: no se puede cancelar.',
     // Menú en línea (0067)
     SLUG_TAKEN: 'Esa dirección de menú ya la usa otro negocio. Elige otra.',
+    // Grupo de empresas (POS 0080)
+    BAD_CODE: 'El código no existe, ya se usó o caducó. Genera uno nuevo en la otra empresa.',
+    SAME_COMPANY: 'Ese código es de esta misma empresa. Escríbelo en la caja de la otra empresa.',
+    IN_OTHER_GROUP: 'Esta empresa ya está en otro grupo con más empresas. Sácala de ese grupo primero.',
+    NOT_IN_GROUP: 'Esa empresa no es de tu grupo.',
   };
   return json({ success: false, code: code ?? 'DENIED', error: msg[code ?? ''] ?? 'No autorizado.' }, s);
 }
