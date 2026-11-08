@@ -1,4 +1,4 @@
-import { Text, View, useWindowDimensions } from "react-native";
+import { Pressable, Text, View, useWindowDimensions } from "react-native";
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
@@ -15,6 +15,9 @@ function Navigation({ state, descriptors, navigation }: BottomTabBarProps) {
   const { width, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const rail = width >= 1000 && fontScale <= 1.3;
+  // En tablet, Vender lleva su propia columna (categorías, estado y accesos).
+  if (rail && state.routes[state.index]?.name === "vender") return null;
+  if (!rail) return <BarraInferior state={state} descriptors={descriptors} navigation={navigation} />;
   return (
     <View
       style={{
@@ -84,6 +87,47 @@ function Navigation({ state, descriptors, navigation }: BottomTabBarProps) {
     </View>
   );
 }
+/** Celular: barra blanca; la sección activa en el color de la marca. */
+function BarraInferior({ state, descriptors, navigation }: Pick<BottomTabBarProps, "state" | "descriptors" | "navigation">) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      style={{
+        backgroundColor: t.superficie,
+        borderTopWidth: 1,
+        borderTopColor: t.borde,
+        flexDirection: "row",
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+      }}
+    >
+      {state.routes.map((route, index) => {
+        const active = state.index === index;
+        const color = active ? t.acentoTinta : t.tenue;
+        return (
+          <Pressable
+            key={route.key}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={descriptors[route.key].options.title}
+            onPress={() => {
+              const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+              if (!active && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+            }}
+            style={{ flex: 1, minHeight: 60, alignItems: "center", justifyContent: "center", gap: 3 }}
+          >
+            <Ionicons name={icons[index]} size={22} color={color} />
+            <Text style={[tipo.tenue, { color, fontSize: 11, fontFamily: active ? "WybixSemi" : "Wybix" }]} numberOfLines={1}>
+              {cortos[index] ?? descriptors[route.key].options.title}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+const cortos = ["Vender", "Turno", "Inventario", "Estado"];
 export default function CajaLayout() {
   const { persona, fase } = usePos();
   const { width, fontScale } = useWindowDimensions();

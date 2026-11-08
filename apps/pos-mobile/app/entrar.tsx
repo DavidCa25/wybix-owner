@@ -98,7 +98,7 @@ export default function Entrar() {
                   s.persona,
                   elegido === p.uuid && {
                     borderColor: t.acento,
-                    backgroundColor: "#E5F3F5",
+                    backgroundColor: t.acentoSuave,
                   },
                 ]}
               >
@@ -111,7 +111,7 @@ export default function Entrar() {
                 >
                   <Text style={[tipo.subtitulo, { flex: 1 }]}>{p.name}</Text>
                   {elegido === p.uuid && (
-                    <Text style={[tipo.subtitulo, { color: t.acento }]}>✓</Text>
+                    <Text style={[tipo.subtitulo, { color: t.acentoTinta }]}>✓</Text>
                   )}
                 </View>
                 <Text style={tipo.tenue}>{ETIQUETA_ROL[p.role] ?? p.role}</Text>

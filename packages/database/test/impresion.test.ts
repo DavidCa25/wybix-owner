@@ -79,6 +79,19 @@ test('cambiar la impresora: la cajera necesita autorización de un encargado; qu
   assert.equal(JSON.parse(aud[0].detail).autorizo, U.marta);
 });
 
+test('impresora Bluetooth: se guarda la dirección normalizada; una dirección inválida no', async () => {
+  const { db, pos } = await base();
+  await pos.configurarImpresora(marta, { tipo: 'bluetooth', direccion: ' 66:22:aa:bb:0c:1d ', nombre: 'SUZWIP-58' });
+  const config = await db.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'impresora'`);
+  assert.ok(config);
+  assert.deepEqual(JSON.parse(config.v), { tipo: 'bluetooth', direccion: '66:22:AA:BB:0C:1D', nombre: 'SUZWIP-58' });
+  await assert.rejects(pos.configurarImpresora(marta, { tipo: 'bluetooth', direccion: 'no-es-mac' }), /Bluetooth/);
+  await assert.rejects(pos.configurarImpresora(marta, { tipo: 'bluetooth' }), /Bluetooth/);
+  assert.equal(JSON.parse((await db.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'impresora'`))!.v).direccion, '66:22:AA:BB:0C:1D');
+  const aud = await db.get<{ detail: string }>(`SELECT detail FROM audit_local WHERE action = 'IMPRESORA_CONFIGURADA'`);
+  assert.equal(JSON.parse(aud!.detail).direccion, '66:22:AA:BB:0C:1D');
+});
+
 test('una venta ajena a la tablet no se reimprime', async () => {
   const { pos } = await conVenta();
   await assert.rejects(pos.registrarReimpresion(lupita, 'no-existe', true), /No existe esa venta/);

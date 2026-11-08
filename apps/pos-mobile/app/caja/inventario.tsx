@@ -264,7 +264,7 @@ export default function Inventario() {
               <Text style={tipo.etiqueta}>RECEPCIONES</Text>
               <View style={s.fila}>
                 <Text style={tipo.subtitulo}>Mercancía por recibir</Text>
-                <Text style={[tipo.numero, { color: t.acento }]}>
+                <Text style={[tipo.numero, { color: t.acentoTinta }]}>
                   {pendientes.length}
                 </Text>
               </View>

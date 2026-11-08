@@ -24,7 +24,8 @@ import {
 
 export interface Nube {
   enviarEventos(lote: { events: EventoSalida[]; device_now: string; last_seq: number }): Promise<{ results: Array<{ event_uuid: string; result: Resultado; error?: string | null }> }>;
-  snapshot(desde: { snapshot_version: number; catalog_version: number; security_revision: number }): Promise<Snapshot>;
+  /** brand_hash: la marca que la tablet ya tiene; la nube no reenvía su logo si no cambió. */
+  snapshot(desde: { snapshot_version: number; catalog_version: number; security_revision: number; brand_hash?: string | null }): Promise<Snapshot>;
   inbox(cursor: number): Promise<{ events: Array<{ event_uuid: string; origin_device: string; aggregate_type: string; payload: unknown }>; cursor: number }>;
   latido?(info: { pendientes: number; app_version: string; last_seq: number }): Promise<void>;
 }
@@ -114,7 +115,9 @@ export function crearSincronizador(o: {
       // 3) Maestros nuevos (catálogo, personal, transferencias).
       try {
         const v = async (k: string) => Number((await o.db.get<{ v: string }>('SELECT v FROM kv WHERE k = ?', [k]))?.v ?? 0);
-        const s = await o.nube.snapshot({ snapshot_version: await v('snapshot_version'), catalog_version: await v('catalog_version'), security_revision: await v('security_revision') });
+        const marca = (await o.db.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'marca'`))?.v;
+        const brand_hash = marca ? (JSON.parse(marca) as { hash?: string }).hash ?? null : null;
+        const s = await o.nube.snapshot({ snapshot_version: await v('snapshot_version'), catalog_version: await v('catalog_version'), security_revision: await v('security_revision'), brand_hash });
         await aplicarSnapshot(o.db, s, () => ahora().toISOString());
       } catch (e) { if (e instanceof ErrorNubeDenegada) throw e; enLinea = false; return estado(); }
 

@@ -18,7 +18,8 @@ import { abrirBase } from './base';
 import { CONFIG, cumpleVersion } from './config';
 import { credencial, deviceUuid } from './llaves';
 import { registrarFondo } from './fondo';
-import { impresoraSistema, impresoraRed, sinImpresora, type Impresora } from './impresion';
+import { impresoraDesdeConfig, sinImpresora, type Impresora, type ConfigImpresora } from './impresion';
+import { aplicarMarca } from '../components/ui';
 
 type Fase = 'cargando' | 'sin_enrolar' | 'listo' | 'error';
 
@@ -31,8 +32,12 @@ interface Ctx {
   versionOk: boolean; minima: string | null;
   /** Desfase del reloj de la tablet contra Wybix, en minutos (null = aún no medido). */
   desfaseMin: number | null;
-  impresora: Impresora; configurarImpresora(c: { tipo: 'red' | 'sistema' | 'ninguna'; host?: string }, autorizador?: Persona | null): Promise<void>;
+  impresora: Impresora; configurarImpresora(c: ConfigImpresora, autorizador?: Persona | null): Promise<void>;
   recargar(): Promise<void>;
+  /** Hash de la marca del negocio aplicada (cambia = se vuelve a pintar con su color y logo). */
+  marca: string;
+  /** Nombre del negocio (snapshot). */
+  negocio: string | null;
   /** Fase 3: autorización a distancia (por la credencial de esta tablet). Sin red, lanza error. */
   aprobaciones: {
     solicitar(a: { id: string; accion: string; solicita: { uuid: string; name: string; role: string }; payload: Record<string, unknown> }): Promise<EstadoAprobacion>;
@@ -74,6 +79,18 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [minima, setMinima] = useState<string | null>(null);
   const [desfaseMin, setDesfaseMin] = useState<number | null>(null);
   const [impresora, setImpresora] = useState<Impresora>(sinImpresora);
+  const [marca, setMarca] = useState('');
+  const [negocio, setNegocio] = useState<string | null>(null);
+  // La marca llega con el snapshot (kv 'marca'); se aplica a los tokens del tema
+  // y el cambio de hash hace que toda la app se vuelva a pintar.
+  const leerMarca = useCallback(async (d: BaseLocal) => {
+    const r = await d.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'marca'`).catch(() => null);
+    const m = r ? JSON.parse(r.v) as { hash: string; color: string | null; logo: string | null } : null;
+    aplicarMarca(m);
+    setMarca(m ? `${m.hash}|${m.color}|${m.logo?.length ?? 0}` : '');
+    const c = await d.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'company'`).catch(() => null);
+    setNegocio(c ? (JSON.parse(c.v) as { nombre?: string }).nombre ?? null : null);
+  }, []);
   const motor = useRef<ReturnType<typeof crearSincronizador> | null>(null);
   const nubeRef = useRef<ReturnType<typeof crearClienteNube> | null>(null);
   const aviso = useRef<{ t: ReturnType<typeof setTimeout> | null; sincronizar: () => void }>({ t: null, sincronizar: () => {} });
@@ -89,21 +106,19 @@ export function PosProvider({ children }: { children: ReactNode }) {
     const df = await desfaseGuardado(d).catch(() => null);
     setDesfaseMin(df ? Math.round(df.ms / 60000) : null);
     const imp = await d.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'impresora'`);
-    if (imp) {
-      const c = JSON.parse(imp.v);
-      setImpresora(c.tipo === 'red' && c.host ? impresoraRed(c.host) : c.tipo === 'ninguna' ? sinImpresora : impresoraSistema);
-    }
-  }, []);
+    if (imp) setImpresora(impresoraDesdeConfig(JSON.parse(imp.v)));
+    await leerMarca(d);
+  }, [leerMarca]);
 
   const armarMotor = useCallback((d: BaseLocal, p: PosLocal) => {
     const nube = crearClienteNube({
       base: CONFIG.backend, anonKey: CONFIG.anonKey, version: CONFIG.version, credencial: credencial.leer,
       identidad: async () => { try { const i = await p.identidad(); return { company_uuid: i.company_uuid, location_uuid: i.location_uuid }; } catch { return null; } },
     });
-    motor.current = crearSincronizador({ db: d, nube, dispositivo: deviceUuid, version: CONFIG.version, alCambiar: setSync });
+    motor.current = crearSincronizador({ db: d, nube, dispositivo: deviceUuid, version: CONFIG.version, alCambiar: (e) => { setSync(e); void leerMarca(d); } });
     nubeRef.current = nube;
     return nube;
-  }, []);
+  }, [leerMarca]);
 
   const sincronizar = useCallback(async () => {
     if (!motor.current || !db || !pos) return;
@@ -159,10 +174,10 @@ export function PosProvider({ children }: { children: ReactNode }) {
     setFase('listo');
   }, [db, pos, armarMotor, leerEstado]);
 
-  const configurarImpresora = useCallback(async (c: { tipo: 'red' | 'sistema' | 'ninguna'; host?: string }, autorizador?: Persona | null) => {
+  const configurarImpresora = useCallback(async (c: ConfigImpresora, autorizador?: Persona | null) => {
     if (!pos || !persona) throw new Error('Entra con tu PIN para configurar la impresora.');
     await pos.configurarImpresora(persona, c, autorizador);
-    setImpresora(c.tipo === 'red' && c.host ? impresoraRed(c.host) : c.tipo === 'ninguna' ? sinImpresora : impresoraSistema);
+    setImpresora(impresoraDesdeConfig(c));
   }, [pos, persona]);
 
   const aprobaciones = useMemo<Ctx['aprobaciones']>(() => {
@@ -176,8 +191,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const valor = useMemo<Ctx>(() => ({
     fase, error, db, pos, identidad, sync, sincronizar, persona,
     entrar: setPersona, salir: () => setPersona(null), enrolar,
-    versionOk: cumpleVersion(CONFIG.version, minima), minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones,
-  }), [fase, error, db, pos, identidad, sync, sincronizar, persona, enrolar, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones]);
+    versionOk: cumpleVersion(CONFIG.version, minima), minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio,
+  }), [fase, error, db, pos, identidad, sync, sincronizar, persona, enrolar, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio]);
 
   return <C.Provider value={valor}>{children}</C.Provider>;
 }

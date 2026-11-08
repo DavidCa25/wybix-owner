@@ -30,6 +30,9 @@ function autorizo(aut: Persona | null | undefined) {
 }
 export interface Reloj { ahora(): Date; }
 
+/** Impresora de tickets elegida en la tablet. Bluetooth: dirección MAC de un dispositivo emparejado. */
+export type ConfigImpresora = { tipo: 'red' | 'sistema' | 'ninguna' | 'bluetooth'; host?: string; direccion?: string; nombre?: string };
+
 export class ErrorPos extends Error {
   code: string;
   constructor(code: string, mensaje: string) { super(mensaje); this.code = code; }
@@ -483,13 +486,17 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
     },
 
     /** Cambiar la impresora es de encargado: un cajero necesita autorización. */
-    async configurarImpresora(p: Persona, conf: { tipo: 'red' | 'sistema' | 'ninguna'; host?: string }, autorizador?: Persona | null) {
+    async configurarImpresora(p: Persona, conf: ConfigImpresora, autorizador?: Persona | null) {
       const aut = exigir(p, 'CONFIGURAR_IMPRESORA', autorizador);
       if (conf.tipo === 'red' && !/^[A-Za-z0-9.-]{1,253}$/.test(conf.host ?? '')) throw new ErrorPos('IMPRESORA', 'Escribe la dirección IP de la impresora.');
+      const direccion = conf.tipo === 'bluetooth' ? (conf.direccion ?? '').trim().toUpperCase() : null;
+      if (conf.tipo === 'bluetooth' && !/^[0-9A-F]{2}(:[0-9A-F]{2}){5}$/.test(direccion!)) throw new ErrorPos('IMPRESORA', 'Elige una impresora Bluetooth emparejada.');
+      const guardada = conf.tipo === 'red' ? { tipo: 'red', host: conf.host }
+        : conf.tipo === 'bluetooth' ? { tipo: 'bluetooth', direccion, nombre: (conf.nombre ?? '').slice(0, 64) || null }
+        : { tipo: conf.tipo };
       return db.transaccion(async (tx) => {
-        await tx.run(`INSERT INTO kv (k, v) VALUES ('impresora', ?) ON CONFLICT (k) DO UPDATE SET v = excluded.v`,
-          [JSON.stringify(conf.tipo === 'red' ? { tipo: 'red', host: conf.host } : { tipo: conf.tipo })]);
-        await auditar(tx, p.uuid, 'IMPRESORA_CONFIGURADA', 'OK', { tipo: conf.tipo, host: conf.host ?? null, autorizo: aut?.uuid ?? null });
+        await tx.run(`INSERT INTO kv (k, v) VALUES ('impresora', ?) ON CONFLICT (k) DO UPDATE SET v = excluded.v`, [JSON.stringify(guardada)]);
+        await auditar(tx, p.uuid, 'IMPRESORA_CONFIGURADA', 'OK', { tipo: conf.tipo, host: conf.host ?? null, direccion, autorizo: aut?.uuid ?? null });
       });
     },
 

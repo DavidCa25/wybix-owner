@@ -8,6 +8,7 @@ import { puede } from "@wybix/domain";
 import type { Persona } from "@wybix/database";
 import { Autorizar } from "../../components/Autorizar";
 import { imprimirGuardado } from "../../lib/ticket-guardado";
+import { bluetoothDisponible, impresorasEmparejadas, type ConfigImpresora, type DispositivoBt } from "../../lib/impresion";
 import {
   View,
   Text,
@@ -61,13 +62,16 @@ export default function Sincronia() {
   } | null>(null);
   const [sincronizando, setSincronizando] = useState(false);
   const [tickets, setTickets] = useState<Array<{sale_uuid: string; folio: string; total: string; last_error: string | null}>>([]);
-  const [configPendiente, setConfigPendiente] = useState<{tipo: 'red' | 'sistema' | 'ninguna'; host?: string} | null>(null);
+  const [configPendiente, setConfigPendiente] = useState<ConfigImpresora | null>(null);
   const [imprimiendo, setImprimiendo] = useState<string | null>(null);
   const [configurando, setConfigurando] = useState(false);
+  const [dispositivos, setDispositivos] = useState<DispositivoBt[] | null>(null);
+  const [buscando, setBuscando] = useState(false);
+  const [probando, setProbando] = useState(false);
   const lockImpresion = useRef(false);
   const lockConfig = useRef(false);
 
-  const guardarImpresora = async (c: {tipo: 'red' | 'sistema' | 'ninguna'; host?: string}, aut?: Persona) => {
+  const guardarImpresora = async (c: ConfigImpresora, aut?: Persona) => {
     if (lockConfig.current) return;
     lockConfig.current = true;
     setConfigurando(true);
@@ -78,10 +82,19 @@ export default function Sincronia() {
     } catch (e) { setMsg({texto: (e as Error).message, tono: 'peligro'}); }
     finally { lockConfig.current = false; setConfigurando(false); }
   };
-  const elegirImpresora = (c: {tipo: 'red' | 'sistema' | 'ninguna'; host?: string}) => {
+  const elegirImpresora = (c: ConfigImpresora) => {
     if (!persona) return;
     if (puede(persona.role, 'CONFIGURAR_IMPRESORA')) void guardarImpresora(c);
     else setConfigPendiente(c);
+  };
+  const buscarBluetooth = async () => {
+    setBuscando(true);
+    try {
+      const lista = await impresorasEmparejadas();
+      setDispositivos(lista);
+      if (!lista.length) setMsg({texto: 'No hay dispositivos emparejados. Empareja la impresora en Ajustes de Android > Bluetooth y vuelve a buscar.', tono: 'peligro'});
+    } catch (e) { setMsg({texto: (e as Error).message, tono: 'peligro'}); }
+    finally { setBuscando(false); }
   };
   const reimprimir = async (saleUuid: string) => {
     if (!pos || !persona || lockImpresion.current) return;
@@ -208,6 +221,8 @@ export default function Sincronia() {
               Actual:{" "}
               {impresora.tipo === "red"
                 ? "impresora de red (ESC/POS)"
+                : impresora.tipo === "bluetooth"
+                  ? `Bluetooth · ${impresora.nombre ?? impresora.direccion}`
                 : impresora.tipo === "sistema"
                   ? (Platform.OS === 'web' ? "impresión del navegador" : "impresión de Android")
                   : "sin impresora"}
@@ -259,9 +274,42 @@ export default function Sincronia() {
                 estilo={{ flex: 1 }}
               />
             </View>
+            {bluetoothDisponible && (
+              <View style={{ gap: 8 }}>
+                <Text style={tipo.cuerpo}>Impresora Bluetooth (funciona sin Internet ni WiFi)</Text>
+                <Text style={tipo.tenue}>
+                  Primero emparéjala en Ajustes de Android {">"} Bluetooth (si pide PIN, suele ser 0000 o 1234). Después búscala aquí y elígela.
+                </Text>
+                <Boton
+                  titulo="Buscar impresoras emparejadas"
+                  variante="secundario"
+                  textoCargando="Buscando…"
+                  cargando={buscando}
+                  deshabilitado={configurando}
+                  onPress={buscarBluetooth}
+                />
+                {dispositivos?.map(d => {
+                  const actual = impresora.tipo === "bluetooth" && impresora.direccion === d.direccion;
+                  return (
+                    <Boton
+                      key={d.direccion}
+                      titulo={`${actual ? "✓ " : ""}${d.nombre} · ${d.direccion}`}
+                      variante={actual ? "primario" : "secundario"}
+                      accessibilityLabel={`Usar la impresora Bluetooth ${d.nombre}`}
+                      deshabilitado={configurando}
+                      onPress={() => elegirImpresora({tipo: "bluetooth", direccion: d.direccion, nombre: d.nombre})}
+                    />
+                  );
+                })}
+              </View>
+            )}
             <Boton
               titulo="Imprimir prueba"
+              textoCargando="Imprimiendo…"
+              cargando={probando}
+              deshabilitado={impresora.tipo === "ninguna"}
               onPress={async () => {
+                setProbando(true);
                 try {
                   await impresora.imprimir({
                     negocio: "Wybix",
@@ -286,6 +334,8 @@ export default function Sincronia() {
                     texto: `No se pudo imprimir: ${(e as Error).message}`,
                     tono: "peligro",
                   });
+                } finally {
+                  setProbando(false);
                 }
               }}
             />

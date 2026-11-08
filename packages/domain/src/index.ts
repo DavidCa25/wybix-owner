@@ -8,3 +8,4 @@ export * from './permisos.ts';
 export * from './uuid.ts';
 export * from './comercial.ts';
 export * from './precios-venta.ts';
+export * from './marca.ts';
