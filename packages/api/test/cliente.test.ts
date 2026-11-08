@@ -49,3 +49,9 @@ test('snapshot anuncia soporte comercial y conserva UPDATE_REQUIRED sin revocar 
   await c.snapshot({snapshot_version:0,catalog_version:0,security_revision:0});assert.deepEqual(peticiones[0],{action:'mobile_snapshot',commercial_schema:2});
   await assert.rejects(c.snapshot({snapshot_version:0,catalog_version:0,security_revision:0}),e=>e instanceof ErrorNube && e.status===409 && e.code==='UPDATE_REQUIRED');
 });
+
+test('snapshot manda el hash de la marca que la tablet ya tiene (la nube no reenvía el logo)', async () => {
+  const {c,peticiones}=cliente([{body:{success:true,catalog:{}}}]);
+  await c.snapshot({snapshot_version:0,catalog_version:0,security_revision:0,brand_hash:'abc123'});
+  assert.deepEqual(peticiones[0],{action:'mobile_snapshot',commercial_schema:2,brand_hash:'abc123'});
+});

@@ -75,7 +75,8 @@
             "usesCleartextTraffic": false
           }
         }
-      ]
+      ],
+      "./plugins/with-bluetooth-impresora"
     ],
     "runtimeVersion": {
       "policy": "fingerprint"

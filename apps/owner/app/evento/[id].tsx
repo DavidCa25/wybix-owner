@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import type { ResumenEmpresa, UbicacionResumen, Empresa } from '../../lib/useEmpresa';
 import { eventos, mensaje, haceCuanto, ETIQUETA_ESTADO, type EstadoEvento, type Empleado, type Equipo } from '../../lib/useEventos';
 import { colors, fonts, radius } from '../../theme/tokens';
+import { MarcaNegocio } from '../../components/MarcaNegocio';
 
 /*
  * DETALLE DE UN EVENTO (Fase 2).
@@ -187,6 +188,10 @@ export default function DetalleEvento() {
             </View>
           )}
         </View>
+
+        {/* Marca del negocio: viaja con el snapshot a todas las tablets */}
+        {empresa && <Text style={styles.seccion}>Marca en las tablets</Text>}
+        {empresa && <MarcaNegocio empresa={empresa} administra={administra} />}
 
         {/* Tablets */}
         <View style={styles.filaEntre}>

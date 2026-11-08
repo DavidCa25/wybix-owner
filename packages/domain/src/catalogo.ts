@@ -72,6 +72,8 @@ export interface CatalogoIndexado {
   recetasDe: Map<string, RecetaCat[]>;
   opcion: Map<string, { opcion: OpcionCat; grupo: GrupoCat }>;
   grupo: Map<string, GrupoCat>;
+  /** uuid -> nombre de la categoría (para filtrar en Vender). */
+  categorias?: Map<string, string>;
 }
 
 export function indexar(c: Catalogo): CatalogoIndexado {
@@ -88,7 +90,8 @@ export function indexar(c: Catalogo): CatalogoIndexado {
     grupo.set(g.uuid, g);
     for (const o of g.options) opcion.set(o.uuid, { opcion: o, grupo: g });
   }
-  return { commercial:c.commercial,version: c.catalog_version, producto, recetasDe, opcion, grupo };
+  return { commercial:c.commercial,version: c.catalog_version, producto, recetasDe, opcion, grupo,
+    categorias: new Map((c.categories ?? []).map((x) => [x.uuid, x.nombre])) };
 }
 
 /** Lo que se puede vender en esta versión (lo desactivado ya no aparece). */

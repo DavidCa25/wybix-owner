@@ -59,7 +59,7 @@ export function Encabezado({ titulo }: { titulo: string }) {
             }}
             style={s.persona}
           >
-            <View style={s.avatar}>
+            <View style={[s.avatar, { backgroundColor: t.cian }]}>
               <Text style={[tipo.subtitulo, { color: t.navy }]}>
                 {persona.name.slice(0, 1).toUpperCase()}
               </Text>
@@ -104,7 +104,6 @@ const s = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#B5D9E2",
     alignItems: "center",
     justifyContent: "center",
   },

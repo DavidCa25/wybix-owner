@@ -61,6 +61,8 @@ const MENSAJES: Record<string, string> = {
   STOCK_NOT_ZERO: 'La feria todavía tiene existencias. Regresen el sobrante a la sucursal o concilia con motivo.',
   REASON_REQUIRED: 'Explica la diferencia de inventario (entre 5 y 200 caracteres).',
   BAD_REQUEST: 'Faltan datos.',
+  BAD_COLOR: 'Ese color no es válido. Usa el formato #RRGGBB.',
+  BAD_LOGO: 'El logo debe ser una imagen PNG, JPG o WebP de menos de 220 KB.',
   MFA_REQUIRED: mensajeMfa('MFA_REQUIRED'),
   MFA_ENROLL_REQUIRED: mensajeMfa('MFA_ENROLL_REQUIRED'),
 };
@@ -92,6 +94,10 @@ export const eventos = {
     llamar('owner_codigo_tablet', { p_company: company, p_location: location, p_register_name: nombreCaja ?? null }),
   revocar: (company: string, device: string) =>
     llamar('owner_revocar_dispositivo', { p_company: company, p_device: device }),
+  /** Marca del negocio (logo y color) que reciben todas sus tablets. */
+  marca: (company: string) => llamar('owner_marca', { p_company: company }),
+  guardarMarca: (company: string, m: { color: string | null; logo: string | null }) =>
+    llamar('owner_marca_guardar', { p_company: company, p: m }),
   async empleados(company: string): Promise<Empleado[]> {
     const { data, error } = await supabase.rpc('owner_empleados', { p_company: company });
     if (error) throw new Error(error.message);

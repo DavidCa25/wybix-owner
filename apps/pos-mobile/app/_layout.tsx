@@ -14,15 +14,17 @@ import PwaInstallHint from '../components/PwaInstallHint';
 export default function Raiz() {
   useKeepAwake(); // en una feria la pantalla no se apaga a mitad de un cobro
   const [fonts, fontError] = useFonts({
-    Wybix: require("@expo-google-fonts/poppins/400Regular/Poppins_400Regular.ttf"),
-    WybixSemi: require("@expo-google-fonts/poppins/600SemiBold/Poppins_600SemiBold.ttf"),
+    // Las mismas familias del POS de escritorio y de la landing.
+    Wybix: require("@expo-google-fonts/geist/400Regular/Geist_400Regular.ttf"),
+    WybixSemi: require("@expo-google-fonts/geist/600SemiBold/Geist_600SemiBold.ttf"),
+    WybixMono: require("@expo-google-fonts/geist-mono/500Medium/GeistMono_500Medium.ttf"),
   });
   if (!fonts && !fontError)
     return (
       <View
         style={{ flex: 1, backgroundColor: t.navy, justifyContent: "center" }}
       >
-        <ActivityIndicator color={t.cian} />
+        <ActivityIndicator color={t.wybix} />
       </View>
     );
   return (

@@ -68,6 +68,7 @@ try {
   const club = psql(['tests/club.test.sql', 'tests/club-wallet.test.sql'].map((f) => readFileSync(join(SB, f), 'utf8')).join('\n'));
   if (club.code !== 0) check('CLUB-00', false, 'club.test.sql + club-wallet.test.sql', club.err.slice(0, 400));
   for (const l of club.out.split(/\r?\n/).filter((x) => /^(ok|FALLA)\|/.test(x))) { const [e, id, ...m] = l.split('|'); check(id, e === 'ok', m.join('|')); }
+  for (const x of correrPruebas('tests/marca.test.sql', 'MARCA')) check(x.id, x.ok, x.msg);
 } catch (e) {
   check('F3-Z', false, 'la prueba se interrumpió', e.message);
 } finally {

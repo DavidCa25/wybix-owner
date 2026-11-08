@@ -31,7 +31,15 @@ export interface Snapshot {
   transfers: Array<{ transfer_uuid: string; from_location_uuid: string; to_location_uuid: string; status: string;
                      lines: Array<{ product_uuid: string; product_name: string | null; qty_sent: string }> }>;
   releases?: { latest_version: string | null; min_supported_version: string | null } | null;
+  /**
+   * Marca del negocio. Ausente = nube anterior (no se toca lo guardado);
+   * null = sin marca (Wybix). El logo solo viene si la tablet no tenía este hash.
+   */
+  brand?: { hash: string; color: string | null; logo_incluido: boolean; logo: string | null } | null;
 }
+
+/** Lo que la tablet guarda en kv 'marca'. */
+export interface MarcaGuardada { hash: string; color: string | null; logo: string | null }
 
 async function kv(tx: Sql, k: string) { return (await tx.get<{ v: string }>('SELECT v FROM kv WHERE k = ?', [k]))?.v ?? null; }
 async function setKv(tx: Sql, k: string, v: string) {
@@ -60,6 +68,17 @@ export async function aplicarSnapshot(db: BaseLocal, s: Snapshot, ahora = () => 
     await setKv(tx, 'snapshot_version', String(s.snapshot_version));
     await setKv(tx, 'snapshot_at', ahora());
     if (s.releases) await setKv(tx, 'releases', JSON.stringify(s.releases));
+    if (s.brand === null) await tx.run(`DELETE FROM kv WHERE k = 'marca'`);
+    else if (s.brand) {
+      const previa = await kv(tx, 'marca');
+      const anterior = previa ? JSON.parse(previa) as MarcaGuardada : null;
+      // Sin logo incluido = la nube confirma que ya lo tenemos (mismo hash).
+      const tenia = anterior?.hash === s.brand.hash;
+      const logo = s.brand.logo_incluido ? s.brand.logo : (tenia ? anterior!.logo : null);
+      // Si faltó el logo, no se guarda el hash: la próxima vez la nube lo vuelve a mandar.
+      const marca: MarcaGuardada = { hash: s.brand.logo_incluido || tenia ? s.brand.hash : '', color: s.brand.color, logo };
+      await setKv(tx, 'marca', JSON.stringify(marca));
+    }
 
     const cambios = { catalogo: false, personal: false, transferencias: 0 };
 

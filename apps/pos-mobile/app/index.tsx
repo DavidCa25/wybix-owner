@@ -15,7 +15,7 @@ export default function Inicio() {
           justifyContent: "center",
         }}
       >
-        <ActivityIndicator color={t.acento} size="large" />
+        <ActivityIndicator color={t.wybix} size="large" />
       </View>
     );
   }

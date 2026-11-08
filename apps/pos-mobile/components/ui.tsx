@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -28,20 +29,45 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { mezclar, temaDeMarca, type TemaMarca } from "@wybix/domain";
 export { dinero } from "@wybix/ui";
 
 export { teclear } from "../lib/entrada";
+/*
+ * Tokens alineados con el POS de escritorio (filtros_lubs_rios/src/styles/
+ * tokens.css): lienzo, superficies, barra oscura y tinta. El ACENTO es el de
+ * la marca del negocio cuando la configura en Wybix Owner (llega con el
+ * snapshot); @wybix/domain · temaDeMarca garantiza que todo se lea.
+ */
+let tema: TemaMarca = temaDeMarca(null);
+let logoMarca: string | null = null;
+/** Lo llama el contexto al leer la base y tras cada sincronización. */
+export function aplicarMarca(m: { color: string | null; logo: string | null } | null) {
+  tema = temaDeMarca(m?.color ?? null);
+  logoMarca = m?.logo ?? null;
+}
+export const logoDeMarca = () => logoMarca;
 export const pos = {
-  fondo: "#F3F6F8",
+  fondo: "#F2F5F9",
   superficie: "#FFFFFF",
-  hundido: "#EAF0F4",
-  borde: "#DCE5EB",
-  texto: "#102B40",
-  tenue: "#53697B",
-  acento: "#167F92",
-  acentoTexto: "#FFFFFF",
-  cian: "#45B3C3",
-  navy: "#102B40",
+  hundido: "#EDF1F6",
+  borde: "#E1E7EF",
+  texto: "#16212E",
+  tenue: "#55677A",
+  /** Botones principales y elementos elegidos. */
+  get acento() { return tema.acento; },
+  /** Texto sobre el acento. */
+  get acentoTexto() { return tema.acentoTexto; },
+  /** El acento como TEXTO sobre blanco. */
+  get acentoTinta() { return tema.acentoTinta; },
+  /** Fondo de una opción elegida (texto oscuro encima). */
+  get cian() { return tema.seleccion; },
+  /** Fondo muy tenue de la marca (tarjeta elegida). */
+  get acentoSuave() { return mezclar(tema.acento, "#FFFFFF", 0.92); },
+  /** Punto de la marca Wybix: siempre cian, no cambia con el negocio. */
+  wybix: "#45B3C3",
+  navy: "#0F1826",
   exito: "#167047",
   aviso: "#865000",
   peligro: "#B52E29",
@@ -57,7 +83,7 @@ export const tipo = StyleSheet.create({
   cuerpo: { fontFamily: "Wybix", fontSize: 15, color: pos.texto },
   tenue: { fontFamily: "Wybix", fontSize: 13, color: pos.tenue },
   numero: {
-    fontFamily: "WybixSemi",
+    fontFamily: "WybixMono",
     fontSize: 17,
     fontVariant: ["tabular-nums"],
     color: pos.texto,
@@ -251,14 +277,14 @@ export function Boton({
       ]}
     >
       <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-        {cargando && <ActivityIndicator color={primary ? "#fff" : pos.texto} />}
+        {cargando && <ActivityIndicator color={variante === "primario" ? pos.acentoTexto : primary ? "#fff" : pos.texto} />}
         <Text
           style={[
             tipo.subtitulo,
             {
               textAlign: "center",
               fontSize: 14,
-              color: primary ? "#fff" : pos.texto,
+              color: variante === "primario" ? pos.acentoTexto : primary ? "#fff" : pos.texto,
             },
           ]}
         >
@@ -272,10 +298,13 @@ export function Teclado({
   alPulsar,
   extra = ".",
   disabled = false,
+  alto,
 }: {
   alPulsar: (key: string) => void;
   extra?: string | null;
   disabled?: boolean;
+  /** Alto de cada tecla (tablet: teclas más grandes en el cobro). */
+  alto?: number;
 }) {
   return (
     <View style={{ gap: 6 }}>
@@ -295,9 +324,12 @@ export function Teclado({
                   accessibilityLabel={key === "⌫" ? "Borrar" : key}
                   accessibilityState={{ disabled }}
                   onPress={() => alPulsar(key)}
-                  style={s.key}
+                  style={[s.key, alto ? { minHeight: alto } : null]}
                 >
-                  <Text style={[tipo.numero, { fontSize: 23 }]}>{key}</Text>
+                  {key === "⌫"
+                    // Geist no trae el glifo ⌫: el icono se ve igual en todas las fuentes.
+                    ? <Ionicons name="backspace-outline" size={26} color={pos.texto} />
+                    : <Text style={[tipo.numero, { fontSize: 23 }]}>{key}</Text>}
                 </Pulse>
               )}
             </View>
@@ -408,6 +440,18 @@ export function BarraSync({
   );
 }
 export function Marca({ caption = "POS MOBILE" }: { caption?: string }) {
+  const logo = logoDeMarca();
+  if (logo)
+    return (
+      <View style={{ gap: 4, alignItems: "flex-start" }}>
+        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 }}>
+          <Image source={{ uri: logo }} style={{ width: 112, height: 32 }} resizeMode="contain" accessibilityLabel="Logo del negocio" />
+        </View>
+        <Text style={[tipo.etiqueta, { color: "#ACCAD7", fontSize: 9 }]}>
+          CON WYBIX {caption}
+        </Text>
+      </View>
+    );
   return (
     <View style={{ gap: 2 }}>
       <Text
@@ -418,7 +462,7 @@ export function Marca({ caption = "POS MOBILE" }: { caption?: string }) {
           color: "#fff",
         }}
       >
-        Wybix<Text style={{ color: pos.cian }}>.</Text>
+        Wybix<Text style={{ color: pos.wybix }}>.</Text>
       </Text>
       <Text style={[tipo.etiqueta, { color: "#ACCAD7", fontSize: 9 }]}>
         {caption}
