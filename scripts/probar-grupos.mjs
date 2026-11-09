@@ -29,6 +29,8 @@ import { rpcPostgrest } from '../supabase/functions/_shared/nube.ts';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const NOMBRE = 'wybix-grupos-prueba';
 const MIG = join(RAIZ, 'supabase', 'migrations', '20261108120000_grupos_empresas.sql');
+/* Empresa adicional (POS licencia por empresa): grupo_unir exige licencia o prueba. */
+const MIG_LIC = join(RAIZ, 'supabase', 'migrations', '20261109120000_empresa_adicional.sql');
 const conservar = process.argv.includes('--conservar');
 let fallos = 0, pasos = 0;
 const check = (id, ok, msg, det = '') => { pasos++; if (!ok) fallos++; console.log(`   ${ok ? 'ok   ' : 'FALLA'}  ${id}. ${msg}${det ? '  · ' + det : ''}`); };
@@ -71,12 +73,12 @@ try {
 
   console.log('\nGRUPOS · migración\n');
   for (const vez of [1, 2]) {
-    const a = psql(readFileSync(MIG, 'utf8'));
+    const a = psql([MIG, MIG_LIC].map((m) => readFileSync(m, 'utf8')).join(String.fromCharCode(10)));
     check(`GR-MIG${vez}`, a.code === 0, `se aplica (vez ${vez})`, a.err.replace(/^(NOTICE|WARNING).*$/gm, '').trim().slice(0, 300));
   }
   const priv = uno(`select count(*) from information_schema.role_table_grants where table_name like 'company_group%' and grantee in ('anon','authenticated','PUBLIC');`);
   check('GR-01', priv === '0', 'anon/authenticated no tienen permisos sobre las tablas', `${priv} grants`);
-  const fpriv = uno(`select count(*) from pg_proc p where (p.proname like 'grupo\\_%' or p.proname like 'wx\\_grupo%' or p.proname = 'wx_mismo_grupo')
+  const fpriv = uno(`select count(*) from pg_proc p where (p.proname like 'grupo\\_%' or p.proname like 'wx\\_grupo%' or p.proname in ('wx_mismo_grupo', 'wx_empresa_con_licencia'))
                       and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'));`);
   check('GR-02', fpriv === '0', 'ni pueden ejecutar sus funciones', `${fpriv} con execute`);
 
@@ -84,6 +86,13 @@ try {
   const B = await empresaNueva('Birrialtlan QA');
   const C = await empresaNueva('Tercera QA');
   const D = await empresaNueva('Ajena QA');
+  const E = await empresaNueva('Sin licencia QA');
+  /* Cada empresa del grupo tiene licencia o prueba: una prueba vigente en la
+     computadora de su sucursal. E no tiene nada. */
+  for (const x of [A, B, C, D]) {
+    uno(`update sucursales set license_machine_id = 'PC-${x.loc}' where id = '${x.loc}';
+         insert into device_trials (machine_id, business_name, expires_at) values ('PC-${x.loc}', '${x.nombre}', now() + interval '20 days');`);
+  }
 
   console.log('\nGRUPOS · enlace con código\n');
   const codA = await llamar(A.token, 'grupo_codigo');
@@ -99,6 +108,15 @@ try {
   check('GR-07', (await llamar(C.token, 'grupo_unir', { code: codB.code })).code === 'BAD_CODE', 'un código caducado no sirve');
   const codB2 = await llamar(B.token, 'grupo_codigo');
   check('GR-08', (await llamar(C.token, 'grupo_unir', { code: codB2.code })).success, 'cualquiera del grupo puede invitar: entra una tercera');
+
+  const codSin = await llamar(A.token, 'grupo_codigo');
+  const sinLic = await llamar(E.token, 'grupo_unir', { code: codSin.code });
+  check('GR-08b', sinLic.status === 403 && sinLic.code === 'NO_LICENSE', 'una empresa sin licencia ni prueba no entra al grupo', sinLic.code);
+  uno(`update device_trials set expires_at = now() - interval '1 day' where machine_id = 'PC-${C.loc}';`);
+  check('GR-08c', !JSON.parse(uno(`select wx_empresa_con_licencia('${C.company}')::text;`)), 'una prueba vencida ya no cuenta como licencia');
+  uno(`update device_trials set expires_at = now() + interval '20 days' where machine_id = 'PC-${C.loc}';`);
+  const ext = uno(`select (license_runtime(id)->>'companies_max') from licenses limit 1;`);
+  check('GR-08d', ext === '' || Number(ext) >= 1, 'license_runtime dice cuántas empresas opera la instalación', ext || '(sin licencias en el contenedor)');
 
   const listaA = await llamar(A.token, 'grupo_listar');
   const nombres = (listaA.empresas || []).map((e) => e.nombre).sort();

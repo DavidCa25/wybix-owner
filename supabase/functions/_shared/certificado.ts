@@ -32,6 +32,8 @@ export interface Runtime {
   entitlements: string[];
   screens: Record<string, number | null>;
   addons: string[];
+  /** Empresas que puede operar esta instalación: la suya + las adicionales compradas. */
+  companies_max?: number;
   first_activated_at: string | null;
   paid_until: string | null;
   origin?: string | null;
@@ -49,6 +51,12 @@ export interface Payload {
   screens: Record<string, number | null>;
   entitlements: string[];
   addons: string[];
+  /**
+   * Empresas que puede operar ESTA instalación: la suya (1) más las
+   * «Empresa adicional» compradas. Las empresas remotas de un grupo pagan su
+   * propia licencia en su computadora y no cuentan aquí.
+   */
+  companies_max: number;
   trial_started_at: string | null;
   trial_ends_at: string | null;
   first_activated_at: string | null;
@@ -81,6 +89,7 @@ export function payloadDeLicencia(rt: Runtime, machineId: string, ahora = Date.n
     screens: rt.screens || {},
     entitlements: [...(rt.entitlements || [])].sort(),
     addons: rt.addons || [],
+    companies_max: Math.max(1, Math.floor(Number(rt.companies_max ?? 1)) || 1),
     trial_started_at: null,
     trial_ends_at: null,
     first_activated_at: rt.first_activated_at,
@@ -123,6 +132,9 @@ export function payloadDePrueba(t: { machine_id: string; business_name?: string 
     screens: grants.screens || {},
     entitlements: [...(grants.entitlements || [])].sort(),
     addons: [],
+    // La prueba es una MonoCaja de una empresa. Las empresas adicionales
+    // tienen su propia prueba de 30 días en el POS.
+    companies_max: 1,
     trial_started_at: iso(Date.parse(t.started_at)),
     trial_ends_at: iso(fin),
     first_activated_at: null,

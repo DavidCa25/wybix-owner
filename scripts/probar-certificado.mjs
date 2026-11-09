@@ -33,6 +33,8 @@ check(p.kind === 'LICENSE' && p.machine_id === 'PC-TALLER' && p.edition === 'mon
 check(p.grace_until === new Date(Date.parse(rt.paid_until) + GRACE_DAYS * DIA).toISOString() && GRACE_DAYS === 45, 'gracia = pagado hasta + 45 días (de la política)');
 check(p.valid_until === new Date(ahora + OFFLINE_DAYS * DIA).toISOString() && OFFLINE_DAYS === 45, 'vale 45 días sin volver a validarse (de la política)');
 check(JSON.stringify(p.verticals) === '["COMMERCE","SERVICES"]' && p.screens.COMMERCE === 10, 'híbrido: giros y pantallas por giro');
+check(p.companies_max === 1 && payloadDeLicencia({ ...rt, companies_max: 3 }, 'PC-TALLER', ahora).companies_max === 3,
+      'empresas: 1 sin adicionales; la base suma las «Empresa adicional» compradas');
 const COMERCIAL = ['support_until', 'support_tier', 'included_code_changes', 'used_code_changes', 'remaining_code_changes',
                   'list_price', 'price_paid', 'discount_pct', 'discount_amount'];
 check(COMERCIAL.every(k => !(k in p)), 'nada comercial en el certificado: ni soporte, ni adaptaciones (incluidas/usadas/restantes), ni precios');
