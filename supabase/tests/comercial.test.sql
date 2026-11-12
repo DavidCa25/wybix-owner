@@ -64,4 +64,21 @@ begin
  if public.ticket_mail_reserve(jsonb_build_object('device_id',d.id,'id',k,'fingerprint','f1'))->>'sent'<>'true' then raise exception 'Un correo enviado se volvería a mandar';end if;
  raise notice 'COMERCIAL_V2_TICKET_OK: compuerta de mayoreo y correo idempotente';
 end $$;
+do $$
+declare d public.devices; loc public.sucursales; publication bigint; result jsonb;
+begin
+ select x.* into d from public.devices x join public.sucursales s on s.id=x.location_id where x.status='ACTIVE' and x.kind='MOBILE_POS' and exists(select 1 from public.catalog_publications p where p.location_id=s.home_location_id) limit 1;
+ select * into loc from public.sucursales where id=d.location_id;
+ select id into publication from public.catalog_publications where location_id=loc.home_location_id order by version desc limit 1;
+ update public.catalog_publications set payload=jsonb_set(payload,'{commercial}','{"version":3,"channels":[{"id":"LOCAL","name":"Mostrador","active":true,"inheritBase":true}],"promotions":[{"id":"PAQ","name":"Docena","active":true,"priority":1,"kind":"VOLUME","tiers":[{"qty":12,"price":"225.00"}],"selector":{}}],"prices":[],"combos":[]}') where id=publication;
+ if public.mobile_snapshot(jsonb_build_object('device_id',d.id,'commercial_schema',2))->>'code'<>'UPDATE_REQUIRED' then raise exception 'Tablet sin paquetes recibió paquetes';end if;
+ if public.mobile_snapshot(jsonb_build_object('device_id',d.id,'commercial_schema',3))->>'ok'<>'true' then raise exception 'Tablet con paquetes no recibió catálogo';end if;
+ update public.catalog_publications set payload=jsonb_set(payload,'{commercial}','{"version":4,"channels":[{"id":"LOCAL","name":"Mostrador","active":true,"inheritBase":true}],"promotions":[],"prices":[],"combos":[{"id":"CD","name":"Café + dona","active":true,"auto":true,"price":"58.00","groups":[{"id":"c","name":"Café","quantity":1,"selector":{}}]}]}') where id=publication;
+ if public.mobile_snapshot(jsonb_build_object('device_id',d.id,'commercial_schema',2))->>'code'<>'UPDATE_REQUIRED' then raise exception 'Tablet sin combos automáticos los recibió';end if;
+ result:=public.mobile_snapshot(jsonb_build_object('device_id',d.id,'commercial_schema',3));
+ if result->>'ok'<>'true' then raise exception 'Tablet con combos automáticos no recibió catálogo: %',result;end if;
+ update public.catalog_publications set payload=jsonb_set(payload,'{commercial}','{"version":5,"channels":[{"id":"LOCAL","name":"Mostrador","active":true,"inheritBase":true}],"promotions":[],"prices":[],"combos":[{"id":"CD","name":"Café + dona","active":true,"price":"58.00","groups":[{"id":"c","name":"Café","quantity":1,"selector":{}}]}]}') where id=publication;
+ if public.mobile_snapshot(jsonb_build_object('device_id',d.id,'commercial_schema',2))->>'ok'<>'true' then raise exception 'Un combo manual no debe pedir actualizar';end if;
+ raise notice 'COMERCIAL_ESQUEMA3_OK: paquetes y combos automáticos piden actualizar a tablets anteriores';
+end $$;
 rollback;

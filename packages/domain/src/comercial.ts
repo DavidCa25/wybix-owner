@@ -26,6 +26,13 @@ export interface Promocion {
     /** Mayoreo: mínimo de piezas, sumadas por selector o por producto/variante. */
     minimumQty?: number;
     mixProducts?: boolean;
+    /** Precio por cantidad en paquetes (p. ej. 12 por 225 y 6 por 123): se arma
+     *  sola la combinación más barata y lo que sobra se cobra suelto. Con
+     *  paquetes no se usan minimumQty ni value. */
+    tiers?: {
+        qty: number;
+        price: string;
+    }[];
     selector: Selector;
     value?: string;
     buy?: number;
@@ -46,6 +53,8 @@ export interface Combo {
     name: string;
     active: boolean;
     price: string;
+    /** Se aplica solo cuando la cuenta ya trae las piezas, sin armarlo a mano. */
+    auto?: boolean;
     channels?: string[];
     weekdays?: number[];
     windows?: Horario[];
@@ -171,13 +180,24 @@ export function validarPolitica(p: PoliticaComercial): void {
         selector(r.selector);
         if (!['PRICE', 'PERCENT', 'AMOUNT', 'BUY_PAY', 'ADDON', 'VOLUME'].includes(r.kind) || !entero(r.priority, 0, 10000))
             throw new Error('Tipo o prioridad de promoción inválida.');
-        if (r.kind === 'VOLUME' && (!entero(r.minimumQty, 2) || (r.mixProducts !== undefined && typeof r.mixProducts !== 'boolean') || r.maxApplications !== undefined))
+        if (r.kind === 'VOLUME' && ((r.tiers === undefined && !entero(r.minimumQty, 2)) || (r.mixProducts !== undefined && typeof r.mixProducts !== 'boolean') || r.maxApplications !== undefined))
             throw new Error('Mayoreo inválido: mínimo de 2 a 500 piezas y sin límite parcial de aplicaciones.');
+        if (r.tiers !== undefined) {
+            if (r.kind !== 'VOLUME' || !Array.isArray(r.tiers) || !r.tiers.length || r.tiers.length > 5 || r.minimumQty !== undefined || r.value !== undefined)
+                throw new Error('Paquetes inválidos: de uno a cinco, solo en precio por cantidad.');
+            const sizes = new Set<number>();
+            for (const t of r.tiers) {
+                if (!t || !entero(t.qty, 2) || sizes.has(t.qty))
+                    throw new Error('Paquetes inválidos: cada uno de 2 a 500 piezas y sin repetir.');
+                centavos(t.price);
+                sizes.add(t.qty);
+            }
+        }
         if (r.kind === 'BUY_PAY') {
             if (!entero(r.buy, 2) || !entero(r.pay, 1) || r.pay! >= r.buy!)
                 throw new Error('Compra/paga inválido.');
         }
-        else {
+        else if (r.tiers === undefined) {
             centavos(r.value!);
             if (r.kind === 'PERCENT' && centavos(r.value!) > 10000n)
                 throw new Error('El descuento no puede superar 100%.');
@@ -202,6 +222,8 @@ export function validarPolitica(p: PoliticaComercial): void {
     for (const c of p.combos) {
         validarVigencia(c);
         centavos(c.price);
+        if (c.auto !== undefined && typeof c.auto !== 'boolean')
+            throw new Error('Combo inválido.');
         if (!c.groups.length || c.groups.length > 10)
             throw new Error('El combo necesita de uno a diez grupos.');
         const ids = new Set();
@@ -222,13 +244,29 @@ function validarVigencia(r: { weekdays?: number[]; windows?: Horario[]; starts?:
 export function vigente(r: { active: boolean; channels?: string[]; weekdays?: number[]; windows?: Horario[]; starts?: string; ends?: string }, ctx: ContextoComercial): boolean {
     return r.active && (!r.channels?.length || r.channels.includes(ctx.channel)) && (!r.starts || ctx.date >= r.starts) && (!r.ends || ctx.date <= r.ends) && (!r.weekdays?.length || r.weekdays.includes(ctx.weekday)) && (!r.windows?.length || r.windows.some(w => w.from < w.to ? ctx.time >= w.from && ctx.time < w.to : ctx.time >= w.from || ctx.time < w.to));
 }
-/** Prioridad explícita: una unidad reservada por combo/oferta no recibe otra oferta. */
+/** Prioridad explícita: una unidad reservada por combo/oferta no recibe otra oferta.
+ *  Los combos automáticos se prueban aparte: queda la cuenta más barata para el
+ *  cliente (con empate, la que arma el combo). */
 export function cotizar(p: PoliticaComercial, products: ProductoComercial[], cart: PartidaComercial[], ctx: ContextoComercial): CuentaComercial {
     validarPolitica(p);
+    const sin = cotizarCon(p, products, cart, ctx, false);
+    if (!p.combos.some(c => c.auto && vigente(c, ctx)))
+        return sin;
+    let con: CuentaComercial;
+    try {
+        con = cotizarCon(p, products, cart, ctx, true);
+    }
+    catch {
+        return sin;
+    }
+    return centavos(con.total) <= centavos(sin.total) ? con : sin;
+}
+function cotizarCon(p: PoliticaComercial, products: ProductoComercial[], cart: PartidaComercial[], ctx: ContextoComercial, auto: boolean): CuentaComercial {
     const channel = p.channels.find(c => c.id === ctx.channel && c.active);
     if (!channel)
         throw new Error('Canal no disponible.');
     const active = p.promotions.filter(r => vigente(r, ctx) && (!r.audience || ctx.audiences?.includes(r.audience))).sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+    const autos = auto ? p.combos.filter(c => c.auto && vigente(c, ctx)).sort((a, b) => a.id.localeCompare(b.id)) : [];
     const byProduct = new Map(products.map(x => [x.id, x]));
     const keys = new Set();
     type Unit = {
@@ -260,7 +298,7 @@ export function cotizar(p: PoliticaComercial, products: ProductoComercial[], car
         const base = centavos(price?.price ?? prod.price), extras = signedCentavos(l.extras);
         if (base + extras < 0n)
             throw Error('El precio con opciones no puede ser negativo.');
-        const needsUnits = !!l.combo || active.some(r => (r.kind === 'BUY_PAY' || r.kind === 'ADDON' || r.kind === 'VOLUME' || r.maxApplications !== undefined) && (coincide(r.selector, prod, l.variant) || (r.trigger && coincide(r.trigger, prod, l.variant))));
+        const needsUnits = !!l.combo || autos.some(c => c.groups.some(g => coincide(g.selector, prod, l.variant))) || active.some(r => (r.kind === 'BUY_PAY' || r.kind === 'ADDON' || r.kind === 'VOLUME' || r.maxApplications !== undefined) && (coincide(r.selector, prod, l.variant) || (r.trigger && coincide(r.trigger, prod, l.variant))));
         if (needsUnits && qty % 100n !== 0n)
             throw new Error('Las ofertas requieren unidades completas.');
         if (needsUnits && qty > 50000n)
@@ -292,6 +330,27 @@ export function cotizar(p: PoliticaComercial, products: ProductoComercial[], car
         selected.forEach((u, i) => { const assigned = i === selected.length - 1 ? remaining : baseTotal ? target * u.base / baseTotal : 0n; remaining -= assigned; u.price = assigned + u.extras; if (u.price < 0n)
             throw Error('El precio del combo con opciones no puede ser negativo.'); u.rule = combo.id; u.combo = instance; u.locked = true; });
     }
+    for (const combo of autos) {
+        const target = centavos(combo.price);
+        for (let n = 1; ; n++) {
+            // Las piezas de mayor precio primero: así el cliente ahorra más.
+            const selected: Unit[] = [];
+            for (const g of combo.groups) {
+                const pick = units.filter(u => !u.locked && !selected.includes(u) && coincide(g.selector, u.p, u.src.variant)).sort((a, b) => a.base > b.base ? -1 : a.base < b.base ? 1 : a.src.key.localeCompare(b.src.key)).slice(0, g.quantity);
+                if (pick.length < g.quantity)
+                    break;
+                selected.push(...pick);
+            }
+            const needed = combo.groups.reduce((a, g) => a + g.quantity, 0);
+            const baseTotal = selected.reduce((a, u) => a + u.base, 0n);
+            // Solo si ahorra: un combo que cuesta lo mismo o más que sus piezas no se arma solo.
+            if (selected.length < needed || target >= baseTotal)
+                break;
+            const instance = `auto-${combo.id}-${n}`;
+            let remaining = target;
+            selected.forEach((u, i) => { const assigned = i === selected.length - 1 ? remaining : baseTotal ? target * u.base / baseTotal : 0n; remaining -= assigned; u.price = assigned + u.extras < 0n ? 0n : assigned + u.extras; u.rule = combo.id; u.combo = instance; u.locked = true; });
+        }
+    }
     for (const r of active) {
         const eligible = units.filter(u => !u.locked && coincide(r.selector, u.p, u.src.variant));
         const apply = (u: Unit, target: bigint) => { if (target < 0n)
@@ -304,8 +363,39 @@ export function cotizar(p: PoliticaComercial, products: ProductoComercial[], car
                 const group = groups.get(key) ?? [];
                 group.push(u); groups.set(key, group);
             }
-            for (const group of groups.values()) if (group.length >= r.minimumQty!)
-                for (const u of group) apply(u, centavos(r.value!) + (r.extrasIncluded ? 0n : u.extras));
+            if (r.tiers) {
+                const tiers = r.tiers.map(t => ({ qty: t.qty, price: centavos(t.price) }));
+                for (const group of groups.values()) {
+                    // Las piezas caras entran al paquete; las baratas, sueltas.
+                    group.sort((a, b) => a.base > b.base ? -1 : a.base < b.base ? 1 : a.src.key.localeCompare(b.src.key));
+                    const n = group.length;
+                    // Paquetes más baratos que suman exactamente m piezas (mochila sin límite).
+                    const best: (bigint | null)[] = [0n], how: number[][] = [[]];
+                    for (let m = 1; m <= n; m++) {
+                        best[m] = null; how[m] = [];
+                        for (const [i, t] of tiers.entries())
+                            if (t.qty <= m && best[m - t.qty] !== null && (best[m] === null || best[m - t.qty]! + t.price < best[m]!)) {
+                                best[m] = best[m - t.qty]! + t.price;
+                                how[m] = [...how[m - t.qty], i];
+                            }
+                    }
+                    const suelto = (from: number) => group.slice(from).reduce((a, u) => a + u.base, 0n);
+                    let m = 0;
+                    for (let k = 1; k <= n; k++)
+                        if (best[k] !== null && best[k]! + suelto(k) < best[m]! + suelto(m))
+                            m = k;
+                    let at = 0;
+                    for (const i of [...how[m]].sort((a, b) => tiers[b].qty - tiers[a].qty)) {
+                        const pack = group.slice(at, at + tiers[i].qty), baseTotal = pack.reduce((a, u) => a + u.base, 0n);
+                        at += tiers[i].qty;
+                        let remaining = tiers[i].price;
+                        pack.forEach((u, j) => { const assigned = j === pack.length - 1 ? remaining : baseTotal ? tiers[i].price * u.base / baseTotal : 0n; remaining -= assigned; u.price = assigned + (r.extrasIncluded ? 0n : u.extras); u.rule = r.id; u.locked = true; });
+                    }
+                }
+            }
+            else
+                for (const group of groups.values()) if (group.length >= r.minimumQty!)
+                    for (const u of group) apply(u, centavos(r.value!) + (r.extrasIncluded ? 0n : u.extras));
         }
         else if (r.kind === 'BUY_PAY') {
             const sorted = eligible.sort((a, b) => a.price < b.price ? -1 : a.price > b.price ? 1 : a.src.key.localeCompare(b.src.key));

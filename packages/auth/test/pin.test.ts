@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { hashPin, verificarPin, FALLOS_MAX } from '../src/index.ts';
 
 // El MISMO hash que genera el POS de Windows (electron/local-host/credenciales.js).
-const POS = process.env.WYBIX_POS ?? 'C:/Users/Casillas/filtros_lubs_rios';
+const POS = process.env.WYBIX_POS ?? 'C:/Users/Casillas/Documents/Wybix/filtros_lubs_rios';
 const credenciales = createRequire(import.meta.url)(`${POS}/electron/local-host/credenciales.js`);
 
 test('el hash del POS Mobile es idéntico al del POS de Windows', () => {
