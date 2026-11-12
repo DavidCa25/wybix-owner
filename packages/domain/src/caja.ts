@@ -20,6 +20,13 @@ export function efectivoEsperado(movs: MovCaja[]): Dec {
   return t.redondear(2);
 }
 
+/** Las partes del esperado, para mostrar de dónde sale (mismas reglas que efectivoEsperado). */
+export interface DesgloseCaja { fondo: string; ventas_efectivo: string; entradas: string; retiros: string; egresos: string; devoluciones: string; }
+export function desgloseCaja(movs: MovCaja[]): DesgloseCaja {
+  const suma = (t: TipoCaja) => Dec.suma(movs.filter((m) => m.type === t).map((m) => m.amount)).fijo(2);
+  return { fondo: suma('OPENING'), ventas_efectivo: suma('SALE_CASH'), entradas: suma('CASH_IN'), retiros: suma('CASH_OUT'), egresos: suma('EXPENSE'), devoluciones: suma('SALE_RETURN_CASH') };
+}
+
 export interface ResultadoCorte { expected: string; counted: string; difference: string; }
 export function corte(movs: MovCaja[], contado: string): ResultadoCorte {
   const e = efectivoEsperado(movs), c = Dec.de(contado).redondear(2);

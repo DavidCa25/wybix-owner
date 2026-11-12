@@ -10,7 +10,7 @@
  * cuando haya red (ver @wybix/sync).
  */
 import {
-  prepararVenta, type SeleccionComercial, Dec, indexar, congelarLinea, cobrar, totalDe, folio as armarFolio, proyectarStock, efecto, efectivoEsperado,
+  prepararVenta, type SeleccionComercial, Dec, indexar, congelarLinea, cobrar, totalDe, folio as armarFolio, proyectarStock, efecto, efectivoEsperado, desgloseCaja,
   corte as calcularCorte, puede, corteCiego, uuidv7, ErrorVenta,
   type Catalogo, type CatalogoIndexado, type LineaCarrito, type Pago, type TipoMovimiento, type RolEvento, type Accion, type MovCaja,
 } from '@wybix/domain';
@@ -330,6 +330,12 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
         ventas: ciego ? null : Dec.suma(totales.map((t) => t.total)).fijo(2),
         por_metodo: ciego ? {} : metodos,
         esperado: ciego ? null : efectivoEsperado(movs).fijo(2),
+        // De dónde sale el esperado, y los movimientos de caja del turno (sin
+        // las ventas, que ya están en tickets). A ciegas no se muestran.
+        desglose: ciego ? null : desgloseCaja(movs),
+        movimientos: ciego ? [] : await db.all<{ type: MovCaja['type']; amount: string; reason: string | null; occurred_at: string; persona: string | null }>(
+          `SELECT m.type, m.amount, m.reason, m.occurred_at, s.name AS persona FROM cash_movements m LEFT JOIN staff s ON s.uuid = m.employee_uuid
+            WHERE m.shift_uuid = ? AND m.type <> 'SALE_CASH' ORDER BY m.occurred_at, m.rowid`, [turno.uuid]),
       };
     },
 

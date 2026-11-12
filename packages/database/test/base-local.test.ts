@@ -61,10 +61,14 @@ test('FERIA COMPLETA SIN INTERNET: recibir 40, vender 32, merma, corte, regresar
   assert.equal(res!.tickets, 8);
   assert.equal(res!.ventas, null, 'a ciegas no ve importes: efectivo vendido + fondo = esperado');
   assert.deepEqual(res!.por_metodo, {});
+  assert.equal(res!.desglose, null, 'a ciegas tampoco va el desglose');
+  assert.deepEqual(res!.movimientos, []);
   const enc = await pos.resumenTurno(marta);
   assert.equal(enc!.ventas, '870.00');   // 6 x 125 + 25 + 95
   assert.equal(enc!.por_metodo.TARJETA, '95.00');
   assert.equal(enc!.esperado, '1275.00');
+  assert.deepEqual(enc!.desglose, { fondo: '500.00', ventas_efectivo: '775.00', entradas: '0.00', retiros: '0.00', egresos: '0.00', devoluciones: '0.00' });
+  assert.deepEqual(enc!.movimientos.map((m) => [m.type, m.amount]), [['OPENING', '500.00']], 'las ventas no se repiten en movimientos');
   const c = await pos.cerrarTurno(lupita, '1270');
   assert.deepEqual(c, { shift_uuid: c.shift_uuid, counted: '1270.00', ciego: true });
   const sh = await db.get<any>('SELECT expected, difference FROM shifts WHERE uuid = ?', [c.shift_uuid]);

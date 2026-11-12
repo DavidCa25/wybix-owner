@@ -17,7 +17,6 @@ import { Dec, puede, type Accion, type CatalogoIndexado } from "@wybix/domain";
 import { importarTransferencia, type Persona } from "@wybix/database";
 import { verificarQr, aTransferencia } from "@wybix/sync";
 import {
-  Pantalla,
   Aviso,
   Boton,
   Tarjeta,
@@ -25,7 +24,7 @@ import {
   tipo,
 } from "../../components/ui";
 import { usePos } from "../../lib/contexto";
-import { Encabezado } from "../../components/Encabezado";
+import { Marco, useAncho } from "../../components/Marco";
 import { Autorizar } from "../../components/Autorizar";
 import { Escaner } from "../../components/Escaner";
 
@@ -53,8 +52,10 @@ export default function Inventario() {
       setBusy(false);
     }
   };
-  const { width, fontScale } = useWindowDimensions();
-  const wide = width >= 1000 && fontScale <= 1.3;
+  const ancho = useAncho();
+  const { width } = useWindowDimensions();
+  // Columnas internas solo con espacio de sobra (la columna del marco ocupa 210).
+  const wide = ancho && width >= 1100;
   const [search, setSearch] = useState("");
   const { pos, db, persona, identidad } = usePos();
   const [cat, setCat] = useState<CatalogoIndexado | null>(null);
@@ -241,16 +242,10 @@ export default function Inventario() {
   };
 
   return (
-    <Pantalla>
-      <Encabezado titulo="Inventario del evento" />
+    <Marco seccion="inventario" titulo="Inventario del evento">
       <ScrollView
-        contentContainerStyle={{
-          padding: 24,
-          gap: 20,
-          maxWidth: 1200,
-          width: "100%",
-          alignSelf: "center",
-        }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ gap: 20, paddingHorizontal: ancho ? 0 : 16, paddingBottom: 16 }}
       >
         {msg && (
           <Pressable onPress={() => setMsg(null)}>
@@ -573,7 +568,7 @@ export default function Inventario() {
         alCerrar={() => setEscanear(false)}
         alLeer={leerQr}
       />
-    </Pantalla>
+    </Marco>
   );
 }
 
