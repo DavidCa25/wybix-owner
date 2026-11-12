@@ -21,7 +21,8 @@ export interface Snapshot {
   security_revision: number;
   device: { id: string; uuid: string; status: string };
   company: { uuid: string; nombre: string };
-  location: { uuid: string; nombre: string; tipo: string; timezone: string; status: string; event_status?: string | null;
+  /** default_channel: canal de precios con el que empieza cada cuenta (null = Mostrador). */
+  location: { uuid: string; nombre: string; tipo: string; timezone: string; status: string; event_status?: string | null; default_channel?: string | null;
               home_location_uuid: string | null; starts_at: string | null; ends_at: string | null };
   register: { uuid: string; code: string; name: string };
   catalog: (Catalogo & { catalog_version: number }) | null;

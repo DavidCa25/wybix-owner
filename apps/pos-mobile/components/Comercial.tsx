@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { uuidv7, type CatalogoIndexado, type LineaCarrito, type Selector, type RolEvento } from '@wybix/domain';
 import { Pulse, Boton, Sheet, pos as t, tipo } from './ui';
-export function Comercial({ cat, channel, onChannel, audiences, onAudiences, role, onAdd }: {
+export function Comercial({ cat, channel, predeterminado, onChannel, audiences, onAudiences, role, onAdd }: {
     cat: CatalogoIndexado;
     channel: string;
+    /** Canal del evento: se marca para que la cajera sepa cuál es el normal. */
+    predeterminado?: string;
     onChannel: (id: string) => void;
     audiences: string[];
     onAudiences: (a: string[]) => void;
@@ -51,7 +53,7 @@ export function Comercial({ cat, channel, onChannel, audiences, onAudiences, rol
     catch (e) {
         setError((e as Error).message);
     } }
-    return <View style={{ padding: 16, gap: 12, backgroundColor: t.fondo }}><Text style={tipo.etiqueta}>CANAL DE ESTA CUENTA</Text>{chips(policy.channels.filter(c => c.active), channel, onChannel)}{policy.combos.some(c => c.active && (!c.channels?.length || c.channels.includes(channel))) && <Boton titulo="Agregar combo" variante="secundario" onPress={() => setOpen(true)}/>}
+    return <View style={{ padding: 16, gap: 12, backgroundColor: t.fondo }}><Text style={tipo.etiqueta}>CANAL DE ESTA CUENTA</Text>{chips(policy.channels.filter(c => c.active).map(c => ({ ...c, name: c.id === predeterminado && predeterminado !== 'LOCAL' ? `${c.name} · del evento` : c.name })), channel, onChannel)}{policy.combos.some(c => c.active && (!c.channels?.length || c.channels.includes(channel))) && <Boton titulo="Agregar combo" variante="secundario" onPress={() => setOpen(true)}/>}
  {[...new Set(policy.promotions.filter(p => p.active && p.audience).map(p => p.audience!))].map(a => <Boton key={a} titulo={`${audiences.includes(a) ? '✓ ' : ''}${a}`} variante="secundario" deshabilitado={role === 'CASHIER'} onPress={() => onAudiences(audiences.includes(a) ? audiences.filter(x => x !== a) : [...audiences, a])}/>)}
  <Sheet visible={open} title="Arma tu combo" subtitle="Elige los productos y sus opciones. Los extras se cobran aparte." onClose={() => setOpen(false)} footer={<View style={{ flexDirection: 'row', gap: 12 }}><Boton titulo="Cancelar" variante="secundario" onPress={() => setOpen(false)}/><Boton titulo="Agregar combo a cuenta" onPress={add}/></View>}><ScrollView contentContainerStyle={{ padding: 20, gap: 18 }}>
  {chips(policy.combos.filter(c => c.active && (!c.channels?.length || c.channels.includes(channel))).map(c => ({ id: c.id, name: c.name + ' · $' + c.price })), comboId, id => { setComboId(id); setSelections({}); setOptions({}); })}

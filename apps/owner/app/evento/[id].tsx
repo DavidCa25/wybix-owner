@@ -8,6 +8,7 @@ import type { ResumenEmpresa, UbicacionResumen, Empresa } from '../../lib/useEmp
 import { eventos, mensaje, haceCuanto, ETIQUETA_ESTADO, type EstadoEvento, type Empleado, type Equipo } from '../../lib/useEventos';
 import { colors, fonts, radius } from '../../theme/tokens';
 import { MarcaNegocio } from '../../components/MarcaNegocio';
+import { CanalEvento } from '../../components/CanalEvento';
 
 /*
  * DETALLE DE UN EVENTO (Fase 2).
@@ -188,6 +189,10 @@ export default function DetalleEvento() {
             </View>
           )}
         </View>
+
+        {/* Canal de precios con el que empieza cada cuenta en las tablets */}
+        {empresa && id && <Text style={styles.seccion}>Precios del evento</Text>}
+        {empresa && id && <CanalEvento empresa={empresa} evento={id} administra={administra} />}
 
         {/* Marca del negocio: viaja con el snapshot a todas las tablets */}
         {empresa && <Text style={styles.seccion}>Marca en las tablets</Text>}

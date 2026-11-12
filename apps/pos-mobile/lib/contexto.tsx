@@ -38,6 +38,8 @@ interface Ctx {
   marca: string;
   /** Nombre del negocio (snapshot). */
   negocio: string | null;
+  /** Canal de precios del evento (Owner). null = Mostrador. */
+  canalEvento: string | null;
   /** Fase 3: autorización a distancia (por la credencial de esta tablet). Sin red, lanza error. */
   aprobaciones: {
     solicitar(a: { id: string; accion: string; solicita: { uuid: string; name: string; role: string }; payload: Record<string, unknown> }): Promise<EstadoAprobacion>;
@@ -81,6 +83,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [impresora, setImpresora] = useState<Impresora>(sinImpresora);
   const [marca, setMarca] = useState('');
   const [negocio, setNegocio] = useState<string | null>(null);
+  const [canalEvento, setCanalEvento] = useState<string | null>(null);
   // La marca llega con el snapshot (kv 'marca'); se aplica a los tokens del tema
   // y el cambio de hash hace que toda la app se vuelva a pintar.
   const leerMarca = useCallback(async (d: BaseLocal) => {
@@ -90,6 +93,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
     setMarca(m ? `${m.hash}|${m.color}|${m.logo?.length ?? 0}` : '');
     const c = await d.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'company'`).catch(() => null);
     setNegocio(c ? (JSON.parse(c.v) as { nombre?: string }).nombre ?? null : null);
+    const l = await d.get<{ v: string }>(`SELECT v FROM kv WHERE k = 'location'`).catch(() => null);
+    setCanalEvento(l ? (JSON.parse(l.v) as { default_channel?: string | null }).default_channel ?? null : null);
   }, []);
   const motor = useRef<ReturnType<typeof crearSincronizador> | null>(null);
   const nubeRef = useRef<ReturnType<typeof crearClienteNube> | null>(null);
@@ -191,8 +196,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const valor = useMemo<Ctx>(() => ({
     fase, error, db, pos, identidad, sync, sincronizar, persona,
     entrar: setPersona, salir: () => setPersona(null), enrolar,
-    versionOk: cumpleVersion(CONFIG.version, minima), minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio,
-  }), [fase, error, db, pos, identidad, sync, sincronizar, persona, enrolar, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio]);
+    versionOk: cumpleVersion(CONFIG.version, minima), minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento,
+  }), [fase, error, db, pos, identidad, sync, sincronizar, persona, enrolar, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento]);
 
   return <C.Provider value={valor}>{children}</C.Provider>;
 }

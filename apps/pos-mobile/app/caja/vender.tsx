@@ -1,6 +1,6 @@
 import {usePreciosComerciales} from '../../components/usePreciosComerciales';
 import {Comercial} from '../../components/Comercial';
-import {congelarLinea,uuidv7} from '@wybix/domain';
+import {congelarLinea,uuidv7,canalInicial} from '@wybix/domain';
 /**
  * VENDER, sin Internet. La venta se guarda completa en la tablet (venta,
  * líneas congeladas, pagos, inventario, caja, outbox) en UNA transacción. La
@@ -54,7 +54,7 @@ type Linea = LineaCarrito & {
 };
 
 export default function Vender() {
-  const { pos, db, persona, identidad, impresora, sync, salir, negocio } = usePos();
+  const { pos, db, persona, identidad, impresora, sync, salir, negocio, canalEvento } = usePos();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { width, height, fontScale } = useWindowDimensions();
@@ -79,6 +79,10 @@ export default function Vender() {
   const [turno, setTurno] = useState<boolean | null>(null);
   const [carrito, setCarrito] = useState<Linea[]>([]);
   const [channel,setChannel]=useState('LOCAL'),[audiences,setAudiences]=useState<string[]>([]);
+  // Cada cuenta empieza en el canal del evento (Owner); la cajera puede cambiarlo.
+  const canalBase=canalInicial(cat?.commercial,canalEvento);
+  const vacio=carrito.length===0;
+  useEffect(()=>{if(vacio)setChannel(canalBase);},[canalBase,vacio]);
   const {total:commercialTotal,discount:commercialDiscount,pricing,error:pricingError,lines:linePrices}=usePreciosComerciales(pos,cat,carrito,channel,audiences);
   const catalogPrice=(p:ProductoCat)=>{const policy=cat?.commercial,c=policy?.channels.find(c=>c.id===channel),price=policy?.prices.find(x=>x.channel===channel&&x.product===p.uuid&&!x.variant);return price?.price??((!c||c.inheritBase)?p.price:null);};
   const [opciones, setOpciones] = useState<ProductoCat | null>(null);
@@ -244,7 +248,7 @@ export default function Vender() {
         { factura,commercial:{channel,audiences} },
       );
       setCobrando(false);
-      setCarrito([]);setChannel('LOCAL');setAudiences([]);
+      setCarrito([]);setChannel(canalBase);setAudiences([]);
       setAviso({
         tono: "exito",
         texto: `Venta ${r.folio} guardada${Number(r.cambio) > 0 ? ` · Cambio ${dinero(r.cambio)}` : ""}`,
@@ -398,7 +402,7 @@ export default function Vender() {
 
   const avisos = (
     <>
-      {cat&&persona&&<Comercial cat={cat} channel={channel} onChannel={setChannel} audiences={audiences} onAudiences={setAudiences} role={persona.role} onAdd={lines=>{try{const added=lines.map(l=>{const frozen=congelarLinea(cat,l,1);return {...l,key:uuidv7(),nombre:frozen.product_name,precio:frozen.unit_price,etiqueta:(cat.commercial?.combos.find(c=>c.id===l.combo?.id)?.name??'')+' · '+frozen.modifiers.map(m=>m.option_name).join(', ')};});setCarrito(c=>[...c,...added]);}catch(e){setAviso({tono:'peligro',texto:(e as Error).message});}}}/>}
+      {cat&&persona&&<Comercial cat={cat} channel={channel} predeterminado={canalBase} onChannel={setChannel} audiences={audiences} onAudiences={setAudiences} role={persona.role} onAdd={lines=>{try{const added=lines.map(l=>{const frozen=congelarLinea(cat,l,1);return {...l,key:uuidv7(),nombre:frozen.product_name,precio:frozen.unit_price,etiqueta:(cat.commercial?.combos.find(c=>c.id===l.combo?.id)?.name??'')+' · '+frozen.modifiers.map(m=>m.option_name).join(', ')};});setCarrito(c=>[...c,...added]);}catch(e){setAviso({tono:'peligro',texto:(e as Error).message});}}}/>}
       {pricing?<Text style={[tipo.tenue,{padding:12}]}>Calculando precios…</Text>:Number(commercialDiscount)>0?<Text style={[tipo.cuerpo,{padding:12}]}>Ahorro de esta cuenta: {dinero(commercialDiscount)}</Text>:null}
       {pricingError?<Aviso tono="peligro" texto={pricingError}/>:null}
       {turno === false && (

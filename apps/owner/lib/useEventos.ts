@@ -61,6 +61,7 @@ const MENSAJES: Record<string, string> = {
   STOCK_NOT_ZERO: 'La feria todavía tiene existencias. Regresen el sobrante a la sucursal o concilia con motivo.',
   REASON_REQUIRED: 'Explica la diferencia de inventario (entre 5 y 200 caracteres).',
   BAD_REQUEST: 'Faltan datos.',
+  BAD_CHANNEL: 'Ese canal ya no está activo en el catálogo de la sucursal base. Actualiza la lista y elige otro.',
   BAD_COLOR: 'Ese color no es válido. Usa el formato #RRGGBB.',
   BAD_LOGO: 'El logo debe ser una imagen PNG, JPG o WebP de menos de 220 KB.',
   MFA_REQUIRED: mensajeMfa('MFA_REQUIRED'),
@@ -94,6 +95,10 @@ export const eventos = {
     llamar('owner_codigo_tablet', { p_company: company, p_location: location, p_register_name: nombreCaja ?? null }),
   revocar: (company: string, device: string) =>
     llamar('owner_revocar_dispositivo', { p_company: company, p_device: device }),
+  /** Canal de precios con el que empieza cada cuenta en las tablets del evento. */
+  canales: (company: string, location: string) => llamar('owner_evento_canales', { p_company: company, p_location: location }),
+  guardarCanal: (company: string, location: string, canal: string | null) =>
+    llamar('owner_evento_canal', { p_company: company, p_location: location, p_canal: canal }),
   /** Marca del negocio (logo y color) que reciben todas sus tablets. */
   marca: (company: string) => llamar('owner_marca', { p_company: company }),
   guardarMarca: (company: string, m: { color: string | null; logo: string | null }) =>
