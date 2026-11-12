@@ -6,7 +6,7 @@ import {base,catalogo,snapshot,U,lupita,marta} from './fixture.ts';
 import {aplicarSnapshot} from '../src/index.ts';
 async function configured(policy:PoliticaComercial){const b=await base();const catalog={...catalogo(2),commercial:policy};await aplicarSnapshot(b.db,snapshot({snapshot_version:2,catalog}));await b.pos.recibirTransferencia(marta,U.transfer,{});await b.pos.abrirTurno(lupita,'100');return b;}
 test('paridad: el motor móvil y Windows son exactamente el mismo archivo',()=>{
- const win=new URL('../../../../../filtros_lubs_rios/shared/comercial.ts',import.meta.url);
+ const win=new URL('../../../../filtros_lubs_rios/shared/comercial.ts',import.meta.url); // carpeta hermana: Documents/Wybix/{wybix-owner,filtros_lubs_rios}
  // Fuera de este entorno la paridad se ejecuta con WYBIX_WINDOWS_ROOT explícito.
  const path=process.env.WYBIX_WINDOWS_ROOT?process.env.WYBIX_WINDOWS_ROOT+'/shared/comercial.ts':win;
  assert.equal(readFileSync(path,'utf8'),readFileSync(new URL('../../domain/src/comercial.ts',import.meta.url),'utf8'));

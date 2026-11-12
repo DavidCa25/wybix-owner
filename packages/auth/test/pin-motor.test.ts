@@ -9,7 +9,7 @@ import { hashPin, hashPinAsync, pinCoincide, usarMotorScrypt, motorScryptActual,
  * RESULTADO no. Se prueba contra los vectores oficiales del RFC 7914, contra
  * hashes creados por el POS de Windows y entre motores.
  */
-const POS = process.env.WYBIX_POS || 'C:/Users/Casillas/filtros_lubs_rios';
+const POS = process.env.WYBIX_POS || 'C:/Users/Casillas/Documents/Wybix/filtros_lubs_rios';
 const credenciales = createRequire(import.meta.url)(`${POS}/electron/local-host/credenciales.js`);
 
 // Un motor "nativo" de referencia: OpenSSL de Node (lo mismo que usa el POS de Windows).
