@@ -23,6 +23,7 @@ import {
   tipo,
 } from "./ui";
 import { usePos } from "../lib/contexto";
+import { Avatar } from "./Avatar";
 
 export function Autorizar({
   visible,
@@ -176,14 +177,17 @@ export function Autorizar({
               elegido === p.uuid && { backgroundColor: t.acento },
             ]}
           >
-            <Text
-              style={[
-                tipo.cuerpo,
-                elegido === p.uuid && { color: t.acentoTexto },
-              ]}
-            >
-              {p.name}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Avatar uuid={p.uuid} nombre={p.name} size={28} />
+              <Text
+                style={[
+                  tipo.cuerpo,
+                  elegido === p.uuid && { color: t.acentoTexto },
+                ]}
+              >
+                {p.name}
+              </Text>
+            </View>
           </Pressable>
         ))}
         {!lista.length && (

@@ -44,6 +44,7 @@ import {
   logoDeMarca,
 } from "../../components/ui";
 import { usePos } from "../../lib/contexto";
+import { Avatar } from "../../components/Avatar";
 import { imprimirGuardado } from "../../lib/ticket-guardado";
 
 type Linea = LineaCarrito & {
@@ -361,7 +362,7 @@ export default function Vender() {
       onPress={cambiarPersona}
       style={estilo}
     >
-      <Text style={[tipo.subtitulo, { fontSize: 16 }]}>{(persona?.name ?? "?").slice(0, 1).toUpperCase()}</Text>
+      {persona ? <Avatar uuid={persona.uuid} nombre={persona.name} size={36} /> : <Text style={[tipo.subtitulo, { fontSize: 16 }]}>?</Text>}
     </Pressable>
   );
 

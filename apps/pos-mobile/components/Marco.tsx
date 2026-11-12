@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { logoDeMarca, pos as t, tipo } from "./ui";
 import { usePos } from "../lib/contexto";
+import { Avatar } from "./Avatar";
 
 export type Seccion = "vender" | "turno" | "inventario" | "sincronia";
 const SECCIONES: Array<{ id: Seccion; titulo: string; icono: keyof typeof Ionicons.glyphMap }> = [
@@ -90,7 +91,7 @@ export function Marco({
           </View>
           {chipRed}
           <Pressable accessibilityRole="button" accessibilityLabel={`Cambiar de persona: ${persona?.name ?? ""}`} onPress={cambiarPersona} style={s.personaCel}>
-            <Text style={[tipo.subtitulo, { fontSize: 16 }]}>{inicial}</Text>
+            {persona ? <Avatar uuid={persona.uuid} nombre={persona.name} size={36} /> : <Text style={[tipo.subtitulo, { fontSize: 16 }]}>{inicial}</Text>}
           </Pressable>
         </View>
         {derecha && <View style={{ paddingHorizontal: 16, paddingBottom: 8, alignItems: "flex-start" }}>{derecha}</View>}
@@ -129,7 +130,7 @@ export function Marco({
         <View style={{ flex: 1 }} />
         {chipRed}
         <Pressable accessibilityRole="button" accessibilityLabel={`Cambiar de persona: ${persona?.name ?? ""}`} onPress={cambiarPersona} style={s.persona}>
-          <View style={s.avatar}><Text style={[tipo.subtitulo, { fontSize: 14 }]}>{inicial}</Text></View>
+          {persona ? <Avatar uuid={persona.uuid} nombre={persona.name} size={36} /> : <View style={s.avatar}><Text style={[tipo.subtitulo, { fontSize: 14 }]}>{inicial}</Text></View>}
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[tipo.subtitulo, { fontSize: 14 }]} numberOfLines={1}>{persona?.name}</Text>
             <Text style={[tipo.tenue, { fontSize: 11 }]}>Cambiar de persona</Text>

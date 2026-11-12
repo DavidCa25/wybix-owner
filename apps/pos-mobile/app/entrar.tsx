@@ -21,24 +21,8 @@ import {
   tipo,
 } from "../components/ui";
 import { usePos } from "../lib/contexto";
+import { Avatar } from "../components/Avatar";
 
-/*
- * El color del avatar sale del uuid de la persona (estable): la misma persona
- * tiene la misma cara en cada apertura. Nunca del nombre ni aleatorio.
- */
-const TINTAS = [
-  { fondo: "#FBE3EA", tinta: "#8E2547" },
-  { fondo: "#E3EEF8", tinta: "#1E4E7A" },
-  { fondo: "#E6F4EC", tinta: "#14583A" },
-  { fondo: "#FFF0D9", tinta: "#7A4A00" },
-  { fondo: "#ECE7F8", tinta: "#4B3A86" },
-  { fondo: "#E2F3F5", tinta: "#1F5F68" },
-];
-function tintaDe(uuid: string) {
-  let h = 0;
-  for (let i = 0; i < uuid.length; i++) h = (h * 31 + uuid.charCodeAt(i)) >>> 0;
-  return TINTAS[h % TINTAS.length];
-}
 function iniciales(nombre: string, n = 2) {
   const p = nombre.split(/\s+/).map((x) => x.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean);
   return p.slice(0, n).map((x) => x[0]).join("").toUpperCase() || "?";
@@ -152,7 +136,6 @@ export default function Entrar() {
             <View style={[s.gente, { gap: compacto ? 14 : 22 }]}>
               {lista.map((p) => {
                 const sel = elegido === p.uuid;
-                const tinta = tintaDe(p.uuid);
                 return (
                   <Pulse
                     key={p.uuid}
@@ -175,14 +158,12 @@ export default function Entrar() {
                           width: avatar,
                           height: avatar,
                           borderRadius: avatar / 2,
-                          backgroundColor: tinta.fondo,
                           borderColor: sel ? t.acento : "transparent",
                         },
                       ]}
                     >
-                      <Text style={{ fontFamily: "WybixSemi", fontSize: compacto ? 22 : 28, color: tinta.tinta }}>
-                        {iniciales(p.name, 1)}
-                      </Text>
+                      {/* La cara sale del uuid de la persona: la misma en cada pantalla. */}
+                      <Avatar uuid={p.uuid} nombre={p.name} size={avatar - 10} />
                     </View>
                     <Text style={[tipo.subtitulo, { fontSize: 15, textAlign: "center" }]} numberOfLines={1}>{p.name}</Text>
                     <Text style={[tipo.tenue, { fontSize: 12, textAlign: "center", marginTop: -4 }]} numberOfLines={1}>
