@@ -98,6 +98,61 @@ export async function registrarEmisor(req: Request, deps: DepsFiscal): Promise<R
   return json({ success: true, issuerId: personId, cloudIssuerId: reg.issuer_id });
 }
 
+// ------------------------------------------------- conceptos e impuestos
+/*
+ * IEPS e impuestos locales (POS 0083/0085). El POS manda cada concepto como
+ * siempre (precio sin IVA con el IEPS DENTRO, que es lo que pide la ley cuando
+ * el IEPS no se traslada expresamente) y, aparte, su `desglose`:
+ *   desglose.unitPrice   el precio sin IVA para esta forma (sin IEPS si se
+ *                        desglosa; sin el impuesto local siempre)
+ *   desglose.extraTaxes  [{ taxCode: '003', taxTypeCode: 'Tasa'|'Cuota', taxRate }]
+ * y a nivel factura `localTaxes` [{ taxName, taxRate, taxAmount }]
+ * (complemento de impuestos locales: hospedaje).
+ *
+ * Un POS viejo no manda desglose: nada cambia. Una nube vieja ignora el
+ * desglose: timbra como siempre. Y antes de timbrar con desglose se pide a
+ * Fiscalapi el cálculo (/invoices/calculate, no gasta timbre): si su total no
+ * es el que cobró el POS (`totalEsperado`), se timbra SIN desglose. Así nunca
+ * sale una factura por un total distinto al del ticket.
+ */
+const r6 = (n: number) => Number(Number(n).toFixed(6));
+const r2 = (n: number) => Number(Number(n).toFixed(2));
+
+/** Los IEPS del desglose que se aceptan: traslado, Tasa o Cuota, valor positivo. */
+function ieps(xs: any): any[] {
+  if (!Array.isArray(xs)) return [];
+  return xs.filter((x) => x && String(x.taxCode) === '003' && ['Tasa', 'Cuota'].includes(String(x.taxTypeCode))
+      && Number.isFinite(Number(x.taxRate)) && Number(x.taxRate) > 0)
+    .map((x) => ({ taxCode: '003', taxTypeCode: String(x.taxTypeCode), taxRate: r6(Number(x.taxRate)).toFixed(6), taxFlagCode: 'T' }));
+}
+
+/** Impuestos locales de traslado, con nombre, tasa e importe. */
+export function impuestosLocales(xs: any): any[] {
+  if (!Array.isArray(xs)) return [];
+  return xs.filter((x) => x && String(x.taxName || '').trim() && Number(x.taxRate) > 0 && Number(x.taxAmount) > 0)
+    .map((x) => ({ taxName: String(x.taxName).trim().slice(0, 60), taxRate: r6(Number(x.taxRate)).toFixed(6), taxAmount: r2(Number(x.taxAmount)).toFixed(2), taxFlagCode: 'T' }));
+}
+
+/** Los conceptos de Fiscalapi: con o sin el desglose que mandó el POS. */
+export function conceptos(items: any[], conDesglose: boolean): any[] {
+  return items.map((it: any, idx: number) => {
+    const taxRate = it.taxRate != null ? Number(it.taxRate) : 0.16;
+    const taxObject = it.taxObject || '02';
+    const d = conDesglose && it.desglose && Number(it.desglose.unitPrice) >= 0 ? it.desglose : null;
+    const item: any = {
+      itemCode: it.claveProdServ || '01010101', itemSku: it.sku || `SKU-${idx + 1}`,
+      quantity: Number(it.quantity || 0), unitOfMeasurementCode: it.claveUnidad || 'H87',
+      description: it.description || 'Producto', unitPrice: d ? r6(Number(d.unitPrice)) : Number(it.unitPrice || 0),
+      taxObjectCode: taxObject, discount: Number(it.discount || 0),
+    };
+    const taxes: any[] = [];
+    if (taxObject === '02' && taxRate > 0) taxes.push({ taxCode: '002', taxTypeCode: 'Tasa', taxRate: taxRate.toFixed(6), taxFlagCode: 'T' });
+    if (d && taxObject === '02') taxes.push(...ieps(d.extraTaxes));
+    if (taxes.length) item.itemTaxes = taxes;
+    return item;
+  });
+}
+
 // --------------------------------------------------------------- timbrar
 export async function timbrar(req: Request, deps: DepsFiscal): Promise<Response> {
   const body = await req.json().catch(() => ({}));
@@ -150,21 +205,29 @@ export async function timbrar(req: Request, deps: DepsFiscal): Promise<Response>
     // El emisor SALE DE LA NUBE: persona y régimen del emisor de la empresa.
     issuer: { id: emisor.person_id, taxRegimeCode: emisor.tax_regime, satTaxRegimeId: emisor.tax_regime },
     recipient: { id: recipientId },
-    items: items.map((it: any, idx: number) => {
-      const taxRate = it.taxRate != null ? Number(it.taxRate) : 0.16;
-      const taxObject = it.taxObject || '02';
-      const item: any = {
-        itemCode: it.claveProdServ || '01010101', itemSku: it.sku || `SKU-${idx + 1}`,
-        quantity: Number(it.quantity || 0), unitOfMeasurementCode: it.claveUnidad || 'H87',
-        description: it.description || 'Producto', unitPrice: Number(it.unitPrice || 0),
-        taxObjectCode: taxObject, discount: Number(it.discount || 0),
-      };
-      if (taxObject === '02' && taxRate > 0) {
-        item.itemTaxes = [{ taxCode: '002', taxTypeCode: 'Tasa', taxRate: taxRate.toFixed(6), taxFlagCode: 'T' }];
-      }
-      return item;
-    }),
+    items: conceptos(items, false),
   };
+
+  /* IEPS desglosado / impuestos locales: solo si Fiscalapi calcula EXACTAMENTE
+     el total que cobró el POS. Si no, la factura de siempre. */
+  let desglose = false;
+  let motivoSinDesglose: string | null = null;
+  const locales = impuestosLocales(body?.localTaxes);
+  const pideDesglose = items.some((it: any) => it?.desglose) || locales.length > 0;
+  if (pideDesglose) {
+    const esperado = Number(body?.totalEsperado);
+    const prueba: any = { ...invoice, items: conceptos(items, true) };
+    if (locales.length) prueba.complement = { localTaxes: { taxes: locales } };
+    if (!(esperado > 0)) motivoSinDesglose = 'Sin total esperado del POS.';
+    else {
+      const calc = await deps.fapi('/api/v4/invoices/calculate', { method: 'POST', body: prueba });
+      const total = Number(calc.out?.data?.total ?? calc.out?.total);
+      if (!calc.ok || !Number.isFinite(total)) motivoSinDesglose = `No se pudo calcular: ${errorDe(calc.out, calc.status)}`;
+      else if (Math.abs(total - esperado) > 0.02) motivoSinDesglose = `El cálculo da ${total.toFixed(2)} y se cobró ${esperado.toFixed(2)}.`;
+      else { invoice.items = prueba.items; if (prueba.complement) invoice.complement = prueba.complement; desglose = true; }
+    }
+    if (motivoSinDesglose) deps.log?.(`[fiscal] factura sin desglose de IEPS/locales: ${motivoSinDesglose}`);
+  }
   if (publicoGeneral) {
     const ahora = new Date();
     invoice.globalInformation = { periodicityCode: '01', monthCode: String(ahora.getMonth() + 1).padStart(2, '0'), year: ahora.getFullYear() };
@@ -186,6 +249,8 @@ export async function timbrar(req: Request, deps: DepsFiscal): Promise<Response>
     success: true, invoiceId: data.id ?? null, uuid: data.uuid ?? data.invoiceUuid ?? null,
     serie: data.series ?? invoice.series, folio: data.folio ?? null, total: data.total ?? null,
     xml: data.xml ?? data.base64Xml ?? null, issuerId: emisor.person_id,
+    /* Si el desglose de IEPS / impuestos locales se aplicó, y si no, por qué. */
+    desglose, motivoSinDesglose,
   });
 }
 
