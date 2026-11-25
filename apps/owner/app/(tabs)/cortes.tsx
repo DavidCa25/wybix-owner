@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   fecha: { fontFamily: fonts.regular, color: colors.muted, fontSize: 12, marginTop: 2 },
   estadoChip: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, marginTop: 8 },
   estadoText: { fontFamily: fonts.semibold, fontSize: 11 },
-  entregado: { fontFamily: fonts.bold, color: colors.ink, fontSize: 16 },
+  entregado: { fontFamily: fonts.mono, color: colors.ink, fontSize: 16 },
   diff: { fontFamily: fonts.medium, fontSize: 12, marginTop: 2 },
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyText: { fontFamily: fonts.medium, color: colors.muted, fontSize: 14 }

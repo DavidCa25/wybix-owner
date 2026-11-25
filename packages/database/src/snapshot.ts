@@ -15,6 +15,7 @@
 import type { Catalogo } from '@wybix/domain';
 import type { BaseLocal, Sql } from './adaptador.ts';
 import { ErrorPos, type Identidad } from './pos.ts';
+import { Dec } from '@wybix/domain';
 
 export interface Snapshot {
   snapshot_version: number;
@@ -25,8 +26,21 @@ export interface Snapshot {
   location: { uuid: string; nombre: string; tipo: string; timezone: string; status: string; event_status?: string | null; default_channel?: string | null;
               home_location_uuid: string | null; starts_at: string | null; ends_at: string | null };
   register: { uuid: string; code: string; name: string };
+  /** null = sin catálogo, o (nube 2026-11-24) la tablet ya tiene esta versión. */
   catalog: (Catalogo & { catalog_version: number }) | null;
-  staff: Array<{ uuid: string; name: string; role: string; pin_hash: string; pin_sal: string; pin_algo: string; active: boolean }>;
+  /** Versión vigente aunque `catalog` venga null. */
+  catalog_version?: number | null;
+  /** true = la nube no mandó catálogo ni personal porque no cambiaron. */
+  sin_cambios?: boolean;
+  /**
+   * 'SUCURSAL' (POS 0094): la tablet es una caja de la sucursal y su snapshot
+   * viene del Local Host de la computadora principal. Ausente = evento (nube).
+   */
+  modo?: 'EVENTO' | 'SUCURSAL';
+  /** Caja de sucursal: existencias de la base (reemplazan la proyección local). */
+  stock?: Array<{ product_uuid: string; qty: string }>;
+  /** null = la tablet ya tiene esta revisión de personal. */
+  staff: null | Array<{ uuid: string; name: string; role: string; pin_hash: string; pin_sal: string; pin_algo: string; active: boolean }>;
   payment_methods: Array<{ code: string; label: string; enabled: boolean }>;
   trusted_keys: Array<{ key_id: string; public_key: string; location_uuid: string | null; label: string | null }>;
   transfers: Array<{ transfer_uuid: string; from_location_uuid: string; to_location_uuid: string; status: string;
@@ -56,7 +70,12 @@ export async function aplicarSnapshot(db: BaseLocal, s: Snapshot, ahora = () => 
         throw new ErrorPos('SNAPSHOT_AJENO', 'Este snapshot es de otra empresa u otro evento: no se aplica.');
       }
     }
-    if (s.location.tipo !== 'EVENT') throw new ErrorPos('NO_EVENT', 'Wybix POS Mobile solo opera ubicaciones de tipo evento.');
+    // Evento por la nube, o caja de sucursal por Local Host: el modo lo fija
+    // el emparejamiento (kv 'modo') y el snapshot tiene que coincidir.
+    const sucursal = (await kv(tx, 'modo')) === 'SUCURSAL';
+    if (sucursal ? s.location.tipo !== 'BRANCH' : s.location.tipo !== 'EVENT') {
+      throw new ErrorPos('NO_EVENT', sucursal ? 'Esta tablet es caja de sucursal: el snapshot no es de una sucursal.' : 'Wybix POS Mobile solo opera ubicaciones de tipo evento.');
+    }
     const deviceUuid = (await kv(tx, 'device_uuid')) ?? s.device.uuid;
     const identidad: Identidad = {
       device_uuid: deviceUuid, company_uuid: s.company.uuid, location_uuid: s.location.uuid, location_name: s.location.nombre,
@@ -100,7 +119,7 @@ export async function aplicarSnapshot(db: BaseLocal, s: Snapshot, ahora = () => 
 
     // Personal y PIN: solo sube. Los intentos fallidos locales se conservan.
     const rActual = Number(await kv(tx, 'security_revision') ?? 0);
-    if (s.security_revision >= rActual) {
+    if (s.staff && s.security_revision >= rActual) {
       await tx.run('DELETE FROM staff');
       for (const e of s.staff) {
         await tx.run(`INSERT INTO staff (uuid, name, role, pin_hash, pin_sal, pin_algo, active, security_revision) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -115,6 +134,22 @@ export async function aplicarSnapshot(db: BaseLocal, s: Snapshot, ahora = () => 
     for (const m of s.payment_methods) await tx.run('INSERT INTO payment_methods (code, label, enabled, sort) VALUES (?, ?, ?, ?)', [m.code, m.label, m.enabled ? 1 : 0, i++]);
     await tx.run('DELETE FROM trusted_keys');
     for (const k of s.trusted_keys) await tx.run('INSERT INTO trusted_keys (key_id, public_key, location_uuid, label) VALUES (?, ?, ?, ?)', [k.key_id, k.public_key, k.location_uuid, k.label]);
+
+    // Caja de sucursal: la existencia es la de la base. Lo vendido aquí que aún
+    // no sube se descuenta encima (la base todavía no lo sabe).
+    if (sucursal && Array.isArray(s.stock)) {
+      const pendiente = new Map<string, Dec>();
+      for (const f of await tx.all<{ payload: string }>(`SELECT payload FROM outbox WHERE status = 'PENDING' AND event_type = 'SALE_RECORDED'`)) {
+        for (const m of (JSON.parse(f.payload)?.movements ?? []) as Array<{ product_uuid: string; quantity: string }>) {
+          pendiente.set(m.product_uuid, (pendiente.get(m.product_uuid) ?? Dec.cero).mas(m.quantity));
+        }
+      }
+      await tx.run('DELETE FROM stock_projection');
+      for (const x of s.stock) {
+        const q = Dec.de(x.qty).menos(pendiente.get(x.product_uuid) ?? Dec.cero);
+        await tx.run('INSERT INTO stock_projection (product_uuid, qty) VALUES (?, ?)', [x.product_uuid, q.toString()]);
+      }
+    }
 
     // Transferencias para este evento: se agregan si no existen (nunca se pisa una recibida).
     for (const t of s.transfers) {
@@ -131,12 +166,24 @@ export async function aplicarSnapshot(db: BaseLocal, s: Snapshot, ahora = () => 
   });
 }
 
-/** Primer enrolamiento: identidad mínima antes del primer snapshot. */
-export async function guardarEnrolamiento(db: BaseLocal, d: { device_uuid: string; device_id: string }) {
+/**
+ * Primer enrolamiento: identidad mínima antes del primer snapshot.
+ * `modo` SUCURSAL (POS 0094): caja de la sucursal por Local Host, con su
+ * dirección en la red del local. Sin modo: evento por la nube.
+ */
+export async function guardarEnrolamiento(db: BaseLocal, d: { device_uuid: string; device_id: string; modo?: 'EVENTO' | 'SUCURSAL'; local_host?: string | null }) {
   await db.transaccion(async (tx) => {
     await setKv(tx, 'device_uuid', d.device_uuid);
     await setKv(tx, 'device_id', d.device_id);
+    await setKv(tx, 'modo', d.modo ?? 'EVENTO');
+    if (d.local_host) await setKv(tx, 'local_host', d.local_host);
   });
+}
+
+/** Cómo está emparejada esta tablet: evento (nube) o caja de sucursal (Local Host). */
+export async function modoDeOperacion(db: BaseLocal): Promise<{ modo: 'EVENTO' | 'SUCURSAL'; local_host: string | null }> {
+  const m = await kv(db as unknown as Sql, 'modo');
+  return { modo: m === 'SUCURSAL' ? 'SUCURSAL' : 'EVENTO', local_host: await kv(db as unknown as Sql, 'local_host') };
 }
 
 /**

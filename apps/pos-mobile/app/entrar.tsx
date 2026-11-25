@@ -22,11 +22,8 @@ import {
 } from "../components/ui";
 import { usePos } from "../lib/contexto";
 import { Avatar } from "../components/Avatar";
+import { Guide, LogoWybix } from "@wybix/ui";
 
-function iniciales(nombre: string, n = 2) {
-  const p = nombre.split(/\s+/).map((x) => x.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean);
-  return p.slice(0, n).map((x) => x[0]).join("").toUpperCase() || "?";
-}
 function hora(d: Date) {
   return d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 }
@@ -81,8 +78,10 @@ export default function Entrar() {
   const colorSync = sync.revocado
     ? t.peligro
     : !sync.en_linea || sync.pendientes || sync.rechazados + sync.cuarentena
-      ? "#E0A43A"
-      : "#4CC38A";
+      ? t.aviso
+      : t.exito;
+  // Wybix Guide acompaña el PIN: atento mientras se escribe, error junto al texto del fallo.
+  const cara = error ? "error" : busy || pin.length > 0 ? "atencion" : "reposo";
   const avatar = compacto ? 64 : 84;
 
   return (
@@ -105,8 +104,8 @@ export default function Entrar() {
                 <Image source={{ uri: logo }} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel={nombreNegocio} />
               </View>
             ) : (
-              <View style={[s.insignia, { backgroundColor: t.acento }]} accessibilityElementsHidden>
-                <Text style={[tipo.subtitulo, { fontSize: 14, color: t.acentoTexto }]}>{iniciales(nombreNegocio)}</Text>
+              <View style={[s.insignia, { backgroundColor: t.riel, borderWidth: 1, borderColor: t.borde }]} accessibilityElementsHidden>
+                <LogoWybix size={28} />
               </View>
             )}
             <View style={{ flexShrink: 1 }}>
@@ -119,6 +118,7 @@ export default function Entrar() {
 
         <View style={{ alignItems: "center", gap: compacto ? 18 : 22 }}>
           <View style={{ alignItems: "center", gap: 6 }}>
+            <Guide cara={cara} size={compacto ? 72 : 88} etiqueta={null} />
             <Text accessibilityRole="header" style={[tipo.titulo, { fontSize: compacto ? 28 : 34, textAlign: "center" }]}>
               ¿Quién atiende?
             </Text>
@@ -208,17 +208,17 @@ export default function Entrar() {
       >
         <View style={{ flex: 1, minWidth: 0, flexDirection: compacto ? "column" : "row", alignItems: compacto ? "stretch" : "center", gap: compacto ? 2 : 24 }}>
           <View style={{ flexShrink: 1 }}>
-            {!compacto && <Text style={[tipo.tenue, { color: "#9FB0C3", fontSize: 12 }]}>Evento</Text>}
-            <Text style={[tipo.subtitulo, { color: "#FFFFFF", fontSize: compacto ? 14 : 15 }]} numberOfLines={1}>{evento}</Text>
+            {!compacto && <Text style={[tipo.tenue, { fontSize: 12 }]}>Evento</Text>}
+            <Text style={[tipo.subtitulo, { fontSize: compacto ? 14 : 15 }]} numberOfLines={1}>{evento}</Text>
           </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${sync.texto}. Sincronizar ahora`}
-            onPress={sincronizar}
+            onPress={() => sincronizar()}
             style={s.sync}
           >
             <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colorSync }} />
-            <Text style={[tipo.tenue, { color: "#C9D4E0", flexShrink: 1 }]} numberOfLines={1}>{sync.texto}</Text>
+            <Text style={[tipo.tenue, { flexShrink: 1 }]} numberOfLines={1}>{sync.texto}</Text>
           </Pressable>
         </View>
         <Boton
@@ -248,7 +248,9 @@ const s = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 10,
     paddingRight: 10,
-    backgroundColor: t.navy,
+    backgroundColor: t.riel,
+    borderWidth: 1,
+    borderColor: t.borde,
   },
   sync: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 40, flexShrink: 1 },
 });

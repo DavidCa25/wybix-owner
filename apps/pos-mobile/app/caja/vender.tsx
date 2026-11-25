@@ -17,13 +17,20 @@ import {
   TextInput,
   Modal,
   Image,
+  Animated,
+  Easing,
   useWindowDimensions,
 } from "react-native";
+import { Guide, LogoWybix } from "@wybix/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import {
   Dec,
+  indiceDeVenta,
+  buscarEntradas,
+  porCodigo,
+  type EntradaVenta,
   type CatalogoIndexado,
   type LineaCarrito,
   type MetodoPago,
@@ -42,19 +49,30 @@ import {
   pos as t,
   tipo,
   logoDeMarca,
+  useReducedMotion,
 } from "../../components/ui";
 import { usePos } from "../../lib/contexto";
 import { Avatar } from "../../components/Avatar";
 import { imprimirGuardado } from "../../lib/ticket-guardado";
+import { Escaner } from "../../components/Escaner";
 
 type Linea = LineaCarrito & {
   key: string;
   nombre: string;
   precio: string;
   etiqueta: string;
+  /** Piezas por paquete (presentación de venta); 1 en una pieza. +/- mueve paquetes enteros. */
+  piezas?: number;
 };
 
+/** Un renglón de paquete se muestra en paquetes: 24 piezas del cartón = 1. */
+const unidades = (l: Linea) => Number(l.quantity) / (l.piezas ?? 1);
+
+/** Venta recién guardada: Wybix Guide la celebra con el cambio a la vista. */
+type VentaLista = { folio: string; cambio: string };
+
 export default function Vender() {
+  const [listo, setListo] = useState<VentaLista | null>(null);
   const { pos, db, persona, identidad, impresora, sync, salir, negocio, canalEvento } = usePos();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -138,15 +156,15 @@ export default function Vender() {
     if (!categorias.length) { if (categoria !== "TODO") setCategoria("TODO"); return; }
     if (categoria === "" || !categorias.some((c) => c.uuid === categoria)) setCategoria(categorias[0].uuid);
   }, [categorias, categoria]);
+  // Pieza + cada paquete de venta, una vez por versión de catálogo; buscar es
+  // recorrer textos ya normalizados (sin acentos, por nombre, clave o código).
+  const indice = useMemo(() => (cat ? indiceDeVenta(cat) : []), [cat]);
   const visibles = useMemo(
     () =>
-      productos.filter((p) =>
-        (busqueda.trim() || categoria === "TODO" || categoria === "" || p.category_uuid === categoria) &&
-        p.nombre
-          .toLocaleLowerCase("es-MX")
-          .includes(busqueda.trim().toLocaleLowerCase("es-MX")),
-      ),
-    [productos, busqueda, categoria],
+      buscarEntradas(indice, busqueda, {
+        categoria: busqueda.trim() || categoria === "TODO" || categoria === "" ? null : categoria,
+      }),
+    [indice, busqueda, categoria],
   );
   const total = useMemo(
     () =>
@@ -205,16 +223,48 @@ export default function Vender() {
   };
   const tocar = (p: ProductoCat) =>
     p.modifier_groups?.length ? setOpciones(p) : agregar(p);
+  /** Un paquete de venta: entra completo, con su precio del catálogo. */
+  const agregarPaquete = (e: EntradaVenta) => {
+    const k = `${e.product_uuid}|pres:${e.presentation_id}`;
+    setCarrito((c) => {
+      const ya = c.find((l) => l.key === k);
+      if (ya) return c.map((l) => (l.key === k ? { ...l, quantity: String(Number(l.quantity) + e.piezas) } : l));
+      return [...c, {
+        key: k, product_uuid: e.product_uuid, presentation_id: e.presentation_id, quantity: String(e.piezas), piezas: e.piezas,
+        options: [], nombre: e.nombre, precio: Dec.de(e.precio).dividir(e.piezas, 4).fijo(4), etiqueta: e.etiqueta,
+      }];
+    });
+  };
+  const tocarEntrada = (e: EntradaVenta) => {
+    if (e.presentation_id) return agregarPaquete(e);
+    const p = cat?.producto.get(e.product_uuid);
+    if (p) tocar(p);
+  };
+  /** +/- en el renglón: un paquete se mueve completo. */
   const cambiar = (k: string, d: number) =>
     setCarrito((c) =>
-      c.flatMap((l) =>
-        l.key !== k
-          ? [l]
-          : Number(l.quantity) + d <= 0
-            ? []
-            : [{ ...l, quantity: String(Number(l.quantity) + d) }],
-      ),
+      c.flatMap((l) => {
+        if (l.key !== k) return [l];
+        const q = Number(l.quantity) + d * (l.piezas ?? 1);
+        return q <= 0 ? [] : [{ ...l, quantity: String(q) }];
+      }),
     );
+  /**
+   * Código escaneado (cámara, lector Bluetooth o USB que «teclea» y da Enter):
+   * la pieza o el paquete completo. Devuelve lo que agregó, para decirlo.
+   */
+  const [escaneando, setEscaneando] = useState(false);
+  const [ultimoEscaneo, setUltimoEscaneo] = useState<string | null>(null);
+  const leerCodigo = (codigo: string): boolean => {
+    if (!cat || !turno) return false;
+    const hit = porCodigo(cat, codigo);
+    if (!hit) { setUltimoEscaneo(`El código ${codigo} no está en el catálogo.`); return false; }
+    const e = indice.find((x) => x.product_uuid === hit.product_uuid && x.presentation_id === hit.presentation_id);
+    if (!e) return false;
+    tocarEntrada(e);
+    setUltimoEscaneo(`Agregado: ${e.nombre}`);
+    return true;
+  };
 
   const imprimir = async (saleUuid: string) => {
     if (!pos || impresora.tipo === "ninguna") return;
@@ -240,20 +290,19 @@ export default function Vender() {
     try {
       const r = await pos.registrarVenta(
         persona,
-        carrito.map(({ product_uuid, quantity, options,combo }) => ({
+        carrito.map(({ product_uuid, quantity, options, combo, presentation_id }) => ({
           product_uuid,
           quantity,
-          options,combo,
+          options, combo,
+          presentation_id: presentation_id ?? null,
         })),
         pagos,
         { factura,commercial:{channel,audiences} },
       );
       setCobrando(false);
       setCarrito([]);setChannel(canalBase);setAudiences([]);
-      setAviso({
-        tono: "exito",
-        texto: `Venta ${r.folio} guardada${Number(r.cambio) > 0 ? ` · Cambio ${dinero(r.cambio)}` : ""}`,
-      });
+      setAviso(null);
+      setListo({ folio: String(r.folio), cambio: String(r.cambio ?? "0") });
       cargar();
       void imprimir(r.sale_uuid);
     } catch (e) {
@@ -290,7 +339,7 @@ export default function Vender() {
             <Text style={s.pasoTxt}>−</Text>
           </Pressable>
           <Text style={[tipo.numero, { minWidth: 28, textAlign: "center" }]}>
-            {l.quantity}
+            {unidades(l)}
           </Text>
           <Pressable
             accessibilityRole="button"
@@ -311,9 +360,9 @@ export default function Vender() {
       )}
     </>
   );
-  const articulos = carrito.reduce((n, l) => n + Number(l.quantity), 0);
+  const articulos = carrito.reduce((n, l) => n + unidades(l), 0);
   const huecos = visibles.length % columns ? columns - (visibles.length % columns) : 0;
-  const cuadricula: Array<ProductoCat | null> = [...visibles, ...Array<null>(huecos).fill(null)];
+  const cuadricula: Array<EntradaVenta | null> = [...visibles, ...Array<null>(huecos).fill(null)];
   const importeLinea = (l: Linea) =>
     linePrices[l.key]?.amount ?? Dec.de(l.precio).por(l.quantity).fijo(2);
   const nombreCategoria =
@@ -338,8 +387,8 @@ export default function Vender() {
       <Image source={{ uri: logo }} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel={nombreNegocio} />
     </View>
   ) : (
-    <View style={[s.marca, { backgroundColor: t.acento }]} accessibilityElementsHidden>
-      <Text style={[tipo.subtitulo, { fontSize: 13, color: t.acentoTexto }]}>{iniciales(nombreNegocio)}</Text>
+    <View style={[s.marca, { backgroundColor: t.riel, borderWidth: 1, borderColor: t.borde }]} accessibilityElementsHidden>
+      <LogoWybix size={26} />
     </View>
   );
 
@@ -350,8 +399,12 @@ export default function Vender() {
       onPress={() => router.push("/caja/sincronia")}
       style={ancho ? s.estadoTablet : s.estadoCel}
     >
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: estadoRed.color }} />
-      <Text style={[tipo.tenue, { fontSize: ancho ? 13 : 12 }]} numberOfLines={1}>{estadoRed.texto}</Text>
+      {ancho ? (
+        <Guide cara={listo ? "exito" : sync.revocado ? "error" : !sync.en_linea || sync.pendientes ? "atencion" : "reposo"} size={34} etiqueta={null} />
+      ) : (
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: estadoRed.color }} />
+      )}
+      <Text style={[tipo.tenue, { fontSize: ancho ? 13 : 12, flexShrink: 1 }]} numberOfLines={1}>{estadoRed.texto}</Text>
     </Pressable>
   );
 
@@ -391,13 +444,27 @@ export default function Vender() {
     <View style={[s.buscar, ancho ? { width: 340 } : null]}>
       <Ionicons name="search" size={18} color={t.tenue} />
       <TextInput
-        accessibilityLabel="Buscar producto"
+        accessibilityLabel="Buscar producto por nombre, clave o código"
         placeholder="Buscar o escanear"
         placeholderTextColor={t.tenue}
         value={busqueda}
         onChangeText={setBusqueda}
+        returnKeyType="search"
+        blurOnSubmit={false}
+        // Un lector de código USB o Bluetooth escribe el código y da Enter.
+        onSubmitEditing={() => { if (leerCodigo(busqueda.trim())) setBusqueda(""); }}
         style={{ flex: 1, fontFamily: "Wybix", fontSize: 15, color: t.texto, minHeight: 48 }}
       />
+      <Pressable
+        testID="escanear"
+        accessibilityRole="button"
+        accessibilityLabel="Escanear código de barras con la cámara"
+        disabled={!turno || !cat}
+        onPress={() => { setUltimoEscaneo(null); setEscaneando(true); }}
+        style={[s.escanear, (!turno || !cat) && { opacity: 0.45 }]}
+      >
+        <Ionicons name="barcode-outline" size={22} color={t.acentoTexto} />
+      </Pressable>
     </View>
   );
 
@@ -425,24 +492,30 @@ export default function Vender() {
     </>
   );
 
-  const tarjeta = ({ item, index }: { item: ProductoCat | null; index: number }) => {
+  const tarjeta = ({ item: entrada, index }: { item: EntradaVenta | null; index: number }) => {
     // Hueco de relleno: la última fila no estira sus tarjetas.
+    if (!entrada) return <View style={{ flex: 1 }} />;
+    const item = cat?.producto.get(entrada.product_uuid);
     if (!item) return <View style={{ flex: 1 }} />;
-    const q = stock[item.uuid];
+    const paquete = !!entrada.presentation_id;
+    const piezas = stock[item.uuid];
+    // Un paquete se cuenta en paquetes completos que alcanzan.
+    const q = piezas == null ? undefined : paquete ? String(Math.floor(Number(piezas) / entrada.piezas)) : piezas;
     const direct = item.inventory_mode === "DIRECT";
     const bajo = direct && q != null && Number(q) > 0 && Number(q) <= 5;
     const agotado = direct && q != null && Number(q) <= 0;
-    const cantidad = cantidadPorProducto.get(item.uuid) ?? 0;
-    const precio = catalogPrice(item);
+    const lineaPaquete = paquete ? carrito.find((l) => l.key === `${item.uuid}|pres:${entrada.presentation_id}`) : null;
+    const cantidad = paquete ? (lineaPaquete ? unidades(lineaPaquete) : 0) : (cantidadPorProducto.get(item.uuid) ?? 0);
+    const precio = paquete ? entrada.precio : catalogPrice(item);
     const enCuenta = cantidad > 0;
     return (
       <Pulse
-        testID={`producto-${item.nombre}`}
+        testID={`producto-${entrada.nombre}`}
         accessibilityRole="button"
-        accessibilityLabel={`${item.nombre}, ${precio==null?"Precio sin configurar":dinero(precio)}${direct ? `, existencias ${q ?? "0"}` : ""}${cantidad ? `, ${cantidad} en la cuenta` : ""}`}
+        accessibilityLabel={`${entrada.nombre}, ${entrada.etiqueta}, ${precio==null?"Precio sin configurar":dinero(precio)}${direct ? `, existencias ${q ?? "0"}` : ""}${cantidad ? `, ${cantidad} en la cuenta` : ""}`}
         accessibilityState={{ disabled: !turno||precio==null, selected: enCuenta }}
         disabled={!turno||precio==null}
-        onPress={() => tocar(item)}
+        onPress={() => tocarEntrada(entrada)}
         style={[
           s.producto,
           { height: altoTarjeta, borderColor: enCuenta ? t.acento : "transparent" },
@@ -460,8 +533,16 @@ export default function Vender() {
         </View>
         <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12, gap: 2 }}>
           <Text style={[tipo.subtitulo, { fontSize: 15, lineHeight: 20, color: agotado ? t.tenue : t.texto }]} numberOfLines={1}>
-            {item.nombre}
+            {entrada.nombre}
           </Text>
+          {entrada.tipo !== "PIEZA" && (
+            <Text
+              style={[tipo.etiqueta, s.etiquetaVenta, entrada.tipo === "SUELTO" ? { color: t.acentoTinta, backgroundColor: t.acentoSuave } : { color: t.aviso, backgroundColor: t.avisoSuave }]}
+              numberOfLines={1}
+            >
+              {entrada.etiqueta}
+            </Text>
+          )}
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 6 }}>
             <Text style={[tipo.numero, { fontSize: precio == null ? 12 : 18, color: agotado ? t.tenue : t.texto }]}>
               {precio == null ? "Precio sin configurar" : precioCorto(precio)}
@@ -486,7 +567,12 @@ export default function Vender() {
         data={cuadricula}
         key={`g${columns}`}
         numColumns={columns}
-        keyExtractor={(p, i) => (p ? p.uuid : `hueco-${i}`)}
+        keyExtractor={(p, i) => (p ? p.clave : `hueco-${i}`)}
+        // Catálogos grandes: se pinta por tandas y se descarta lo que sale de la vista.
+        initialNumToRender={columns * 4}
+        maxToRenderPerBatch={columns * 4}
+        windowSize={7}
+        removeClippedSubviews
         contentContainerStyle={{ gap, paddingHorizontal: ancho ? 0 : 16, paddingBottom: ancho ? 0 : 12 }}
         columnWrapperStyle={columns > 1 ? { gap } : undefined}
         style={{ flex: 1 }}
@@ -501,19 +587,19 @@ export default function Vender() {
   );
 
   const dock = (
-    <View style={[s.dock, { backgroundColor: t.navy }, !ancho && { marginHorizontal: 12, marginBottom: 10, padding: 10, paddingLeft: 16 }]}>
+    <View style={[s.dock, { backgroundColor: t.riel, borderWidth: 1, borderColor: t.borde }, !ancho && { marginHorizontal: 12, marginBottom: 10, padding: 10, paddingLeft: 16 }]}>
       {ancho ? (
         <>
           <View style={{ width: 96 }}>
-            <Text style={[tipo.tenue, { color: "#B8C3CF", fontSize: 12 }]}>Cuenta</Text>
-            <Text style={[tipo.subtitulo, { color: "#fff", fontSize: 15 }]}>
+            <Text style={[tipo.tenue, { color: t.tenue, fontSize: 12 }]}>Cuenta</Text>
+            <Text style={[tipo.subtitulo, { color: t.texto, fontSize: 15 }]}>
               {articulos} {articulos === 1 ? "artículo" : "artículos"}
             </Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 8, alignItems: "center" }}>
             {carrito.map((l) => (
               <Aparece key={l.key} style={s.lineaDock}>
-                <Text style={[tipo.subtitulo, { color: "#fff", fontSize: 14, maxWidth: 180 }]} numberOfLines={1}>{l.nombre}</Text>
+                <Text style={[tipo.subtitulo, { color: t.texto, fontSize: 14, maxWidth: 180 }]} numberOfLines={1}>{l.nombre}</Text>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={l.combo?`Quitar combo ${l.etiqueta}`:`Quitar uno de ${l.nombre}`}
@@ -522,7 +608,7 @@ export default function Vender() {
                 >
                   <Text style={s.pasoDockTxt}>−</Text>
                 </Pressable>
-                <Text style={[tipo.numero, { color: "#fff", minWidth: 22, textAlign: "center" }]}>{l.quantity}</Text>
+                <Text style={[tipo.numero, { color: t.texto, minWidth: 22, textAlign: "center" }]}>{unidades(l)}</Text>
                 <Pressable
                   accessibilityRole="button"
                   disabled={!!l.combo}
@@ -535,9 +621,9 @@ export default function Vender() {
                 </Pressable>
               </Aparece>
             ))}
-            {!carrito.length && <Text style={[tipo.tenue, { color: "#B8C3CF" }]}>Toca un producto para agregarlo.</Text>}
+            {!carrito.length && <Text style={[tipo.tenue, { color: t.tenue }]}>Toca un producto para agregarlo.</Text>}
           </ScrollView>
-          <Text style={[tipo.numero, { color: "#fff", fontSize: 34, paddingHorizontal: 6, letterSpacing: -1 }]}>{dinero(total)}</Text>
+          <Text style={[tipo.numero, { color: t.texto, fontSize: 34, paddingHorizontal: 6, letterSpacing: -1 }]}>{dinero(total)}</Text>
         </>
       ) : (
         <Pressable
@@ -546,8 +632,8 @@ export default function Vender() {
           onPress={() => setCuentaVisible(true)}
           style={{ flex: 1, minHeight: 48, justifyContent: "center" }}
         >
-          <Text style={[tipo.tenue, { color: "#B8C3CF", fontSize: 12 }]}>{articulos} {articulos === 1 ? "artículo" : "artículos"}</Text>
-          <Text style={[tipo.numero, { color: "#fff", fontSize: 26, letterSpacing: -0.5 }]}>{dinero(total)}</Text>
+          <Text style={[tipo.tenue, { color: t.tenue, fontSize: 12 }]}>{articulos} {articulos === 1 ? "artículo" : "artículos"}</Text>
+          <Text style={[tipo.numero, { color: t.texto, fontSize: 26, letterSpacing: -0.5 }]}>{dinero(total)}</Text>
         </Pressable>
       )}
       <Pulse
@@ -590,6 +676,9 @@ export default function Vender() {
             </ScrollView>
             {chipRed}
             <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Ventas del turno" onPress={() => router.push("/caja/ventas")} style={s.acceso}>
+                <Ionicons name="receipt-outline" size={20} color={t.texto} />
+              </Pressable>
               <Pressable accessibilityRole="button" accessibilityLabel="Turno y corte" onPress={() => router.push("/caja/turno")} style={s.acceso}>
                 <Ionicons name="card-outline" size={20} color={t.texto} />
               </Pressable>
@@ -650,6 +739,15 @@ export default function Vender() {
           </View>
         </Sheet>
       )}
+      {listo && <VentaListaAviso venta={listo} alCerrar={() => setListo(null)} />}
+      <Escaner
+        visible={escaneando}
+        modo="barras"
+        titulo="Escanea los productos"
+        pie={ultimoEscaneo}
+        alLeer={(codigo) => { leerCodigo(codigo); }}
+        alCerrar={() => setEscaneando(false)}
+      />
       <Opciones
         producto={opciones}
         cat={cat}
@@ -669,6 +767,49 @@ export default function Vender() {
         guardando={guardando}
       />
     </Pantalla>
+  );
+}
+
+/**
+ * VENTA LISTA: Wybix Guide contento y el cambio en grande, lo que la persona
+ * necesita ver para entregarlo. Se va sola a los 3 s o al tocarla; mientras,
+ * la caja ya puede seguir vendiendo (no bloquea la cuadrícula).
+ */
+function VentaListaAviso({ venta, alCerrar }: { venta: VentaLista; alCerrar: () => void }) {
+  const reducido = useReducedMotion();
+  const entrada = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(entrada, { toValue: 1, duration: reducido ? 0 : 230, easing: Easing.bezier(0.23, 1, 0.32, 1), useNativeDriver: true }).start();
+    const id = setTimeout(alCerrar, 3000);
+    return () => clearTimeout(id);
+  }, [entrada, reducido, alCerrar]);
+  const cambio = Number(venta.cambio) > 0;
+  return (
+    <Animated.View
+      pointerEvents="box-none"
+      style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center", opacity: entrada }]}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`Venta ${venta.folio} guardada${cambio ? `. Cambio ${dinero(venta.cambio)}` : ""}. Toca para cerrar.`}
+        onPress={alCerrar}
+        style={s.lista}
+      >
+        <Animated.View style={{ transform: [{ scale: entrada.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }] }}>
+          <Guide cara="exito" size={96} movimiento="quieto" etiqueta={null} />
+        </Animated.View>
+        <Text style={[tipo.tenue, { fontSize: 14 }]}>Venta {venta.folio} guardada</Text>
+        {cambio ? (
+          <>
+            <Text style={[tipo.etiqueta, { letterSpacing: 2 }]}>CAMBIO</Text>
+            <Text style={[tipo.numero, { fontSize: 56, letterSpacing: -2, color: t.exito }]}>{dinero(venta.cambio)}</Text>
+          </>
+        ) : (
+          <Text style={[tipo.subtitulo, { fontSize: 22 }]}>¡Lista!</Text>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -824,35 +965,58 @@ function Cobro({
   const [recibido, setRecibido] = useState("");
   const [referencia, setReferencia] = useState("");
   const [factura, setFactura] = useState(false);
+  /**
+   * COBRO DIVIDIDO: pagos ya apartados (parte con tarjeta, parte en efectivo).
+   * El último pago cubre lo que falta; el efectivo puede dar cambio.
+   */
+  const [parciales, setParciales] = useState<Array<{ method: MetodoPago; amount: string; received?: string; reference?: string }>>([]);
+  const [montoParte, setMontoParte] = useState("");
+  // Al abrir Y al cerrar: la animación de salida no debe pintar pagos de la cuenta anterior.
   useEffect(() => {
-    if (visible) {
-      setMetodo("EFECTIVO");
-      setRecibido("");
-      setReferencia("");
-      setFactura(false);
-    }
+    setMetodo("EFECTIVO");
+    setRecibido("");
+    setReferencia("");
+    setFactura(false);
+    setParciales([]);
+    setMontoParte("");
   }, [visible]);
+  const pagado = Dec.suma(parciales.map((x) => x.amount));
+  const falta = Dec.de(total).menos(pagado).fijo(2);
   const rec = recibido
     ? Dec.de(recibido === "." ? "0" : recibido)
-    : Dec.de(total);
-  const cambio = rec.menos(total);
+    : Dec.de(falta);
+  const cambio = rec.menos(falta);
   const alcanza = metodo !== "EFECTIVO" || !cambio.esNegativo();
   const rapidos = ["50", "100", "200", "500"].filter(
-    (v) => Number(v) >= Number(total),
+    (v) => Number(v) >= Number(falta),
   );
+  // Lo que cubre esta forma de pago si se aparta como parte.
+  const parte = metodo === "EFECTIVO"
+    ? (recibido ? rec : null)
+    : (montoParte ? Dec.de(montoParte === "." ? "0" : montoParte) : null);
+  const puedeApartar = !!parte && parte.esPositivo() && parte.comparar(falta) < 0;
+  const apartar = () => {
+    if (!puedeApartar || !parte) return;
+    const amount = parte.fijo(2);
+    setParciales((x) => [...x, { method: metodo, amount, ...(metodo === "EFECTIVO" ? { received: amount } : {}), ...(referencia ? { reference: referencia } : {}) }]);
+    setRecibido(""); setMontoParte(""); setReferencia("");
+    setMetodo(metodo === "EFECTIVO" ? "TARJETA" : "EFECTIVO");
+  };
   const cerrar = () => { if (!guardando) alCerrar(); };
   const confirmar = () =>
     alConfirmar(
       [
+        ...parciales,
         {
           method: metodo,
-          amount: total,
-          received: metodo === "EFECTIVO" ? recibido || total : undefined,
+          amount: falta,
+          received: metodo === "EFECTIVO" ? recibido || falta : undefined,
           reference: referencia || undefined,
         },
       ],
       factura,
     );
+  const ETIQUETA_METODO: Partial<Record<MetodoPago, string>> = { EFECTIVO: "Efectivo", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia", PLATAFORMA: "Plataforma" };
   const METODOS: Array<{ m: MetodoPago; label: string; icon: "cash-outline" | "card-outline" | "swap-horizontal-outline" | "bag-handle-outline" }> = [
     { m: "EFECTIVO", label: "Efectivo", icon: "cash-outline" },
     { m: "TARJETA", label: "Tarjeta", icon: "card-outline" },
@@ -882,6 +1046,27 @@ function Cobro({
         <Text style={tipo.subtitulo}>Total</Text>
         <Text style={[tipo.numero, { fontSize: split ? 42 : 28, letterSpacing: -1 }]}>{dinero(total)}</Text>
       </View>
+      {parciales.map((x, i) => (
+        <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={[tipo.cuerpo, { flex: 1, fontSize: 14 }]}>{ETIQUETA_METODO[x.method] ?? x.method}</Text>
+          <Text style={[tipo.numero, { fontSize: 14 }]}>{dinero(x.amount)}</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Quitar el pago de ${dinero(x.amount)}`}
+            disabled={guardando}
+            onPress={() => setParciales((y) => y.filter((_, j) => j !== i))}
+            style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
+          >
+            <Ionicons name="close-circle-outline" size={20} color={t.tenue} />
+          </Pressable>
+        </View>
+      ))}
+      {parciales.length > 0 && (
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+          <Text style={[tipo.subtitulo, { color: t.aviso }]}>Falta</Text>
+          <Text style={[tipo.numero, { fontSize: 22, color: t.aviso }]}>{dinero(falta)}</Text>
+        </View>
+      )}
       {split && casillaFactura()}
     </View>
   );
@@ -938,7 +1123,7 @@ function Cobro({
       <View style={{ gap: 4 }}>
         <Text style={tipo.etiqueta}>EFECTIVO RECIBIDO</Text>
         <Text style={[tipo.numero, { fontSize: split ? 50 : 26, letterSpacing: -1 }]}>
-          {dinero(recibido === "." ? "0" : recibido || total)}
+          {dinero(recibido === "." ? "0" : recibido || falta)}
         </Text>
       </View>
       <View style={{ flexDirection: "row", gap: 8 }}>
@@ -986,6 +1171,16 @@ function Cobro({
         style={s.input}
         accessibilityLabel="Referencia"
       />
+      <TextInput
+        editable={!guardando}
+        value={montoParte}
+        onChangeText={(v) => setMontoParte(v.replace(/[^0-9.]/g, ""))}
+        keyboardType="decimal-pad"
+        placeholder={`Monto: ${dinero(falta)} (todo lo que falta)`}
+        placeholderTextColor={t.tenue}
+        style={s.input}
+        accessibilityLabel="Monto con esta forma de pago, para dividir el cobro"
+      />
     </View>
   );
 
@@ -1002,9 +1197,19 @@ function Cobro({
   const botones = (
     <View style={{ flexDirection: "row", gap: 12 }}>
       <Boton titulo="Volver" variante="secundario" onPress={cerrar} deshabilitado={guardando} estilo={{ width: split ? 180 : 110, minHeight: 60 }} />
+      {puedeApartar && (
+        <Boton
+          testID="pagar-parte"
+          titulo={`Pagar ${dinero(parte!.fijo(2))} y seguir`}
+          variante="secundario"
+          deshabilitado={guardando}
+          estilo={{ flex: 1, minHeight: 60 }}
+          onPress={apartar}
+        />
+      )}
       <Boton
         testID="confirmar-cobro"
-        titulo={`Confirmar cobro · ${dinero(total)}`}
+        titulo={parciales.length ? `Confirmar · falta ${dinero(falta)}` : `Confirmar cobro · ${dinero(total)}`}
         textoCargando="Guardando venta…"
         cargando={guardando}
         deshabilitado={!alcanza}
@@ -1069,9 +1274,27 @@ function Cobro({
 }
 
 const s = StyleSheet.create({
+  lista: {
+    minWidth: 300,
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 36,
+    paddingVertical: 26,
+    borderRadius: 28,
+    backgroundColor: t.superficie,
+    borderWidth: 1,
+    borderColor: t.borde,
+    shadowColor: "#000",
+    shadowOpacity: 0.5,
+    shadowRadius: 40,
+    shadowOffset: { width: 0, height: 24 },
+    elevation: 16,
+  },
+  escanear: { width: 44, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: t.acento },
+  etiquetaVenta: { alignSelf: "flex-start", fontSize: 10, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, overflow: "hidden" },
   marca: { width: 38, height: 38, borderRadius: 11, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   tarjetaNegocio: {
-    minHeight: 64, borderRadius: 20, backgroundColor: t.superficie, borderWidth: 1, borderColor: t.borde,
+    minHeight: 64, borderRadius: 20, backgroundColor: t.riel, borderWidth: 1, borderColor: t.borde,
     flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12,
   },
   estadoTablet: {
@@ -1125,7 +1348,7 @@ const s = StyleSheet.create({
     flex: 1,
     borderRadius: 20,
     borderWidth: 2,
-    backgroundColor: t.superficie,
+    backgroundColor: t.hundido,
     overflow: "hidden",
   },
   foto: {
@@ -1161,7 +1384,7 @@ const s = StyleSheet.create({
     gap: 4,
     height: 56,
     borderRadius: 16,
-    backgroundColor: "#223040",
+    backgroundColor: t.hundido,
     paddingLeft: 14,
     paddingRight: 6,
   },
@@ -1169,11 +1392,11 @@ const s = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#33465A",
+    backgroundColor: t.elegido,
     alignItems: "center",
     justifyContent: "center",
   },
-  pasoDockTxt: { fontSize: 20, color: "#fff", fontWeight: "600" },
+  pasoDockTxt: { fontSize: 20, color: t.texto, fontWeight: "600" },
   linea: {
     flexDirection: "row",
     alignItems: "center",
@@ -1228,8 +1451,10 @@ const s = StyleSheet.create({
     padding: 22,
     gap: 12,
     flex: 1,
-    shadowColor: "#101828",
-    shadowOpacity: 0.12,
+    borderWidth: 1,
+    borderColor: t.borde,
+    shadowColor: "#000",
+    shadowOpacity: 0.35,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 12 },
     elevation: 3,

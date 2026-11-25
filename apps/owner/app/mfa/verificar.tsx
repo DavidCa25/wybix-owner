@@ -81,7 +81,7 @@ export default function VerificarMfa() {
 
           <TouchableOpacity style={[styles.button, (!listo || busy) && styles.buttonOff]} onPress={confirmar} disabled={!listo || busy} activeOpacity={0.85}
             accessibilityRole="button" accessibilityState={{ disabled: !listo || busy, busy }}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{modo === 'codigo' ? 'Confirmar' : 'Recuperar acceso'}</Text>}
+            {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.buttonText}>{modo === 'codigo' ? 'Confirmar' : 'Recuperar acceso'}</Text>}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => { setModo(modo === 'codigo' ? 'recuperacion' : 'codigo'); setValor(''); setError(''); }} style={styles.linkBtn} disabled={busy}>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   error: { fontFamily: fonts.medium, color: colors.danger, fontSize: 13, marginTop: 12, textAlign: 'center' },
   button: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: 22, minHeight: 48, justifyContent: 'center' },
   buttonOff: { opacity: 0.5 },
-  buttonText: { fontFamily: fonts.bold, color: '#fff', fontSize: 15 },
+  buttonText: { fontFamily: fonts.bold, color: colors.onPrimary, fontSize: 15 },
   linkBtn: { alignItems: 'center', marginTop: 14, paddingVertical: 8, minHeight: 44, justifyContent: 'center' },
   link: { fontFamily: fonts.semibold, color: colors.sky, fontSize: 13.5, textAlign: 'center' },
   linkMuted: { fontFamily: fonts.medium, color: colors.muted, fontSize: 13 },

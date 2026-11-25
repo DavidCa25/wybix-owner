@@ -31,3 +31,13 @@ create table if not exists auth.mfa_factors (
   status text not null default 'unverified',   -- en Supabase es el enum auth.factor_status
   created_at timestamptz not null default now()
 );
+
+-- Sesiones de Supabase Auth (panel admin, admin_gate): misma forma mínima que
+-- auth.sessions. En Supabase `aal` es el enum auth.aal_level.
+create table if not exists auth.sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  aal text not null default 'aal1',
+  not_after timestamptz,
+  created_at timestamptz not null default now()
+);

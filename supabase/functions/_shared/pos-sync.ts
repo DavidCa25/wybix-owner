@@ -124,7 +124,10 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
     case 'transfer_inbox':
       return responder(await deps.rpc('pos_transfer_inbox', conEquipo()));
     case 'mobile_snapshot': {
-      const r = await deps.rpc('mobile_snapshot', conEquipo({ channel: str(body.channel, 30), brand_hash: str(body.brand_hash, 32),commercial_schema:[1,2,3].includes(Number(body.commercial_schema))?Number(body.commercial_schema):0 }));
+      const r = await deps.rpc('mobile_snapshot', conEquipo({ channel: str(body.channel, 30), brand_hash: str(body.brand_hash, 32),commercial_schema:[1,2,3].includes(Number(body.commercial_schema))?Number(body.commercial_schema):0,
+        // 2026-11-24: lo que la tablet ya tiene. Sin dato, la nube manda todo (tablets viejas).
+        catalog_version: Number.isSafeInteger(Number(body.catalog_version)) && Number(body.catalog_version) > 0 ? Number(body.catalog_version) : null,
+        security_revision: Number.isSafeInteger(Number(body.security_revision)) && Number(body.security_revision) > 0 ? Number(body.security_revision) : null }));
       return r?.ok ? json({ success: true, ...r }) : json({ success: false, code: r?.code ?? 'DENIED', error: r?.code==='UPDATE_REQUIRED'?'Actualiza Wybix POS Mobile para usar los precios y ofertas.':'Sin acceso a los datos del evento.' }, r?.code==='UPDATE_REQUIRED'?409:403);
     }
     case 'mobile_inbox': {
@@ -220,7 +223,9 @@ export async function manejarPosSync(req: Request, deps: DepsPosSync): Promise<R
     case 'grupo_comando_resultado':
       return responder(await deps.rpc('grupo_comando_resultado', conEquipo({ id: str(body.id, 36), ok: body.ok === true, detail: str(body.detail, 400) })));
     case 'mobile_heartbeat':
-      return responder(await deps.rpc('mobile_latido', conEquipo({ pendientes: Number(body.pendientes ?? 0) || 0, app_version: str(body.app_version, 40), last_seq: Number(body.last_seq ?? 0) || 0 })));
+      return responder(await deps.rpc('mobile_latido', conEquipo({ pendientes: Number(body.pendientes ?? 0) || 0, app_version: str(body.app_version, 40), last_seq: Number(body.last_seq ?? 0) || 0,
+        // Métricas del último ciclo: la base filtra las llaves y el tamaño.
+        stats: body.stats && typeof body.stats === 'object' && !Array.isArray(body.stats) ? body.stats : null })));
     case 'create_location':
       return responder(await deps.rpc('pos_create_location', conEquipo({
         nombre: str(body.nombre, 120), tipo: str(body.tipo, 20), starts_at: str(body.starts_at, 40), ends_at: str(body.ends_at, 40),

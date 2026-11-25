@@ -1,10 +1,10 @@
 import { Tabs, Redirect } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Dock } from '../../components/Dock';
 import { useAuth } from '../../lib/auth';
 import { useAlertas } from '../../lib/useAlertas';
 import { useSeguridad } from '../../lib/useSeguridad';
-import { colors, fonts } from '../../theme/tokens';
+import { colors } from '../../theme/tokens';
 
 export default function TabsLayout() {
   const { session, loading, pideCodigo, leyendoNivel } = useAuth();
@@ -31,53 +31,16 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.navy, borderTopColor: colors.line, height: 60, paddingBottom: 8, paddingTop: 6 },
-        tabBarLabelStyle: { fontFamily: fonts.medium, fontSize: 11 }
-      }}
+      tabBar={(props) => <Dock {...props} alertas={noLeidas} blindaje={altos} />}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg } }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Inicio',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />
-        }}
-      />
-      <Tabs.Screen
-        name="eventos"
-        options={{
-          title: 'Eventos',
-          tabBarIcon: ({ color, size }) => <Ionicons name="storefront-outline" size={size} color={color} />
-        }}
-      />
-      <Tabs.Screen
-        name="cortes"
-        options={{
-          title: 'Cortes',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cash-outline" size={size} color={color} />
-        }}
-      />
-      <Tabs.Screen
-        name="blindaje"
-        options={{
-          title: 'Blindaje',
-          tabBarIcon: ({ color, size }) => <Ionicons name="shield-checkmark" size={size} color={color} />,
-          tabBarBadge: altos > 0 ? (altos > 9 ? '9+' : altos) : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.danger, fontSize: 10 }
-        }}
-      />
-      <Tabs.Screen
-        name="alertas"
-        options={{
-          title: 'Alertas',
-          tabBarIcon: ({ color, size }) => <Ionicons name="notifications" size={size} color={color} />,
-          tabBarBadge: noLeidas > 0 ? (noLeidas > 9 ? '9+' : noLeidas) : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.danger, fontSize: 10 }
-        }}
-      />
+      {/* El dock (components/Dock) dibuja iconos y avisos; aquí solo las rutas.
+          Blindaje no va fijo en el dock: se abre desde «Más». */}
+      <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
+      <Tabs.Screen name="eventos" options={{ title: 'Eventos' }} />
+      <Tabs.Screen name="cortes" options={{ title: 'Cortes' }} />
+      <Tabs.Screen name="alertas" options={{ title: 'Alertas' }} />
+      <Tabs.Screen name="blindaje" options={{ title: 'Blindaje' }} />
     </Tabs>
   );
 }

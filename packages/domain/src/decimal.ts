@@ -43,6 +43,20 @@ export class Dec {
   por(x: Dec | string | number): Dec { const o = Dec.de(x); return new Dec(this.v * o.v, this.s + o.s); }
   neg(): Dec { return new Dec(-this.v, this.s); }
 
+  /**
+   * División con `escala` decimales, mitad lejos del cero. Para repartir en
+   * proporción (lo devuelto de un renglón), no para precios del catálogo.
+   */
+  dividir(x: Dec | string | number, escala = 6): Dec {
+    const o = Dec.de(x);
+    if (o.v === 0n) throw new Error('División entre cero.');
+    // (this.v / 10^this.s) / (o.v / 10^o.s) con escala+1 dígitos, luego redondeo.
+    const extra = escala + 1;
+    const num = this.v * 10n ** BigInt(o.s + extra);
+    const den = o.v * 10n ** BigInt(this.s);
+    return new Dec(num / den, extra).redondear(escala);
+  }
+
   /** División exacta solo entre potencias de 10 (p. ej. porcentaje / 100). */
   entre10(n: number): Dec { return new Dec(this.v, this.s + n); }
 

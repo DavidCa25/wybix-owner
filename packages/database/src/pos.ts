@@ -100,11 +100,12 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
   }
 
   /** Evento al outbox, en la MISMA transacción que el hecho. */
-  async function emitir(tx: Sql, agg: string, aggUuid: string, tipo: string, payload: unknown): Promise<number> {
+  /** `ocurrio`: la hora del HECHO (una devolución reemite la venta con su hora original). */
+  async function emitir(tx: Sql, agg: string, aggUuid: string, tipo: string, payload: unknown, ocurrio?: string): Promise<number> {
     const r = await tx.run(
       `INSERT INTO outbox (event_uuid, aggregate_type, aggregate_uuid, event_type, occurred_at, schema_version, payload, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
-      [uuidv7(reloj.ahora().getTime()), agg, aggUuid, tipo, reloj.ahora().toISOString(), ESQUEMA_EVENTOS, JSON.stringify(payload)]);
+      [uuidv7(reloj.ahora().getTime()), agg, aggUuid, tipo, ocurrio ?? reloj.ahora().toISOString(), ESQUEMA_EVENTOS, JSON.stringify(payload)]);
     return r.lastInsertRowId;
   }
 
@@ -237,6 +238,11 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
              l.recipe_uuid, l.variant_option_uuid, l.scale, JSON.stringify(l.modifiers), JSON.stringify(l.consumos)]);
         }
         if(commercial){await tx.run('UPDATE sales SET commercial_snapshot=? WHERE uuid=?',[JSON.stringify(commercial),uuid]);for(const l of lineas)await tx.run('UPDATE sale_lines SET commercial_snapshot=? WHERE sale_uuid=? AND line_no=?',[JSON.stringify(l.commercial),uuid,l.line_no]);}
+        // El paquete con que se vendió cada renglón (la regla comercial 'pres-<id>').
+        for (const l of lineas) {
+          const regla = l.commercial?.rule;
+          if (regla?.startsWith('pres-')) await tx.run('UPDATE sale_lines SET presentation_id = ? WHERE sale_uuid = ? AND line_no = ?', [regla.slice(5), uuid, l.line_no]);
+        }
         let seq = 0;
         for (const pg of c.pagos) {
           await tx.run('INSERT INTO payments (sale_uuid, seq, method, amount, received, change, reference) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -271,6 +277,108 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
       });
     },
 
+    /** Ventas del turno abierto (o de un turno dado), de la más nueva a la más vieja. */
+    async ventasDelTurno(shiftUuid?: string) {
+      const id = await identidad();
+      const turno = shiftUuid ?? (await turnoAbierto(db, id.register.uuid))?.uuid;
+      if (!turno) return [];
+      return db.all<{ uuid: string; folio: string; total: string; refunded_total: string; status: string; occurred_at: string; printed: number; metodo: string | null; resumen: string | null }>(
+        `SELECT s.uuid, s.folio, s.total, s.refunded_total, s.status, s.occurred_at, s.printed,
+                (SELECT CASE WHEN COUNT(DISTINCT p.method) > 1 THEN 'MIXTO' ELSE MAX(p.method) END FROM payments p WHERE p.sale_uuid = s.uuid) AS metodo,
+                (SELECT GROUP_CONCAT(product_name, ', ') FROM (SELECT DISTINCT product_name FROM sale_lines WHERE sale_uuid = s.uuid LIMIT 3)) AS resumen
+           FROM sales s WHERE s.shift_uuid = ? ORDER BY s.occurred_at DESC`, [turno]);
+    },
+
+    /** Una venta con sus renglones, lo devuelto y sus pagos. */
+    async detalleVenta(saleUuid: string) {
+      const s = await db.get<{ uuid: string; folio: string; total: string; refunded_total: string; status: string; occurred_at: string; printed: number; shift_uuid: string }>(
+        'SELECT uuid, folio, total, refunded_total, status, occurred_at, printed, shift_uuid FROM sales WHERE uuid = ?', [saleUuid]);
+      if (!s) return null;
+      const lineas = await db.all<{ line_no: number; product_uuid: string; product_name: string; quantity: string; unit_price: string; subtotal: string; returned_qty: string; presentation_id: string | null }>(
+        'SELECT line_no, product_uuid, product_name, quantity, unit_price, subtotal, returned_qty, presentation_id FROM sale_lines WHERE sale_uuid = ? ORDER BY line_no', [saleUuid]);
+      const pagos = await db.all<{ method: string; amount: string }>('SELECT method, amount FROM payments WHERE sale_uuid = ? ORDER BY seq', [saleUuid]);
+      return { ...s, lineas, pagos };
+    },
+
+    /**
+     * DEVOLUCIÓN, sin Internet: lo que regresa vuelve al inventario del evento
+     * (SALE_RETURN), el efectivo sale del cajón (SALE_RETURN_CASH, entra al
+     * corte) y la venta se reemite con su `refunded_total` para la nube, que
+     * la proyecta igual que una devolución del escritorio. Es de encargado:
+     * un cajero necesita su autorización. Se devuelve por renglón y por pieza;
+     * nunca más de lo vendido.
+     */
+    async devolverVenta(p: Persona, saleUuid: string, partidas: Array<{ line_no: number; quantity: string | number }>, razon: string, autorizador?: Persona | null) {
+      const aut = exigir(p, 'DEVOLUCION', autorizador);
+      if (!razon?.trim()) throw new ErrorPos('RAZON', 'Indica por qué se devuelve.');
+      const pedidas = partidas.filter((x) => Dec.de(x.quantity).esPositivo());
+      if (!pedidas.length) throw new ErrorPos('CANTIDAD', 'Elige qué se devuelve.');
+      return db.transaccion(async (tx) => {
+        await exigirActiva(tx);
+        const id = await identidad(tx);
+        const turno = await turnoAbierto(tx, id.register.uuid);
+        if (!turno) throw new ErrorPos('SIN_TURNO', 'Abre el turno para devolver: el dinero sale del cajón.');
+        const s = await tx.get<{ uuid: string; folio: string; total: string; refunded_total: string; status: string; occurred_at: string; business_date: string; shift_uuid: string; catalog_version: number }>(
+          'SELECT uuid, folio, total, refunded_total, status, occurred_at, business_date, shift_uuid, catalog_version FROM sales WHERE uuid = ?', [saleUuid]);
+        if (!s) throw new ErrorPos('VENTA', 'No existe esa venta en esta tablet.');
+        if (s.status === 'RETURNED') throw new ErrorPos('DEVUELTA', 'Esa venta ya se devolvió completa.');
+        const ahora = reloj.ahora();
+        let importe = Dec.cero;
+        const movs = [];
+        const detalle: Array<{ line_no: number; product_uuid: string; producto: string; cantidad: string; importe: string; precio_unitario: string }> = [];
+        for (const x of pedidas) {
+          const l = await tx.get<{ line_no: number; product_uuid: string; product_name: string; quantity: string; subtotal: string; returned_qty: string; consumos: string }>(
+            'SELECT line_no, product_uuid, product_name, quantity, subtotal, returned_qty, consumos FROM sale_lines WHERE sale_uuid = ? AND line_no = ?', [saleUuid, x.line_no]);
+          if (!l) throw new ErrorPos('RENGLON', 'Ese renglón no es de la venta.');
+          const q = Dec.de(x.quantity).redondear(2);
+          const disponible = Dec.de(l.quantity).menos(l.returned_qty);
+          if (q.comparar(disponible) > 0) throw new ErrorPos('CANTIDAD', `De ${l.product_name} solo quedan ${disponible.toString()} por devolver.`);
+          // Lo que se regresa vale lo que se cobró por pieza en ese renglón.
+          const monto = Dec.de(l.subtotal).por(q).dividir(l.quantity).redondear(2);
+          importe = importe.mas(monto);
+          await tx.run('UPDATE sale_lines SET returned_qty = ? WHERE sale_uuid = ? AND line_no = ?', [Dec.de(l.returned_qty).mas(q).fijo(2), saleUuid, x.line_no]);
+          detalle.push({ line_no: l.line_no, product_uuid: l.product_uuid, producto: l.product_name, cantidad: q.fijo(2), importe: monto.fijo(2),
+            precio_unitario: Dec.de(l.subtotal).dividir(l.quantity, 2).fijo(2) });
+          // El inventario regresa en la misma proporción que salió (pieza o ingredientes).
+          for (const c of JSON.parse(l.consumos || '[]') as Array<{ product_uuid: string; quantity: string }>) {
+            const vuelve = Dec.de(c.quantity).por(q).dividir(l.quantity).redondear(2);
+            if (!vuelve.esPositivo()) continue;
+            movs.push(await moverInventario(tx, id, { product_uuid: c.product_uuid, type: 'SALE_RETURN', quantity: vuelve.fijo(2), ref_type: 'SALE_RETURN', ref_uuid: saleUuid, employee: p.uuid, authorized_by: aut?.uuid ?? null, reason: razon.trim() }));
+          }
+        }
+        // Nunca se devuelve más de lo cobrado (por redondeo de centavos).
+        const yaDevuelto = Dec.de(s.refunded_total);
+        const tope = Dec.de(s.total).menos(yaDevuelto);
+        if (importe.comparar(tope) > 0) importe = tope;
+        const devuelto = yaDevuelto.mas(importe);
+        const completa = (await tx.all<{ quantity: string; returned_qty: string }>('SELECT quantity, returned_qty FROM sale_lines WHERE sale_uuid = ?', [saleUuid]))
+          .every((l) => Dec.de(l.returned_qty).comparar(l.quantity) >= 0);
+        await tx.run('UPDATE sales SET refunded_total = ?, status = ? WHERE uuid = ?', [devuelto.fijo(2), completa ? 'RETURNED' : 'COMPLETED', saleUuid]);
+
+        // El dinero sale del cajón de ESTE turno (puede ser otro que el de la venta).
+        const cajaUuid = uuidv7(ahora.getTime());
+        if (importe.esPositivo()) {
+          await tx.run(`INSERT INTO cash_movements (uuid, shift_uuid, type, amount, ref_uuid, reason, employee_uuid, authorized_by_uuid, occurred_at) VALUES (?, ?, 'SALE_RETURN_CASH', ?, ?, ?, ?, ?, ?)`,
+            [cajaUuid, turno.uuid, importe.fijo(2), saleUuid, razon.trim(), p.uuid, aut?.uuid ?? null, ahora.toISOString()]);
+          await emitir(tx, 'CASH_MOVEMENT', cajaUuid, 'CASH_MOVEMENT_RECORDED', {
+            movement_uuid: cajaUuid, type: 'SALE_RETURN_CASH', amount: importe.fijo(2), business_date: turno.business_date, occurred_at: ahora.toISOString(),
+            note: `Devolución ${s.folio}: ${razon.trim()}`.slice(0, 200), shift_uuid: turno.uuid, register: id.register, user: { uuid: p.uuid, name: p.name },
+            authorized_by: autorizo(aut),
+          });
+        }
+        const metodo = await tx.get<{ m: string | null }>(`SELECT CASE WHEN COUNT(DISTINCT method) > 1 THEN 'MIXTO' ELSE MAX(method) END AS m FROM payments WHERE sale_uuid = ?`, [saleUuid]);
+        // La venta se reemite con su versión nueva: la nube actualiza refunded_total.
+        await emitir(tx, 'SALE', saleUuid, 'SALE_REFUNDED', {
+          sale_uuid: saleUuid, folio: s.folio, business_date: s.business_date, occurred_at: s.occurred_at, total: s.total, paid_amount: s.total,
+          balance: '0.00', payment_method: metodo?.m ?? 'EFECTIVO', refunded_total: devuelto.fijo(2), shift_uuid: s.shift_uuid,
+          catalog_version: s.catalog_version, register: id.register, user: { uuid: p.uuid, name: p.name }, authorized_by: autorizo(aut),
+          refund: { amount: importe.fijo(2), reason: razon.trim(), lines: detalle, at: ahora.toISOString() }, movements: movs,
+        }, s.occurred_at);
+        await auditar(tx, p.uuid, 'VENTA_DEVUELTA', 'OK', { venta: saleUuid, folio: s.folio, importe: importe.fijo(2), autorizo: aut?.uuid ?? null });
+        return { importe: importe.fijo(2), refunded_total: devuelto.fijo(2), completa };
+      });
+    },
+
     /** Merma: solo con permiso (o autorización de un encargado). */
     async registrarMerma(p: Persona, producto: string, cantidad: string, razon: string, autorizador?: Persona | null) {
       const aut = exigir(p, 'MERMA', autorizador);
@@ -279,6 +387,38 @@ export function crearPos(db: BaseLocal, reloj: Reloj = { ahora: () => new Date()
     },
 
     /** Ajuste: siempre un movimiento con signo; nunca "stock = X". */
+    /**
+     * CONTEO FÍSICO: lo contado contra lo que dice la tablet. Cada diferencia
+     * es un ajuste (ADJUSTMENT) con la misma razón, todos en UNA transacción:
+     * o queda el conteo completo o no queda nada. Es de encargado.
+     */
+    async aplicarConteo(p: Persona, conteo: Array<{ product_uuid: string; contado: string | number }>, razon: string, autorizador?: Persona | null) {
+      const aut = exigir(p, 'AJUSTE', autorizador);
+      if (!razon?.trim()) throw new ErrorPos('RAZON', 'Indica de qué es el conteo (pasillo, cierre…).');
+      return db.transaccion(async (tx) => {
+        await exigirActiva(tx);
+        const id = await identidad(tx);
+        const cat = await catalogoActual(tx);
+        const ajustes: Array<{ product_uuid: string; antes: string; contado: string; diferencia: string }> = [];
+        for (const c of conteo) {
+          if (!cat.producto.has(c.product_uuid)) throw new ErrorPos('PRODUCTO', 'Un producto contado no está en el catálogo del evento.');
+          const contado = Dec.de(c.contado).redondear(2);
+          if (contado.esNegativo()) throw new ErrorPos('CANTIDAD', 'Lo contado no puede ser negativo.');
+          const antes = Dec.de((await tx.get<{ qty: string }>('SELECT qty FROM stock_projection WHERE product_uuid = ?', [c.product_uuid]))?.qty ?? '0');
+          const dif = contado.menos(antes).redondear(2);
+          if (dif.esCero()) continue;
+          const m = await moverInventario(tx, id, { product_uuid: c.product_uuid, type: 'ADJUSTMENT', quantity: dif.fijo(2), ref_type: 'ADJUSTMENT', employee: p.uuid, authorized_by: aut?.uuid ?? null, reason: razon.trim() });
+          await emitir(tx, 'INVENTORY_MOVEMENT', m.uuid, 'INVENTORY_MOVEMENT_RECORDED', {
+            movement: { ...m, reason: razon.trim() }, employee: { uuid: p.uuid, name: p.name },
+            authorized_by: autorizo(aut), device: id.device_uuid,
+          });
+          ajustes.push({ product_uuid: c.product_uuid, antes: antes.toString(), contado: contado.toString(), diferencia: dif.toString() });
+        }
+        await auditar(tx, p.uuid, 'CONTEO', 'OK', { productos: conteo.length, ajustes: ajustes.length, autorizo: aut?.uuid ?? null });
+        return { ajustes };
+      });
+    },
+
     async registrarAjuste(p: Persona, producto: string, delta: string, razon: string, autorizador?: Persona | null) {
       const aut = exigir(p, 'AJUSTE', autorizador);
       if (!razon?.trim()) throw new ErrorPos('RAZON', 'Indica la razón del ajuste.');

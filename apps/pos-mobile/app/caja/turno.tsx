@@ -353,8 +353,8 @@ export default function Turno() {
         <View style={[s.dock, !ancho && { marginHorizontal: 12, marginBottom: 10, paddingLeft: 10 }]}>
           {ancho && (
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={[tipo.tenue, { color: "#B8C3CF", fontSize: 12 }]}>Atiende {persona?.name}</Text>
-              <Text style={[tipo.subtitulo, { color: "#fff", fontSize: 15 }]} numberOfLines={1}>
+              <Text style={[tipo.tenue, { color: t.tenue, fontSize: 12 }]}>Atiende {persona?.name}</Text>
+              <Text style={[tipo.subtitulo, { color: t.texto, fontSize: 15 }]} numberOfLines={1}>
                 Cuenta el efectivo y haz el corte al terminar
               </Text>
             </View>
@@ -409,7 +409,7 @@ export default function Turno() {
 function BotonDock({ titulo, onPress, flex }: { titulo: string; onPress: () => void; flex?: boolean }) {
   return (
     <Pulse accessibilityRole="button" accessibilityLabel={titulo} onPress={onPress} style={[s.botonDock, flex ? { flex: 1 } : null]}>
-      <Text style={[tipo.subtitulo, { fontSize: 14, color: "#fff" }]}>{titulo}</Text>
+      <Text style={[tipo.subtitulo, { fontSize: 14, color: t.texto }]}>{titulo}</Text>
     </Pulse>
   );
 }
@@ -446,5 +446,5 @@ const s = StyleSheet.create({
     paddingRight: 10,
     backgroundColor: t.navy,
   },
-  botonDock: { minHeight: 52, borderRadius: 14, paddingHorizontal: 22, backgroundColor: "#1D2A3B", alignItems: "center", justifyContent: "center" },
+  botonDock: { minHeight: 52, borderRadius: 14, paddingHorizontal: 22, backgroundColor: t.elegido, alignItems: "center", justifyContent: "center" },
 });

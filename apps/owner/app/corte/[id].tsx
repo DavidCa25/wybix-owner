@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   sumVal: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 15 },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 8 },
   sumLblBig: { fontFamily: fonts.bold, color: colors.ink, fontSize: 15 },
-  sumValBig: { fontFamily: fonts.black, fontSize: 18 },
+  sumValBig: { fontFamily: fonts.mono, fontSize: 18 },
   sectionTitle: { fontFamily: fonts.bold, color: colors.ink, fontSize: 16, marginTop: 20, marginBottom: 10 },
   card: { backgroundColor: colors.card, borderRadius: radius.md, padding: 6 },
   empty: { fontFamily: fonts.regular, color: colors.muted, fontSize: 13, textAlign: 'center', padding: 18 },

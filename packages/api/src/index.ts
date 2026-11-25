@@ -96,7 +96,15 @@ export function crearClienteNube(o: OpcionesCliente) {
       });
       return { results: r.results ?? [] };
     },
-    async snapshot(desde): Promise<Snapshot> { return llamar('mobile_snapshot', {commercial_schema:3, ...(desde?.brand_hash ? { brand_hash: desde.brand_hash } : {})}); },
+    async snapshot(desde): Promise<Snapshot> {
+      // Lo que la tablet ya tiene: la nube no reenvía catálogo ni personal sin cambios.
+      return llamar('mobile_snapshot', {
+        commercial_schema: 3,
+        ...(desde?.catalog_version ? { catalog_version: desde.catalog_version } : {}),
+        ...(desde?.security_revision ? { security_revision: desde.security_revision } : {}),
+        ...(desde?.brand_hash ? { brand_hash: desde.brand_hash } : {}),
+      });
+    },
     async inbox(cursor: number) { const r = await llamar('mobile_inbox', { cursor }); return { events: r.events ?? [], cursor: Number(r.cursor ?? cursor) }; },
     async latido(info) { await llamar('mobile_heartbeat', info as Record<string, unknown>); },
     desfase: () => ultimoDesfase,
@@ -110,3 +118,4 @@ export function crearClienteNube(o: OpcionesCliente) {
   };
   return nube;
 }
+export * from './local-host.ts';

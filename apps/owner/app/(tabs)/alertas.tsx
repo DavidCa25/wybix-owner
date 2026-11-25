@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlertas, Alerta } from '../../lib/useAlertas';
 import { colors, fonts, radius } from '../../theme/tokens';
+import { Guide } from '@wybix/ui';
 
 function estiloTipo(tipo: string): { icon: string; color: string; bg: string } {
   switch (tipo) {
@@ -54,7 +55,7 @@ export default function Alertas() {
 
           {alertas.length === 0 ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>🔔</Text>
+              <View style={styles.emptyIcon}><Guide cara="exito" size={72} etiqueta={null} /></View>
               <Text style={styles.emptyText}>No tienes alertas por ahora.</Text>
             </View>
           ) : (
@@ -110,6 +111,6 @@ const styles = StyleSheet.create({
   cardTime: { fontFamily: fonts.regular, color: colors.muted, fontSize: 11.5, marginTop: 6 },
 
   empty: { alignItems: 'center', paddingTop: 80 },
-  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyIcon: { marginBottom: 12 },
   emptyText: { fontFamily: fonts.medium, color: colors.muted, fontSize: 14 }
 });

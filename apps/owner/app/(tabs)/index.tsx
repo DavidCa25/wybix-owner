@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, Platform, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
@@ -11,6 +11,9 @@ import { useEmpresa } from '../../lib/useEmpresa';
 import { ResumenEmpresaCard } from '../../components/ResumenEmpresa';
 import { colors, fonts, radius } from '../../theme/tokens';
 import { TrendChart } from '../../components/TrendChart';
+import { Guide, LogoWybix } from '@wybix/ui';
+import { useAlertas } from '../../lib/useAlertas';
+import { useSeguridad } from '../../lib/useSeguridad';
 
 function money(n: number | null | undefined): string {
   const v = Number(n ?? 0);
@@ -32,6 +35,10 @@ export default function Dashboard() {
   const refrescar = async () => { await Promise.all([refrescarSucursal(), empresa.refrescar()]); };
   const nombreEmpresa = empresa.empresas.find(e => e.company_id === empresa.empresaId)?.nombre;
   const respListener = useRef<Notifications.EventSubscription | null>(null);
+  // Lo que espera al dueño: Wybix Guide lo cuenta arriba, como en la caja.
+  const { noLeidas } = useAlertas();
+  const { altos } = useSeguridad();
+  const pendientes = noLeidas + altos;
 
   useEffect(() => {
     if (Platform.OS === 'web') return;
@@ -51,25 +58,17 @@ export default function Dashboard() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.hTitle}>Wybix</Text>
-          <Text style={styles.hSub}>{nombreEmpresa ? `${nombreEmpresa} · hoy` : 'Resumen de hoy'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 }}>
+          <View style={styles.logo}><LogoWybix size={26} /></View>
+          <View style={{ flexShrink: 1 }}>
+            <Text style={styles.hSub} numberOfLines={1}>{nombreEmpresa ?? 'Wybix Owner'}</Text>
+            <Text style={styles.hTitle} accessibilityRole="header" numberOfLines={1}>Tu negocio hoy</Text>
+          </View>
         </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
+          {/* Sucursales, Aprobaciones y Seguridad viven en «Más» del dock. */}
           <View style={styles.iconBtn}>
-            <Ionicons name="business-outline" size={22} color="#fff" onPress={() => router.push('/sucursales')}
-              accessibilityRole="button" accessibilityLabel="Sucursales" />
-          </View>
-          <View style={styles.iconBtn}>
-            <Ionicons name="hand-left-outline" size={22} color="#fff" onPress={() => router.push('/aprobaciones')}
-              accessibilityRole="button" accessibilityLabel="Autorizaciones" />
-          </View>
-          <View style={styles.iconBtn}>
-            <Ionicons name="shield-checkmark-outline" size={22} color="#fff" onPress={() => router.push('/mfa')}
-              accessibilityRole="button" accessibilityLabel="Seguridad de la cuenta" />
-          </View>
-          <View style={styles.iconBtn}>
-            <Ionicons name="log-out-outline" size={22} color="#fff" onPress={signOut} accessibilityRole="button" accessibilityLabel="Cerrar sesión" />
+            <Ionicons name="log-out-outline" size={21} color={colors.ink} onPress={signOut} accessibilityRole="button" accessibilityLabel="Cerrar sesión" />
           </View>
         </View>
       </View>
@@ -106,6 +105,30 @@ export default function Dashboard() {
 
         {empresa.resumen && empresa.resumen.ubicaciones.length > 1 && (
           <ResumenEmpresaCard resumen={empresa.resumen} onElegir={setSucursalId} elegida={sucursalId} />
+        )}
+
+        {pendientes > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${pendientes} ${pendientes === 1 ? 'cosa te espera' : 'cosas te esperan'}. Ver`}
+            onPress={() => router.push(altos > 0 ? '/blindaje' : '/alertas')}
+            style={({ pressed }) => [styles.guideCard, pressed && { opacity: 0.85 }]}
+          >
+            <Guide cara="atencion" size={46} etiqueta={null} />
+            <View style={{ flex: 1, gap: 6 }}>
+              <Text style={styles.guideTitle}>{pendientes === 1 ? 'Una cosa te espera' : `${pendientes} cosas te esperan`}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                {noLeidas > 0 && <Text style={styles.guideChip}>{noLeidas} {noLeidas === 1 ? 'alerta' : 'alertas'}</Text>}
+                {altos > 0 && <Text style={[styles.guideChip, styles.guideChipRiesgo]}>{altos} {altos === 1 ? 'cajero en riesgo' : 'cajeros en riesgo'}</Text>}
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Pressable>
+        ) : (
+          <View style={styles.guideOk}>
+            <Guide cara="reposo" size={34} etiqueta={null} />
+            <Text style={styles.guideOkTxt}>Todo en orden: nada te espera.</Text>
+          </View>
         )}
 
         <View style={styles.heroCard}>
@@ -171,34 +194,41 @@ export default function Dashboard() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
+  logo: { width: 42, height: 42, borderRadius: 14, backgroundColor: colors.navy, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
+  guideCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(251,191,36,0.35)', borderRadius: radius.lg, padding: 12, marginBottom: 12 },
+  guideTitle: { fontFamily: fonts.bold, color: colors.ink, fontSize: 15 },
+  guideChip: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 12, backgroundColor: colors.selected, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: 'hidden' },
+  guideChipRiesgo: { color: colors.danger, backgroundColor: 'rgba(240,85,91,0.16)' },
+  guideOk: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12, paddingHorizontal: 4 },
+  guideOkTxt: { fontFamily: fonts.medium, color: colors.muted, fontSize: 13 },
   header: { backgroundColor: colors.navyDeep, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 18, paddingTop: 10 },
-  hTitle: { fontFamily: fonts.bold, color: '#fff', fontSize: 22, letterSpacing: 0.3 },
-  hSub: { fontFamily: fonts.regular, color: colors.skyLight, fontSize: 12.5, marginTop: 1 },
-  iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center' },
+  hTitle: { fontFamily: fonts.bold, color: colors.ink, fontSize: 24, letterSpacing: -0.6 },
+  hSub: { fontFamily: fonts.medium, color: colors.muted, fontSize: 12.5 },
+  iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, justifyContent: 'center', alignItems: 'center' },
   sucBar: { backgroundColor: colors.navyDeep, paddingBottom: 12, maxHeight: 48 },
-  sucChip: { fontFamily: fonts.medium, color: '#cbd5e1', fontSize: 12.5, backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.pill, overflow: 'hidden' },
-  sucChipOn: { backgroundColor: colors.sky, color: '#fff' },
+  sucChip: { fontFamily: fonts.medium, color: colors.muted, fontSize: 12.5, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.pill, overflow: 'hidden' },
+  sucChipOn: { backgroundColor: colors.selected, borderColor: colors.lineStrong, color: colors.ink, fontFamily: fonts.semibold },
   body: { padding: 16 },
   error: { fontFamily: fonts.medium, color: colors.danger, marginBottom: 12 },
-  heroCard: { backgroundColor: colors.navy, borderRadius: radius.lg, padding: 22, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(69,179,195,0.25)' },
-  heroLabel: { fontFamily: fonts.medium, color: colors.skyLight, fontSize: 13 },
-  heroValue: { fontFamily: fonts.black, color: '#fff', fontSize: 38, marginTop: 4 },
+  heroCard: { backgroundColor: colors.hero, borderRadius: radius.lg, padding: 20, marginBottom: 12 },
+  heroLabel: { fontFamily: fonts.medium, color: '#B7D3E6', fontSize: 13 },
+  heroValue: { fontFamily: fonts.mono, color: colors.ink, fontSize: 36, letterSpacing: -1, marginTop: 4 },
   heroRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
   heroStat: { flex: 1 },
-  heroStatVal: { fontFamily: fonts.bold, color: '#fff', fontSize: 17 },
-  heroStatLbl: { fontFamily: fonts.regular, color: '#94a3b8', fontSize: 12, marginTop: 2 },
+  heroStatVal: { fontFamily: fonts.mono, color: colors.ink, fontSize: 17 },
+  heroStatLbl: { fontFamily: fonts.regular, color: '#B7D3E6', fontSize: 12, marginTop: 2 },
   heroDivider: { width: 1, height: 34, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 16 },
-  profitCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: colors.success },
+  profitCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: colors.line },
   profitIcon: { width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(52,211,153,0.15)', justifyContent: 'center', alignItems: 'center' },
   profitLbl: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 13.5 },
   profitSub: { fontFamily: fonts.regular, color: colors.muted, fontSize: 11.5, marginTop: 2 },
-  profitVal: { fontFamily: fonts.black, color: colors.success, fontSize: 20 },
+  profitVal: { fontFamily: fonts.mono, color: colors.success, fontSize: 19 },
   payRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
-  payCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.md, padding: 14, alignItems: 'center' },
+  payCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.md, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: colors.line },
   payLbl: { fontFamily: fonts.medium, color: colors.muted, fontSize: 11.5 },
-  payVal: { fontFamily: fonts.bold, color: colors.ink, fontSize: 14, marginTop: 4 },
+  payVal: { fontFamily: fonts.mono, color: colors.ink, fontSize: 14, marginTop: 4 },
   sectionTitle: { fontFamily: fonts.bold, color: colors.ink, fontSize: 16, marginTop: 20, marginBottom: 10 },
-  card: { backgroundColor: colors.card, borderRadius: radius.md, padding: 6 },
+  card: { backgroundColor: colors.card, borderRadius: radius.md, padding: 6, borderWidth: 1, borderColor: colors.line },
   empty: { fontFamily: fonts.regular, color: colors.muted, fontSize: 13, textAlign: 'center', padding: 18 },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.line },
   topRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 10, gap: 12 },
@@ -206,5 +236,5 @@ const styles = StyleSheet.create({
   rankText: { fontFamily: fonts.bold, color: colors.sky, fontSize: 13 },
   topName: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 14 },
   topQty: { fontFamily: fonts.regular, color: colors.muted, fontSize: 12, marginTop: 1 },
-  topImporte: { fontFamily: fonts.bold, color: colors.ink, fontSize: 14 }
+  topImporte: { fontFamily: fonts.mono, color: colors.ink, fontSize: 14 }
 });

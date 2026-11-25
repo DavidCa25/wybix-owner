@@ -12,8 +12,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { AppState } from 'react-native';
 import * as Network from 'expo-network';
 import { crearPos, guardarEnrolamiento, guardarDesfase, desfaseGuardado, type BaseLocal, type Identidad, type Persona, type PosLocal } from '@wybix/database';
-import { crearSincronizador, type EstadoSync } from '@wybix/sync';
-import { crearClienteNube, type EstadoAprobacion } from '@wybix/api';
+import { crearSincronizador, type EstadoSync, type MetricasCiclo, type ModoCiclo } from '@wybix/sync';
+import { crearClienteNube, emparejarLocalHost, type EstadoAprobacion } from '@wybix/api';
+import { armarDestino, clienteNube } from './destino';
 import { abrirBase } from './base';
 import { CONFIG, cumpleVersion } from './config';
 import { credencial, deviceUuid } from './llaves';
@@ -26,9 +27,17 @@ type Fase = 'cargando' | 'sin_enrolar' | 'listo' | 'error';
 interface Ctx {
   fase: Fase; error: string | null;
   db: BaseLocal | null; pos: PosLocal | null; identidad: Identidad | null;
-  sync: EstadoSync; sincronizar(): Promise<void>;
+  sync: EstadoSync;
+  /** 'completo' (por omisión): sube, baja y pide snapshot. 'rapido': solo sube lo pendiente. */
+  sincronizar(modo?: ModoCiclo): Promise<void>;
+  /** Lo que tardó el último ciclo, por fase (pantalla Estado). */
+  metricas(): Promise<(MetricasCiclo & { at: string }) | null>;
   persona: Persona | null; entrar(p: Persona): void; salir(): void;
   enrolar(codigo: string): Promise<void>;
+  /** Caja de sucursal: canjea el QR de la computadora principal (Local Host). */
+  enrolarSucursal(qr: string): Promise<void>;
+  /** EVENTO (nube) o SUCURSAL (Local Host). */
+  modo: 'EVENTO' | 'SUCURSAL';
   versionOk: boolean; minima: string | null;
   /** Desfase del reloj de la tablet contra Wybix, en minutos (null = aún no medido). */
   desfaseMin: number | null;
@@ -57,7 +66,7 @@ export const usePos = () => { const c = useContext(C); if (!c) throw new Error('
  * sincronizar (con 1 s de antirrebote): con red, el hecho sube enseguida; sin
  * red, el estado se recalcula y la pantalla muestra los pendientes reales.
  */
-const ESCRIBEN = new Set(['abrirTurno', 'registrarVenta', 'registrarMerma', 'registrarAjuste', 'movimientoCaja', 'cerrarTurno', 'recibirTransferencia', 'regresarSobrante']);
+const ESCRIBEN = new Set(['abrirTurno', 'registrarVenta', 'devolverVenta', 'aplicarConteo', 'registrarMerma', 'registrarAjuste', 'movimientoCaja', 'cerrarTurno', 'recibirTransferencia', 'regresarSobrante']);
 function conAviso(p: PosLocal, avisar: () => void): PosLocal {
   return new Proxy(p, {
     get(t, k, r) {
@@ -115,25 +124,27 @@ export function PosProvider({ children }: { children: ReactNode }) {
     await leerMarca(d);
   }, [leerMarca]);
 
-  const armarMotor = useCallback((d: BaseLocal, p: PosLocal) => {
-    const nube = crearClienteNube({
-      base: CONFIG.backend, anonKey: CONFIG.anonKey, version: CONFIG.version, credencial: credencial.leer,
-      identidad: async () => { try { const i = await p.identidad(); return { company_uuid: i.company_uuid, location_uuid: i.location_uuid }; } catch { return null; } },
-    });
-    motor.current = crearSincronizador({ db: d, nube, dispositivo: deviceUuid, version: CONFIG.version, alCambiar: (e) => { setSync(e); void leerMarca(d); } });
-    nubeRef.current = nube;
-    return nube;
+  const [modo, setModo] = useState<'EVENTO' | 'SUCURSAL'>('EVENTO');
+  /** El motor entrega a la nube (evento) o al Local Host (caja de sucursal). */
+  const armarMotor = useCallback(async (d: BaseLocal, p: PosLocal) => {
+    const destino = await armarDestino(d, p);
+    motor.current = crearSincronizador({ db: d, nube: destino.nube, dispositivo: deviceUuid, version: CONFIG.version, alCambiar: (e) => { setSync(e); void leerMarca(d); } });
+    nubeRef.current = destino.cloud;
+    setModo(destino.modo);
+    return destino;
   }, [leerMarca]);
 
-  const sincronizar = useCallback(async () => {
+  const sincronizar = useCallback(async (modo: ModoCiclo = 'completo') => {
     if (!motor.current || !db || !pos) return;
     // Sin red: el estado se recalcula desde la base (no se pierde el conteo de pendientes).
-    try { await motor.current.sincronizar(true); } catch { await motor.current.marcarSinRed().catch(() => undefined); }
+    try { await motor.current.sincronizar(true, modo); } catch { await motor.current.marcarSinRed().catch(() => undefined); }
     // El desfase medido en esta sincronización se guarda: la fecha de negocio lo usa también sin red.
     const d = nubeRef.current?.desfase();
     if (d) await guardarDesfase(db, d.ms, d.at).catch(() => undefined);
-    await leerEstado(db, pos);
+    // Un ciclo rápido no bajó nada: no hay estado que releer.
+    if (modo === 'completo') await leerEstado(db, pos);
   }, [db, pos, leerEstado]);
+  const metricas = useCallback(async () => motor.current?.metricas() ?? null, []);
 
   const recargar = useCallback(async () => {
     try {
@@ -141,7 +152,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       const p = conAviso(crearPos(d), avisar);
       setDb(d); setPos(p);
       if (!(await credencial.leer())) { setFase('sin_enrolar'); return; }
-      armarMotor(d, p);
+      await armarMotor(d, p);
       await leerEstado(d, p);
       setSync(await motor.current!.estado());
       setFase('listo');
@@ -152,9 +163,12 @@ export function PosProvider({ children }: { children: ReactNode }) {
   }, [armarMotor, leerEstado, avisar]);
 
   useEffect(() => { recargar(); }, [recargar]);
-  useEffect(() => { aviso.current.sincronizar = () => { sincronizar(); }; }, [sincronizar]);
+  // Después de vender (o de cualquier operación) solo se sube: la venta llega a
+  // la nube en un viaje y el catálogo no se vuelve a bajar.
+  useEffect(() => { aviso.current.sincronizar = () => { sincronizar('rapido'); }; }, [sincronizar]);
 
-  // Abrir, red recuperada, cada minuto al frente.
+  // Abrir y red recuperada: ciclo completo. Cada minuto al frente: rápido, que
+  // se vuelve completo solo cuando el último snapshot tiene más de 5 minutos.
   useEffect(() => {
     if (fase !== 'listo') return;
     registrarFondo().catch(() => undefined);
@@ -162,18 +176,37 @@ export function PosProvider({ children }: { children: ReactNode }) {
     const red = Network.addNetworkStateListener((s) => { if (s.isInternetReachable) sincronizar(); else motor.current?.marcarSinRed(); });
     let activa = AppState.currentState === 'active';
     const app = AppState.addEventListener('change', (s) => { activa = s === 'active'; if (activa) sincronizar(); });
-    const t = setInterval(() => { if (activa) sincronizar(); }, 60_000);
+    const t = setInterval(() => { if (activa) sincronizar('rapido'); }, 60_000);
     return () => { red.remove(); app.remove(); clearInterval(t); };
   }, [fase, sincronizar]);
 
   const enrolar = useCallback(async (codigo: string) => {
     if (!db || !pos) throw new Error('La base no está lista.');
     const dev = await deviceUuid();
-    const nube = armarMotor(db, pos) as ReturnType<typeof crearClienteNube>;
-    const r = await nube.enrolar(codigo, dev);
+    const r = await clienteNube(pos).enrolar(codigo, dev);
     await credencial.guardar(r.token);
-    await guardarEnrolamiento(db, { device_uuid: dev, device_id: r.device_id });
+    await guardarEnrolamiento(db, { device_uuid: dev, device_id: r.device_id, modo: 'EVENTO' });
+    await armarMotor(db, pos);
     await motor.current!.sincronizar(true);    // snapshot inicial
+    await leerEstado(db, pos);
+    await registrarFondo().catch(() => undefined);
+    setFase('listo');
+  }, [db, pos, armarMotor, leerEstado]);
+
+  /**
+   * CAJA DE SUCURSAL: el QR de la computadora principal se canjea una vez por
+   * la credencial de esta tablet; el primer snapshot crea su caja en la base
+   * del negocio y trae catálogo, personal y existencias.
+   */
+  const enrolarSucursal = useCallback(async (qr: string) => {
+    if (!db || !pos) throw new Error('La base no está lista.');
+    const dev = await deviceUuid();
+    const r = await emparejarLocalHost(qr);
+    await credencial.guardar(r.credencial);
+    await guardarEnrolamiento(db, { device_uuid: dev, device_id: r.device_id, modo: 'SUCURSAL', local_host: r.base });
+    await armarMotor(db, pos);
+    const e = await motor.current!.sincronizar(true);
+    if (!e.en_linea) throw new Error('La tablet quedó emparejada, pero no pudo descargar el catálogo. Revisa la red del local y sincroniza.');
     await leerEstado(db, pos);
     await registrarFondo().catch(() => undefined);
     setFase('listo');
@@ -186,7 +219,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   }, [pos, persona]);
 
   const aprobaciones = useMemo<Ctx['aprobaciones']>(() => {
-    const n = () => { if (!nubeRef.current) throw new Error('La tablet no está enrolada.'); return nubeRef.current.aprobaciones; };
+    const n = () => { if (!nubeRef.current) throw new Error('La aprobación a distancia necesita la nube: en caja de sucursal autoriza un encargado con su PIN.'); return nubeRef.current.aprobaciones; };
     return {
       solicitar: (a) => n().solicitar(a), estado: (id) => n().estado(id),
       consumir: (id, payload) => n().consumir(id, payload), cancelar: (id) => n().cancelar(id),
@@ -194,10 +227,10 @@ export function PosProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const valor = useMemo<Ctx>(() => ({
-    fase, error, db, pos, identidad, sync, sincronizar, persona,
-    entrar: setPersona, salir: () => setPersona(null), enrolar,
+    fase, error, db, pos, identidad, sync, sincronizar, metricas, persona,
+    entrar: setPersona, salir: () => setPersona(null), enrolar, enrolarSucursal, modo,
     versionOk: cumpleVersion(CONFIG.version, minima), minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento,
-  }), [fase, error, db, pos, identidad, sync, sincronizar, persona, enrolar, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento]);
+  }), [fase, error, db, pos, identidad, sync, sincronizar, metricas, persona, enrolar, enrolarSucursal, modo, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento]);
 
   return <C.Provider value={valor}>{children}</C.Provider>;
 }

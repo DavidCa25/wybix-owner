@@ -1,103 +1,103 @@
 {
-  "at": "2026-10-09T19:10:37.163Z",
+  "at": "2026-11-25T04:36:49.429Z",
   "level": "quick",
   "ok": true,
   "evidence": [
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\apps\\owner",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\apps\\owner",
       "exit": 0,
-      "seconds": 9.252
+      "seconds": 10.133
     },
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\apps\\pos-mobile",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\apps\\pos-mobile",
       "exit": 0,
-      "seconds": 3.215
+      "seconds": 4.65
     },
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\api",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\packages\\api",
       "exit": 0,
-      "seconds": 1.102
+      "seconds": 1.28
     },
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\auth",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\packages\\auth",
       "exit": 0,
-      "seconds": 0.825
+      "seconds": 0.8
     },
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\database",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\packages\\database",
       "exit": 0,
-      "seconds": 1.271
+      "seconds": 1.379
     },
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\domain",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\packages\\domain",
       "exit": 0,
-      "seconds": 0.933
+      "seconds": 1.052
     },
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\sync",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\packages\\sync",
       "exit": 0,
-      "seconds": 1.263
+      "seconds": 1.219
     },
     {
       "command": [
         "node",
-        "C:\\Users\\Casillas\\Documents\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
+        "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\node_modules\\typescript\\bin\\tsc",
         "--noEmit",
         "-p",
         "."
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner\\packages\\ui",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner\\packages\\ui",
       "exit": 0,
-      "seconds": 1.309
+      "seconds": 1.504
     },
     {
       "command": [
@@ -105,13 +105,20 @@
         "--test",
         "apps/pos-mobile/test/entrada.test.ts",
         "apps/pos-mobile/test/escpos.test.ts",
+        "apps/pos-mobile/test/impresora-bluetooth.test.ts",
         "apps/pos-mobile/test/reimpresion.test.ts",
+        "supabase/functions/_shared/test/admin.test.ts",
         "supabase/functions/_shared/test/alerta-push.test.ts",
+        "supabase/functions/_shared/test/club-wallet.test.ts",
+        "supabase/functions/_shared/test/corte-email.test.ts",
+        "supabase/functions/_shared/test/fiscal-ieps.test.ts",
+        "supabase/functions/_shared/test/jwt.test.ts",
         "supabase/functions/_shared/test/notificaciones.test.ts",
         "supabase/functions/_shared/test/owner-mfa.test.ts",
         "supabase/functions/_shared/test/pos-sync-aprobaciones.test.ts",
         "supabase/functions/_shared/test/pos-sync-multisucursal.test.ts",
         "supabase/functions/_shared/test/ticket-email.test.ts",
+        "supabase/functions/_shared/test/whatsapp.test.ts",
         "packages/api/test/cliente.test.ts",
         "packages/auth/test/pin-motor.test.ts",
         "packages/auth/test/pin.test.ts",
@@ -120,13 +127,17 @@
         "packages/database/test/comercial.test.ts",
         "packages/database/test/fecha-negocio.test.ts",
         "packages/database/test/impresion.test.ts",
+        "packages/database/test/marca.test.ts",
+        "packages/database/test/mobile-completo.test.ts",
         "packages/database/test/pin.test.ts",
+        "packages/domain/test/canal-evento.test.ts",
         "packages/domain/test/dominio.test.ts",
+        "packages/domain/test/marca.test.ts",
         "packages/sync/test/sync.test.ts"
       ],
-      "cwd": "C:\\Users\\Casillas\\Documents\\wybix-owner",
+      "cwd": "C:\\Users\\Casillas\\Documents\\Wybix\\wybix-owner",
       "exit": 0,
-      "seconds": 6.836
+      "seconds": 8.021
     }
   ]
 }
