@@ -13,7 +13,7 @@ import * as TaskManager from 'expo-task-manager';
 import * as BackgroundTask from 'expo-background-task';
 import { crearPos, guardarDesfase } from '@wybix/database';
 import { crearSincronizador } from '@wybix/sync';
-import { crearClienteNube } from '@wybix/api';
+import { armarDestino } from './destino';
 import { abrirBase } from './base';
 import { CONFIG } from './config';
 import { credencial, deviceUuid } from './llaves';
@@ -29,12 +29,10 @@ TaskManager.defineTask(TAREA, async () => {
     const { db } = base;
     await db.run(`INSERT INTO kv (k, v) VALUES ('fondo_ultimo', ?) ON CONFLICT (k) DO UPDATE SET v = excluded.v`, [JSON.stringify({ inicio, estado: 'RUNNING' })]);
     const pos = crearPos(db);
-    const nube = crearClienteNube({
-      base: CONFIG.backend, anonKey: CONFIG.anonKey, version: CONFIG.version, credencial: credencial.leer,
-      identidad: async () => { try { const i = await pos.identidad(); return { company_uuid: i.company_uuid, location_uuid: i.location_uuid }; } catch { return null; } },
-    });
-    const e = await crearSincronizador({ db, nube, dispositivo: deviceUuid, version: CONFIG.version }).sincronizar();
-    const desfase = nube.desfase();
+    // Nube (evento) o Local Host (caja de sucursal): el mismo motor.
+    const destino = await armarDestino(db, pos);
+    const e = await crearSincronizador({ db, nube: destino.nube, dispositivo: deviceUuid, version: CONFIG.version }).sincronizar();
+    const desfase = destino.cloud?.desfase();
     if (desfase) await guardarDesfase(db, desfase.ms, desfase.at);
     const ok = e.en_linea && !e.revocado;
     await db.run(`INSERT INTO kv (k, v) VALUES ('fondo_ultimo', ?) ON CONFLICT (k) DO UPDATE SET v = excluded.v`, [JSON.stringify({ inicio, at: new Date().toISOString(), estado: ok ? 'SUCCESS' : 'FAILED', pendientes: e.pendientes, rechazados: e.rechazados, cuarentena: e.cuarentena })]);

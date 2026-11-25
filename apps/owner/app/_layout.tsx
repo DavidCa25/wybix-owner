@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
 import {
-  useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
-  Poppins_800ExtraBold
-} from '@expo-google-fonts/poppins';
+  Geist_400Regular,
+  Geist_500Medium,
+  Geist_600SemiBold,
+  Geist_700Bold,
+  Geist_800ExtraBold
+} from '@expo-google-fonts/geist';
+import { GeistMono_600SemiBold } from '@expo-google-fonts/geist-mono';
 import { AuthProvider } from '../lib/auth';
 import { DialogProvider } from '../lib/dialog';
 import { loadPairing } from '../lib/pairing';
@@ -25,11 +26,13 @@ export default function RootLayout() {
   const [animDone, setAnimDone] = useState(false);
 
   const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    Poppins_800ExtraBold
+    // La letra de la caja y de POS Mobile: Geist, y Geist Mono en los montos.
+    Geist_400Regular,
+    Geist_500Medium,
+    Geist_600SemiBold,
+    Geist_700Bold,
+    Geist_800ExtraBold,
+    GeistMono_600SemiBold
   });
 
   // Cargar pairing y reconfigurar Supabase con los datos del QR antes de renderizar

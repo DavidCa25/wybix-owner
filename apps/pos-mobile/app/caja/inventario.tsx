@@ -12,7 +12,7 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Dec, puede, type Accion, type CatalogoIndexado } from "@wybix/domain";
 import { importarTransferencia, type Persona } from "@wybix/database";
 import { verificarQr, aTransferencia } from "@wybix/sync";
@@ -39,6 +39,7 @@ interface Pendiente {
 }
 
 export default function Inventario() {
+  const router = useRouter();
   const lock = useRef(false);
   const [busy, setBusy] = useState(false);
   const run = async (fn: () => Promise<void>) => {
@@ -311,6 +312,11 @@ export default function Inventario() {
                 titulo="Escanear comprobante"
                 variante="secundario"
                 onPress={() => setEscanear(true)}
+              />
+              <Boton
+                titulo="Contar con escáner"
+                variante="secundario"
+                onPress={() => router.push("/caja/conteo")}
               />
             </Tarjeta>
 

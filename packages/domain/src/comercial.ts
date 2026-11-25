@@ -12,6 +12,9 @@ export interface Canal {
     name: string;
     active: boolean;
     inheritBase: boolean;
+    /** Lista de precios de clientes (mayoreo): solo se cotiza para un cliente
+     *  que la tiene asignada. Lo comprueba quien cotiza, no el motor. */
+    customersOnly?: boolean;
 }
 export interface Horario {
     from: string;
@@ -95,6 +98,15 @@ export interface PartidaComercial {
         instance: string;
         group: string;
     };
+    /** Presentación de venta (el cartón de 24). `quantity` sigue en piezas,
+     *  múltiplo de `qty`; cada paquete cuesta `price` y ninguna otra oferta
+     *  toca esas piezas. El precio lo pone quien cotiza, desde la base. */
+    pack?: {
+        id: string;
+        name: string;
+        qty: number;
+        price: string;
+    };
 }
 export interface ContextoComercial {
     channel: string;
@@ -132,6 +144,37 @@ export function centavos(s: string): bigint {
     const [a, b = ''] = String(s).split('.');
     return BigInt(a) * 100n + BigInt(b.padEnd(2, '0'));
 }
+/**
+ * GRANEL: EL IMPORTE SE REDONDEA A MEDIO PESO.
+ *
+ * El jamón, el queso o el frijol se piden por peso o por dinero, y la base
+ * guarda la cantidad con 2 decimales: «$15 de jamón a $189» son 0.08 kg, que
+ * dan $15.12. En el mostrador se cobra redondo:
+ *
+ *   - menos de 35 centavos: baja al peso      (15.18 -> 15.00)
+ *   - de 35 a 74 centavos:  queda en 50       (15.35 -> 15.50, 15.60 -> 15.50)
+ *   - desde 75 centavos:    sube al peso      (15.75 -> 16.00)
+ *
+ * La cantidad no se toca (es lo que salió del almacén); lo que se ajusta es
+ * el precio por unidad de ESE renglón, con 2 decimales, para que cantidad ×
+ * precio dé el importe redondo. Hasta 1 kg el resultado es exacto al
+ * centavo; con más de 1 kg puede quedar a un centavo.
+ */
+export function redondearGranelCentavos(c: number): number {
+    const pesos = Math.floor(c / 100), resto = c - pesos * 100;
+    return pesos * 100 + (resto < 35 ? 0 : resto < 75 ? 50 : 100);
+}
+
+/** Precio por unidad de un renglón a granel para que cantidad × precio quede redondo. */
+export function precioGranel(qty: number, precio: number): number {
+    const q = Math.round(Number(qty) * 100), p = Math.round(Number(precio) * 100);
+    if (!(q > 0) || !(p > 0)) return Number(precio);
+    const objetivo = redondearGranelCentavos(Math.round(q * p / 100));
+    /* Tan poquito que redondea a $0: no se regala, se cobra lo que es. */
+    if (objetivo <= 0) return Number(precio);
+    return Math.round(objetivo * 100 / q) / 100;
+}
+
 const signedCentavos = (s: string) => s.startsWith('-') ? -centavos(s.slice(1)) : centavos(s);
 const dinero = (n: bigint): string => n < 0n ? '-' + dinero(-n) : `${n / 100n}.${String(n % 100n).padStart(2, '0')}`;
 const redondear = (n: bigint, d: bigint) => (n + d / 2n) / d;
@@ -154,6 +197,8 @@ export function validarPolitica(p: PoliticaComercial): void {
         ids.add(x.id);
     } };
     unique(p.channels);
+    if (p.channels.some(c => c.customersOnly !== undefined && (typeof c.customersOnly !== 'boolean' || (c.id === 'LOCAL' && c.customersOnly))))
+        throw new Error('Mostrador es para cualquier cliente.');
     unique(p.promotions);
     unique(p.combos);
     if (!p.channels.some(c => c.id === 'LOCAL' && c.active && c.inheritBase))
@@ -277,6 +322,7 @@ function cotizarCon(p: PoliticaComercial, products: ProductoComercial[], cart: P
         extras: bigint;
         price: bigint;
         rule: string | null;
+        ruleName?: string;
         combo: string | null;
         locked: boolean;
         triggered: boolean;
@@ -293,9 +339,29 @@ function cotizarCon(p: PoliticaComercial, products: ProductoComercial[], cart: P
         if (qty <= 0n)
             throw new Error('Cantidad inválida.');
         const price = p.prices.find(x => x.channel === ctx.channel && x.product === prod.id && x.variant === l.variant) ?? p.prices.find(x => x.channel === ctx.channel && x.product === prod.id && !x.variant);
-        if (!price && !channel.inheritBase)
+        if (!price && !channel.inheritBase && !l.pack)
             throw new Error('Falta configurar el precio de este producto en el canal.');
         const base = centavos(price?.price ?? prod.price), extras = signedCentavos(l.extras);
+        if (l.pack) {
+            // El cartón: su precio se reparte entre sus piezas y el centavo que
+            // no divide exacto queda en la última de cada cartón.
+            const k = l.pack.qty, total = centavos(l.pack.price);
+            if (!entero(k, 2, 1000) || !l.pack.id || !l.pack.name?.trim() || l.combo || extras !== 0n)
+                throw new Error('Presentación inválida.');
+            if (qty % (BigInt(k) * 100n) !== 0n)
+                throw new Error('La presentación se vende por paquetes completos.');
+            const packs = qty / (BigInt(k) * 100n), per = total / BigInt(k), last = total - per * BigInt(k - 1);
+            // Más caro que suelto: sin «descuento» negativo, la base es lo cobrado.
+            const caro = base * BigInt(k) < total;
+            const unit = (q: bigint, price: bigint) => units.push({ src: l, p: prod, q, base: caro ? price : base, extras: 0n, price, rule: 'pres-' + l.pack!.id, ruleName: l.pack!.name, combo: null, locked: true, triggered: false });
+            if (per === last)
+                unit(qty, per);
+            else {
+                unit(packs * BigInt(k - 1) * 100n, per);
+                unit(packs * 100n, last);
+            }
+            continue;
+        }
         if (base + extras < 0n)
             throw Error('El precio con opciones no puede ser negativo.');
         const needsUnits = !!l.combo || autos.some(c => c.groups.some(g => coincide(g.selector, prod, l.variant))) || active.some(r => (r.kind === 'BUY_PAY' || r.kind === 'ADDON' || r.kind === 'VOLUME' || r.maxApplications !== undefined) && (coincide(r.selector, prod, l.variant) || (r.trigger && coincide(r.trigger, prod, l.variant))));
@@ -446,5 +512,5 @@ function cotizarCon(p: PoliticaComercial, products: ProductoComercial[], cart: P
         }
     }
     const gross = redondear(units.reduce((a, u) => a + (u.base + u.extras) * u.q, 0n), 100n), total = redondear(units.reduce((a, u) => a + u.price * u.q, 0n), 100n);
-    return { version: p.version, channel: ctx.channel, channelName: channel.name, context: { ...ctx, audiences: [...(ctx.audiences ?? [])] }, gross: dinero(gross), discount: dinero(gross - total), total: dinero(total), lines: units.map(u => ({ source: u.src.key, product: u.p.id, quantity: dinero(u.q), unitPrice: dinero(u.price), basePrice: dinero(u.base), extras: dinero(u.extras), discount: dinero((u.base + u.extras - u.price) * u.q / 100n), rule: u.rule, ruleName: p.promotions.find(r => r.id === u.rule)?.name ?? p.combos.find(c => c.id === u.rule)?.name, combo: u.combo })) };
+    return { version: p.version, channel: ctx.channel, channelName: channel.name, context: { ...ctx, audiences: [...(ctx.audiences ?? [])] }, gross: dinero(gross), discount: dinero(gross - total), total: dinero(total), lines: units.map(u => ({ source: u.src.key, product: u.p.id, quantity: dinero(u.q), unitPrice: dinero(u.price), basePrice: dinero(u.base), extras: dinero(u.extras), discount: dinero((u.base + u.extras - u.price) * u.q / 100n), rule: u.rule, ruleName: u.ruleName ?? p.promotions.find(r => r.id === u.rule)?.name ?? p.combos.find(c => c.id === u.rule)?.name, combo: u.combo })) };
 }

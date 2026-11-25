@@ -22,7 +22,7 @@ export function Comercial({ cat, channel, predeterminado, onChannel, audiences, 
     const chips = (items: {
         id: string;
         name: string;
-    }[], value: string, change: (id: string) => void) => <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{items.map(x => <Pulse key={x.id} accessibilityRole="radio" accessibilityLabel={x.name} accessibilityState={{ checked: value === x.id }} active={value === x.id} onPress={() => change(x.id)} style={{ padding: 12, borderRadius: 14, backgroundColor: value === x.id ? t.cian : '#fff', borderWidth: 1, borderColor: t.borde }}><Text style={tipo.cuerpo}>{x.name}</Text></Pulse>)}</View>;
+    }[], value: string, change: (id: string) => void) => <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{items.map(x => <Pulse key={x.id} accessibilityRole="radio" accessibilityLabel={x.name} accessibilityState={{ checked: value === x.id }} active={value === x.id} onPress={() => change(x.id)} style={{ padding: 12, borderRadius: 14, backgroundColor: value === x.id ? t.cian : t.hundido, borderWidth: 1, borderColor: t.borde }}><Text style={tipo.cuerpo}>{x.name}</Text></Pulse>)}</View>;
     function add() { try {
         if (!combo)
             throw Error('Elige un combo.');

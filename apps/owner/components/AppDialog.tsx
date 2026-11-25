@@ -87,5 +87,5 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.bold, color: colors.ink, fontSize: 18.5, textAlign: 'center' },
   msg: { fontFamily: fonts.regular, color: colors.muted, fontSize: 14, textAlign: 'center', lineHeight: 21, marginTop: 8 },
   btn: { alignSelf: 'stretch', borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginTop: 22 },
-  btnText: { fontFamily: fonts.bold, color: '#fff', fontSize: 15 }
+  btnText: { fontFamily: fonts.bold, color: colors.onPrimary, fontSize: 15 }
 });

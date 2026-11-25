@@ -70,7 +70,7 @@ export default function Eventos() {
         {administra && !creando && (
           <Pressable onPress={() => { setCreando(true); setBase(sucursales[0]?.location_id ?? null); }} style={styles.nuevo}
             accessibilityRole="button" accessibilityLabel="Nuevo evento">
-            <Ionicons name="add" size={18} color="#fff" />
+            <Ionicons name="add" size={18} color={colors.onPrimary} />
             <Text style={styles.nuevoTxt}>Nuevo</Text>
           </Pressable>
         )}
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   hTitle: { fontFamily: fonts.bold, color: '#fff', fontSize: 22, letterSpacing: 0.3 },
   hSub: { fontFamily: fonts.regular, color: colors.skyLight, fontSize: 12.5, marginTop: 1 },
   nuevo: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill },
-  nuevoTxt: { fontFamily: fonts.semibold, color: '#fff', fontSize: 13 },
+  nuevoTxt: { fontFamily: fonts.semibold, color: colors.onPrimary, fontSize: 13 },
   body: { padding: 16, gap: 10 },
   error: { fontFamily: fonts.medium, color: colors.danger, fontSize: 13, marginTop: 8 },
   card: { backgroundColor: colors.card, borderRadius: radius.md, padding: 16 },
@@ -165,12 +165,12 @@ const styles = StyleSheet.create({
   chip: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 7 },
   chipOn: { backgroundColor: colors.sky, borderColor: colors.sky },
   chipTxt: { fontFamily: fonts.medium, color: colors.ink, fontSize: 13 },
-  chipTxtOn: { color: '#fff' },
+  chipTxtOn: { color: colors.onPrimary },
   fila: { flexDirection: 'row', gap: 10, marginTop: 16 },
   filaCentro: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   btn: { flex: 1, borderRadius: radius.sm, paddingVertical: 12, alignItems: 'center' },
   btnPri: { backgroundColor: colors.primary },
-  btnPriTxt: { fontFamily: fonts.semibold, color: '#fff', fontSize: 14 },
+  btnPriTxt: { fontFamily: fonts.semibold, color: colors.onPrimary, fontSize: 14 },
   btnSec: { backgroundColor: 'rgba(255,255,255,0.06)' },
   btnSecTxt: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 14 },
   btnOff: { opacity: 0.45 },

@@ -190,7 +190,7 @@ function Boton({ titulo, onPress, busy, deshabilitado, secundario, peligro, test
     <TouchableOpacity testID={testID} onPress={onPress} disabled={off} activeOpacity={0.85}
       accessibilityRole="button" accessibilityState={{ disabled: !!off, busy: !!busy }}
       style={[styles.button, secundario && styles.buttonSec, peligro && styles.buttonPeligro, off && { opacity: 0.5 }]}>
-      {busy ? <ActivityIndicator color="#fff" /> : <Text style={[styles.buttonText, peligro && { color: colors.danger }]}>{titulo}</Text>}
+      {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={[styles.buttonText, secundario && { color: colors.ink }, peligro && { color: colors.danger }]}>{titulo}</Text>}
     </TouchableOpacity>
   );
 }
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   button: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', minHeight: 48 },
   buttonSec: { backgroundColor: colors.navySoft, borderWidth: 1, borderColor: colors.line },
   buttonPeligro: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.danger },
-  buttonText: { fontFamily: fonts.bold, color: '#fff', fontSize: 15 },
+  buttonText: { fontFamily: fonts.bold, color: colors.onPrimary, fontSize: 15 },
   enlace: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, minHeight: 52, borderWidth: 1, borderColor: colors.line },
   enlaceTexto: { flex: 1, fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
 });

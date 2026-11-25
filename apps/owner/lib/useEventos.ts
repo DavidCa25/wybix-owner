@@ -44,6 +44,8 @@ export interface Equipo {
   register: string | null;
   clock_skew_seconds: number | null;
   en_linea: boolean;
+  /** Último ciclo de sincronización que reportó la tablet (POS Mobile 0.4+). */
+  sync_stats?: { total_ms?: number; modo?: string; catalogo?: string; enviados?: number; error?: string; at?: string } | null;
 }
 
 const MENSAJES: Record<string, string> = {

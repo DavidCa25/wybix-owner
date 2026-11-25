@@ -78,5 +78,5 @@ const styles = StyleSheet.create({
   cancel: { marginTop: 28 },
   cancelText: { fontFamily: fonts.semibold, color: '#fff', fontSize: 14 },
   btn: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 14, paddingHorizontal: 28 },
-  btnText: { fontFamily: fonts.bold, color: '#fff', fontSize: 15 }
+  btnText: { fontFamily: fonts.bold, color: colors.onPrimary, fontSize: 15 }
 });

@@ -12,10 +12,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { logoDeMarca, pos as t, tipo } from "./ui";
 import { usePos } from "../lib/contexto";
 import { Avatar } from "./Avatar";
+import { Guide, LogoWybix } from "@wybix/ui";
 
-export type Seccion = "vender" | "turno" | "inventario" | "sincronia";
+export type Seccion = "vender" | "ventas" | "turno" | "inventario" | "sincronia";
 const SECCIONES: Array<{ id: Seccion; titulo: string; icono: keyof typeof Ionicons.glyphMap }> = [
   { id: "vender", titulo: "Vender", icono: "cart-outline" },
+  { id: "ventas", titulo: "Ventas", icono: "receipt-outline" },
   { id: "turno", titulo: "Turno y corte", icono: "cash-outline" },
   { id: "inventario", titulo: "Inventario", icono: "cube-outline" },
   { id: "sincronia", titulo: "Estado", icono: "cloud-done-outline" },
@@ -63,18 +65,22 @@ export function Marco({
       <Image source={{ uri: logo }} style={{ width: 32, height: 32 }} resizeMode="contain" accessibilityLabel={nombreNegocio} />
     </View>
   ) : (
-    <View style={[s.insignia, { backgroundColor: t.acento }]} accessibilityElementsHidden>
-      <Text style={[tipo.subtitulo, { fontSize: 13, color: t.acentoTexto }]}>{iniciales(nombreNegocio)}</Text>
+    <View style={[s.insignia, { backgroundColor: t.riel, borderWidth: 1, borderColor: t.borde }]} accessibilityElementsHidden>
+      <LogoWybix size={26} />
     </View>
   );
   const chipRed = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${red.texto}. Sincronizar ahora`}
-      onPress={sincronizar}
+      onPress={() => sincronizar()}
       style={ancho ? s.redTablet : s.redCel}
     >
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: red.color }} />
+      {ancho ? (
+        <Guide cara={sync.revocado ? "error" : !sync.en_linea || sync.pendientes ? "atencion" : "reposo"} size={34} etiqueta={null} />
+      ) : (
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: red.color }} />
+      )}
       <Text style={[tipo.tenue, { fontSize: ancho ? 13 : 12, flexShrink: 1 }]} numberOfLines={1}>{red.texto}</Text>
     </Pressable>
   );
@@ -119,10 +125,11 @@ export function Marco({
                 accessibilityState={{ selected: on }}
                 accessibilityLabel={x.titulo}
                 onPress={() => { if (!on) router.navigate(`/caja/${x.id}`); }}
-                style={[s.seccion, on && { backgroundColor: t.acento, borderColor: t.acento }]}
+                style={[s.seccion, on && { backgroundColor: t.elegido, borderColor: t.bordeFuerte }]}
               >
-                <Ionicons name={x.icono} size={19} color={on ? t.acentoTexto : t.tenue} />
-                <Text style={[tipo.subtitulo, { fontSize: 15, color: on ? t.acentoTexto : t.texto }]} numberOfLines={1}>{x.titulo}</Text>
+                <Ionicons name={x.icono} size={19} color={on ? t.texto : t.tenue} />
+                <Text style={[tipo.subtitulo, { fontSize: 15, color: on ? t.texto : t.tenue }]} numberOfLines={1}>{x.titulo}</Text>
+                {on && <View style={s.raya} />}
               </Pressable>
             );
           })}
@@ -151,11 +158,12 @@ export function Marco({
 const s = StyleSheet.create({
   insignia: { width: 38, height: 38, borderRadius: 11, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   tarjetaNegocio: {
-    minHeight: 64, borderRadius: 20, backgroundColor: t.superficie, borderWidth: 1, borderColor: t.borde,
+    minHeight: 64, borderRadius: 20, backgroundColor: t.riel, borderWidth: 1, borderColor: t.borde,
     flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12,
   },
+  raya: { position: "absolute", left: 0, top: 16, bottom: 16, width: 3, borderRadius: 2, backgroundColor: t.wybix },
   seccion: {
-    minHeight: 56, borderRadius: 18, borderWidth: 1, borderColor: t.borde, backgroundColor: t.superficie,
+    minHeight: 56, borderRadius: 18, borderWidth: 1, borderColor: "transparent", backgroundColor: "transparent",
     flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16,
   },
   redTablet: {

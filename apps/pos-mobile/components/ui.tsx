@@ -30,51 +30,75 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { mezclar, temaDeMarca, type TemaMarca } from "@wybix/domain";
+import { contraste, mezclar, temaDeMarca, type TemaMarca } from "@wybix/domain";
+import { LogoWybix, MarcaWybix, wx } from "@wybix/ui";
 export { dinero } from "@wybix/ui";
 
 export { teclear } from "../lib/entrada";
 /*
- * Tokens alineados con el POS de escritorio (filtros_lubs_rios/src/styles/
- * tokens.css): lienzo, superficies, barra oscura y tinta. El ACENTO es el de
- * la marca del negocio cuando la configura en Wybix Owner (llega con el
- * snapshot); @wybix/domain · temaDeMarca garantiza que todo se lea.
+ * Tokens del POS de escritorio en su tema oscuro (filtros_lubs_rios/src/
+ * styles/tokens.css, compartidos en @wybix/ui · wx): lienzo, superficies,
+ * riel, elegido y tinta. Así una tarjeta o un botón se ven igual en la caja,
+ * en POS Mobile y en Owner.
+ *
+ * El ACENTO es el de la marca del negocio cuando la configura en Wybix Owner
+ * (llega con el snapshot); sin marca es el cian de Wybix. @wybix/domain ·
+ * temaDeMarca garantiza que el texto sobre el acento se lea; aquí se calcula
+ * además la versión del acento que se lee COMO TEXTO sobre fondo oscuro.
  */
-let tema: TemaMarca = temaDeMarca(null);
+const CIAN_WYBIX = wx.cian;
+let tema: TemaMarca = temaDeMarca(CIAN_WYBIX);
+let tintaOscura = tintaSobreOscuro(CIAN_WYBIX);
+/** El acento aclarado lo mínimo para leerse como texto sobre una superficie oscura. */
+function tintaSobreOscuro(color: string) {
+  let c = color;
+  for (let t = 0.05; contraste(c, wx.superficie) < 4.5 && t <= 1; t += 0.05) c = mezclar(color, "#FFFFFF", t);
+  return c;
+}
 let logoMarca: string | null = null;
 /** Lo llama el contexto al leer la base y tras cada sincronización. */
 export function aplicarMarca(m: { color: string | null; logo: string | null } | null) {
-  tema = temaDeMarca(m?.color ?? null);
+  tema = temaDeMarca(m?.color ?? CIAN_WYBIX);
+  tintaOscura = tintaSobreOscuro(tema.acento);
   logoMarca = m?.logo ?? null;
 }
 export const logoDeMarca = () => logoMarca;
 export const pos = {
-  fondo: "#F2F5F9",
-  superficie: "#FFFFFF",
-  hundido: "#EDF1F6",
-  borde: "#E1E7EF",
-  texto: "#16212E",
-  tenue: "#55677A",
+  fondo: wx.lienzo,
+  superficie: wx.superficie,
+  /** Controles y tarjetas dentro de una superficie (teclas, pasos, chips). */
+  hundido: wx.elevado,
+  /** Elegido sin acento: fondo elevado del dock del escritorio. */
+  elegido: wx.elegido,
+  riel: wx.riel,
+  borde: wx.borde,
+  bordeFuerte: wx.bordeFuerte,
+  texto: wx.texto,
+  tenue: wx.tenue,
   /** Botones principales y elementos elegidos. */
   get acento() { return tema.acento; },
   /** Texto sobre el acento. */
   get acentoTexto() { return tema.acentoTexto; },
-  /** El acento como TEXTO sobre blanco. */
-  get acentoTinta() { return tema.acentoTinta; },
-  /** Fondo de una opción elegida (texto oscuro encima). */
-  get cian() { return tema.seleccion; },
-  /** Fondo muy tenue de la marca (tarjeta elegida). */
-  get acentoSuave() { return mezclar(tema.acento, "#FFFFFF", 0.92); },
+  /** El acento como TEXTO sobre las superficies oscuras. */
+  get acentoTinta() { return tintaOscura; },
+  /** Fondo de una opción elegida (texto claro encima). */
+  get cian() { return mezclar(tema.acento, wx.superficie, 0.72); },
+  /** Fondo muy tenue de la marca (tarjeta elegida, etiqueta). */
+  get acentoSuave() { return mezclar(tema.acento, wx.lienzo, 0.84); },
   /** Punto de la marca Wybix: siempre cian, no cambia con el negocio. */
   wybix: "#45B3C3",
   navy: "#0F1826",
-  exito: "#167047",
-  aviso: "#865000",
-  peligro: "#B52E29",
-  peligroSuave: "#FBECEA",
-  avisoSuave: "#FFF3DD",
-  exitoSuave: "#E6F4EC",
-  radio: 12,
+  /** Estados como TEXTO o punto sobre oscuro. */
+  exito: wx.exitoTexto,
+  aviso: wx.avisoTexto,
+  peligro: wx.peligroTexto,
+  /** Rojo de un botón peligroso (texto blanco encima). */
+  peligroFuerte: "#B6382F",
+  peligroSuave: "rgba(240,85,91,0.14)",
+  avisoSuave: "rgba(251,191,36,0.12)",
+  exitoSuave: "rgba(52,211,153,0.12)",
+  hero: wx.hero,
+  radio: 14,
   tactil: 48,
 };
 export const tipo = StyleSheet.create({
@@ -267,10 +291,12 @@ export function Boton({
             variante === "primario"
               ? pos.acento
               : variante === "peligro"
-                ? pos.peligro
+                ? pos.peligroFuerte
                 : variante === "fantasma"
                   ? "transparent"
-                  : pos.hundido,
+                  : pos.elegido,
+          borderWidth: variante === "secundario" ? 1 : 0,
+          borderColor: pos.bordeFuerte,
           opacity: deshabilitado ? 0.45 : 1,
         },
         estilo ?? {},
@@ -396,7 +422,7 @@ export function Puntos({ n, max = 8 }: { n: number; max?: number }) {
             width: 13,
             height: 13,
             borderRadius: 7,
-            backgroundColor: i < n ? pos.texto : pos.borde,
+            backgroundColor: i < n ? pos.acento : pos.bordeFuerte,
           }}
         />
       ))}
@@ -441,34 +467,19 @@ export function BarraSync({
 }
 export function Marca({ caption = "POS MOBILE" }: { caption?: string }) {
   const logo = logoDeMarca();
+  if (!logo) return <MarcaWybix producto={caption} size={36} fuente="WybixSemi" />;
   if (logo)
     return (
       <View style={{ gap: 4, alignItems: "flex-start" }}>
         <View style={{ backgroundColor: "#FFFFFF", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 }}>
           <Image source={{ uri: logo }} style={{ width: 112, height: 32 }} resizeMode="contain" accessibilityLabel="Logo del negocio" />
         </View>
-        <Text style={[tipo.etiqueta, { color: "#ACCAD7", fontSize: 9 }]}>
-          CON WYBIX {caption}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <LogoWybix size={14} />
+          <Text style={[tipo.etiqueta, { color: pos.tenue, fontSize: 9 }]}>CON WYBIX {caption}</Text>
+        </View>
       </View>
     );
-  return (
-    <View style={{ gap: 2 }}>
-      <Text
-        style={{
-          fontFamily: "WybixSemi",
-          fontSize: 25,
-          letterSpacing: -1,
-          color: "#fff",
-        }}
-      >
-        Wybix<Text style={{ color: pos.wybix }}>.</Text>
-      </Text>
-      <Text style={[tipo.etiqueta, { color: "#ACCAD7", fontSize: 9 }]}>
-        {caption}
-      </Text>
-    </View>
-  );
 }
 /** Bounded sheet: header and actions remain reachable, body scrolls with large text. */
 export function Sheet({
@@ -591,7 +602,7 @@ export function Sheet({
 const s = StyleSheet.create({
   button: {
     minHeight: 48,
-    borderRadius: 10,
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 10,
     justifyContent: "center",
@@ -599,7 +610,7 @@ const s = StyleSheet.create({
   },
   key: {
     minHeight: 48,
-    borderRadius: 10,
+    borderRadius: 16,
     backgroundColor: pos.hundido,
     justifyContent: "center",
     alignItems: "center",
@@ -607,12 +618,12 @@ const s = StyleSheet.create({
   },
   card: {
     backgroundColor: pos.superficie,
-    borderRadius: 14,
+    borderRadius: 22,
     padding: 24,
     borderWidth: 1,
     borderColor: pos.borde,
   },
-  notice: { borderRadius: 8, borderLeftWidth: 3, padding: 12 },
+  notice: { borderRadius: 14, borderLeftWidth: 3, padding: 12 },
   sync: {
     flexDirection: "row",
     alignItems: "center",
@@ -620,18 +631,22 @@ const s = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 12,
     borderRadius: 22,
-    backgroundColor: "#EAF0F4",
+    backgroundColor: pos.superficie,
+    borderWidth: 1,
+    borderColor: pos.borde,
     maxWidth: 300,
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(8,25,38,.65)",
+    backgroundColor: "rgba(2,6,12,.62)",
     justifyContent: "center",
     alignItems: "center",
   },
   sheet: {
-    backgroundColor: "#fff",
-    borderRadius: 18,
+    backgroundColor: pos.superficie,
+    borderWidth: 1,
+    borderColor: pos.borde,
+    borderRadius: 26,
     overflow: "hidden",
     flexShrink: 1,
   },

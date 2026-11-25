@@ -1,48 +1,71 @@
+/**
+ * Tokens de Wybix Owner: los MISMOS del POS de escritorio en su tema oscuro
+ * (filtros_lubs_rios/src/styles/tokens.css), compartidos con POS Mobile en
+ * @wybix/ui · wx. Una tarjeta, un borde o un elegido se ven igual en las tres
+ * apps. Letra Geist; montos en Geist Mono, como la caja.
+ *
+ * Los nombres de siempre (navy, card, line…) se conservan para no tocar cada
+ * pantalla: cambian sus valores.
+ */
+import { wx } from '@wybix/ui';
+
 export const colors = {
-  // Azul marino de la marca (encabezados, splash) — mismo tono oscuro que la landing
-  navy:      '#0F1C26',
-  navyDeep:  '#0B131A',   // fondo más oscuro (brand.dark de la landing)
-  navySoft:  '#16202A',
+  // Riel y lienzo del escritorio
+  navy:      wx.riel,
+  navyDeep:  wx.lienzo,
+  navySoft:  wx.superficie,
 
-  // Celeste/cian de acento (igual que la landing: brand.cyan)
-  sky:       '#45B3C3',
-  skyLight:  '#5EC6D6',
-  skySoft:   'rgba(69,179,195,0.14)',   // chip cian tenue sobre fondo oscuro
+  // Cian de Wybix
+  sky:       wx.cianClaro,
+  skyLight:  wx.cianClaro,
+  skySoft:   'rgba(69,179,195,0.14)',
 
-  // Acción principal = cian de marca
-  primary:   '#45B3C3',
-  primaryDark:'#359AA9',
+  // Acción principal = cian de marca, con tinta oscura encima (como la caja)
+  primary:   wx.cian,
+  primaryDark: '#2A8494',
+  onPrimary: wx.tintaCian,
 
-  // Neutros (tema OSCURO)
-  ink:       '#E6EEF3',   // texto principal (claro)
-  muted:     '#8296A5',   // texto secundario
-  line:      '#213240',   // bordes / divisores
-  bg:        '#0B131A',   // fondo de pantalla
-  card:      '#16202A',   // superficie de tarjeta (brand.card)
+  // Neutros (tema oscuro del escritorio)
+  ink:       wx.texto,
+  muted:     wx.tenue,
+  line:      wx.borde,
+  lineStrong: wx.bordeFuerte,
+  bg:        wx.lienzo,
+  card:      wx.superficie,
+  raised:    wx.elevado,
+  selected:  wx.elegido,
+  hero:      wx.hero,
 
-  // Estados (brillantes para que resalten sobre oscuro)
-  success:   '#34D399',
-  warning:   '#FBBF24',
-  danger:    '#F87171',
+  // Estados (como texto o punto sobre oscuro)
+  success:   wx.exito,
+  warning:   wx.aviso,
+  danger:    wx.peligroTexto,
+  dangerStrong: '#B6382F',
+  badge:     wx.insignia,
   white:     '#FFFFFF'
 };
 
-// Familia Poppins (se carga con expo-font en el layout)
+// Geist (se carga con expo-font en el layout), igual que la caja y POS Mobile
 export const fonts = {
-  regular:  'Poppins_400Regular',
-  medium:   'Poppins_500Medium',
-  semibold: 'Poppins_600SemiBold',
-  bold:     'Poppins_700Bold',
-  black:    'Poppins_800ExtraBold'
+  regular:  'Geist_400Regular',
+  medium:   'Geist_500Medium',
+  semibold: 'Geist_600SemiBold',
+  bold:     'Geist_700Bold',
+  black:    'Geist_800ExtraBold',
+  /** Montos, folios y códigos. */
+  mono:     'GeistMono_600SemiBold'
 };
 
 export const radius = {
-  sm: 10,
-  md: 14,
-  lg: 20,
+  sm: 12,
+  md: 16,
+  lg: 22,
   pill: 999
 };
 
 export const spacing = {
   xs: 6, sm: 10, md: 16, lg: 24, xl: 32
 };
+
+/** Movimiento: los --wx-dur-* del escritorio. */
+export const dur = wx.dur;

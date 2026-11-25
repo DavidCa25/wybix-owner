@@ -42,7 +42,10 @@ export default function Sincronia() {
     persona,
     minima,
     desfaseMin,
+    metricas,
   } = usePos();
+  // Lo que tardó el último ciclo, por fase (para saber dónde se va el tiempo).
+  const [ciclo, setCiclo] = useState<Awaited<ReturnType<typeof metricas>>>(null);
   const [revision, setRevision] = useState<
     Array<{
       event_type: string;
@@ -115,7 +118,8 @@ export default function Sincronia() {
     const pendientes = await pos?.ticketsSinImprimir() ?? [];
     setTickets(pendientes);
     setFallidos(pendientes.length);
-  }, [db, pos]);
+    setCiclo(await metricas().catch(() => null));
+  }, [db, pos, metricas]);
   useFocusEffect(
     useCallback(() => {
       cargar();
@@ -234,6 +238,32 @@ export default function Sincronia() {
             </Tarjeta>
           ))}
         </View>
+
+        {ciclo && (
+          <Tarjeta estilo={{ gap: 10 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <Text style={tipo.subtitulo}>Último ciclo · {segundos(ciclo.total_ms)}</Text>
+              <Text style={tipo.tenue}>{ciclo.modo === "rapido" ? "Rápido: solo subir" : "Completo"} · {new Date(ciclo.at).toLocaleTimeString("es-MX")}</Text>
+            </View>
+            {[
+              { etiqueta: "Subir ventas", ms: ciclo.subir_ms, nota: ciclo.enviados ? `${ciclo.enviados} enviadas` : "nada pendiente" },
+              ...(ciclo.modo === "completo" ? [
+                { etiqueta: "Otras tablets", ms: ciclo.inbox_ms, nota: "" },
+                { etiqueta: "Catálogo y personal", ms: ciclo.snapshot_ms, nota: ciclo.catalogo === "sin_cambios" ? "sin cambios: no se descargó" : ciclo.catalogo === "actualizado" ? "actualizado" : "" },
+              ] : []),
+            ].map((f) => (
+              <View key={f.etiqueta} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Text style={[tipo.tenue, { width: 150 }]}>{f.etiqueta}</Text>
+                <View style={{ flex: 1, height: 10, borderRadius: 6, backgroundColor: t.hundido, overflow: "hidden" }}>
+                  <View style={{ width: `${Math.min(100, Math.max(4, (f.ms / Math.max(ciclo.total_ms, 1)) * 100))}%`, height: 10, backgroundColor: t.acento }} />
+                </View>
+                <Text style={[tipo.numero, { fontSize: 13, minWidth: 54, textAlign: "right" }]}>{segundos(f.ms)}</Text>
+                {!!f.nota && <Text style={[tipo.tenue, { fontSize: 12 }]}>{f.nota}</Text>}
+              </View>
+            ))}
+            {!!ciclo.error && <Text style={[tipo.tenue, { color: t.aviso }]}>{ciclo.error}</Text>}
+          </Tarjeta>
+        )}
 
         {revision.length > 0 && (
           <Tarjeta estilo={{ gap: 6 }}>
@@ -419,3 +449,6 @@ const s = StyleSheet.create({
     color: t.texto,
   },
 });
+
+/** 640 -> "0.6 s"; 12500 -> "12.5 s". */
+function segundos(ms: number) { return `${(Math.max(0, ms) / 1000).toFixed(1)} s`; }

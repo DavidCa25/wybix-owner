@@ -227,6 +227,13 @@ export default function DetalleEvento() {
                   v{d.app_version ?? '—'}{d.pending_events ? ` · ${d.pending_events} pendientes en la tablet` : ''}
                   {d.clock_skew_seconds && Math.abs(d.clock_skew_seconds) > 300 ? ` · reloj desfasado ${Math.round(d.clock_skew_seconds / 60)} min` : ''}
                 </Text>
+                {!!d.sync_stats?.total_ms && d.status !== 'REVOKED' && (
+                  <Text style={styles.sub}>
+                    Último ciclo {(d.sync_stats.total_ms / 1000).toFixed(1)} s
+                    {d.sync_stats.catalogo === 'sin_cambios' ? ' · catálogo al día' : d.sync_stats.catalogo === 'actualizado' ? ' · bajó catálogo nuevo' : ''}
+                    {d.sync_stats.error ? ` · ${d.sync_stats.error}` : ''}
+                  </Text>
+                )}
               </View>
               {administra && d.status !== 'REVOKED' && (porRevocar === d.id ? (
                 <View style={{ gap: 6 }}>
@@ -290,7 +297,7 @@ const styles = StyleSheet.create({
   ok: { fontFamily: fonts.medium, color: colors.success, fontSize: 13 },
   card: { backgroundColor: colors.card, borderRadius: radius.md, padding: 14 },
   cardTitle: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 14 },
-  grande: { fontFamily: fonts.black, color: colors.ink, fontSize: 22 },
+  grande: { fontFamily: fonts.mono, color: colors.ink, fontSize: 22 },
   seccion: { fontFamily: fonts.bold, color: colors.ink, fontSize: 16, marginTop: 10 },
   sub: { fontFamily: fonts.regular, color: colors.muted, fontSize: 12.5, marginTop: 3 },
   lbl: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 13, marginBottom: 4 },
@@ -308,13 +315,13 @@ const styles = StyleSheet.create({
   pasoTxtOn: { fontFamily: fonts.semibold, color: colors.ink },
   btn: { flex: 1, borderRadius: radius.sm, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
   btnPri: { backgroundColor: colors.primary },
-  btnPriTxt: { fontFamily: fonts.semibold, color: '#fff', fontSize: 14 },
+  btnPriTxt: { fontFamily: fonts.semibold, color: colors.onPrimary, fontSize: 14 },
   btnSec: { backgroundColor: 'rgba(255,255,255,0.06)' },
   btnSecTxt: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 14 },
   btnOff: { opacity: 0.45 },
   input: { fontFamily: fonts.regular, color: colors.ink, fontSize: 14, borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.bg, marginVertical: 10 },
   codigoCard: { borderWidth: 1, borderColor: colors.primary, alignItems: 'center' },
-  codigo: { fontFamily: fonts.black, color: '#fff', fontSize: 30, letterSpacing: 3, marginVertical: 8 },
+  codigo: { fontFamily: fonts.mono, color: colors.ink, fontSize: 30, letterSpacing: 3, marginVertical: 8 },
   equipo: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
   bordeArriba: { borderTopWidth: 1, borderTopColor: colors.line },
   led: { width: 8, height: 8, borderRadius: 4 },
@@ -326,5 +333,5 @@ const styles = StyleSheet.create({
   chip: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
   chipOn: { backgroundColor: colors.sky, borderColor: colors.sky },
   chipTxt: { fontFamily: fonts.medium, color: colors.ink, fontSize: 12.5 },
-  chipTxtOn: { color: '#fff' },
+  chipTxtOn: { color: colors.onPrimary },
 });

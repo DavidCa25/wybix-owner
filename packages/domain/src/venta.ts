@@ -20,7 +20,16 @@ export class ErrorVenta extends Error {
   constructor(code: string, mensaje: string) { super(mensaje); this.code = code; }
 }
 
-export interface LineaCarrito { combo?:{id:string;instance:string;group:string}; product_uuid: string; quantity: string | number; options?: OpcionElegida[]; note?: string | null; }
+export interface LineaCarrito {
+  combo?:{id:string;instance:string;group:string};
+  product_uuid: string;
+  /** En piezas. Con `presentation_id`, múltiplo del factor del paquete. */
+  quantity: string | number;
+  options?: OpcionElegida[];
+  note?: string | null;
+  /** Presentación de venta (el cartón): el precio sale del catálogo, nunca de la pantalla. */
+  presentation_id?: string | null;
+}
 
 export interface ConsumoCongelado {
   product_uuid: string;

@@ -20,6 +20,7 @@
     "test:menu-en-linea": "node --no-warnings scripts/probar-menu-en-linea.mjs",
     "test:whatsapp": "node --no-warnings scripts/probar-whatsapp.mjs",
     "test:grupos": "node --no-warnings scripts/probar-grupos.mjs",
+    "test:admin": "node --no-warnings scripts/probar-admin.mjs",
     "test:quick": "node scripts/qa.mjs quick",
     "test:affected": "node scripts/qa.mjs affected",
     "test:integration": "node scripts/qa.mjs integration",

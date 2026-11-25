@@ -8,6 +8,7 @@ import { useAuth } from '../../lib/auth';
 import { useDialog } from '../../lib/dialog';
 import { vincularConPairing } from '../../lib/vincular';
 import { colors, fonts, radius } from '../../theme/tokens';
+import { Guide, MarcaWybix } from '@wybix/ui';
 
 export default function Login() {
   const router = useRouter();
@@ -68,13 +69,13 @@ export default function Login() {
         style={styles.center}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        <View style={styles.marca}><MarcaWybix producto="Owner" size={40} fuente={fonts.bold} /></View>
+        {/* Wybix Guide asomado sobre la tarjeta, como al emparejar POS Mobile. */}
+        <View style={styles.asoma} pointerEvents="none">
+          <Guide cara={error ? 'error' : busy ? 'atencion' : 'reposo'} size={92} movimiento="asoma" etiqueta={null} />
+        </View>
         <View style={styles.card}>
-          <Image
-            source={require('../../assets/wybie_logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>Iniciar sesion</Text>
+          <Text style={styles.title} accessibilityRole="header">Tu negocio, desde aquí</Text>
 
           <Text style={styles.label}>Correo</Text>
           <TextInput
@@ -100,7 +101,7 @@ export default function Login() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <TouchableOpacity style={styles.button} onPress={onLogin} disabled={busy} activeOpacity={0.85}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
+            {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.buttonText}>Entrar</Text>}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onForgot} disabled={sendingReset} style={styles.forgotBtn} activeOpacity={0.7}>
@@ -132,15 +133,16 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   bg: { flex: 1, backgroundColor: colors.navyDeep },
-  center: { flex: 1, justifyContent: 'center', padding: 24 },
-  card: { backgroundColor: colors.card, borderRadius: 22, padding: 28, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 8 },
-  logo: { width: 150, height: 64, alignSelf: 'center', marginBottom: 8 },
-  title: { fontFamily: fonts.bold, fontSize: 22, color: colors.primary, textAlign: 'center', marginBottom: 20 },
+  center: { flex: 1, justifyContent: 'center', padding: 20, width: '100%', maxWidth: 460, alignSelf: 'center' },
+  card: { zIndex: 1, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 28, padding: 24, paddingTop: 44, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 8 },
+  marca: { alignItems: 'center', marginBottom: 28 },
+  asoma: { alignItems: 'center', marginBottom: -42, zIndex: 0 },
+  title: { fontFamily: fonts.bold, fontSize: 22, letterSpacing: -0.5, color: colors.ink, textAlign: 'center', marginBottom: 12 },
   label: { fontFamily: fonts.semibold, fontSize: 12, color: colors.ink, marginBottom: 6, marginTop: 12 },
-  input: { fontFamily: fonts.regular, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, paddingHorizontal: 13, paddingVertical: 13, fontSize: 15, color: colors.ink, backgroundColor: colors.navy },
+  input: { fontFamily: fonts.regular, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, paddingHorizontal: 13, paddingVertical: 13, fontSize: 15, color: colors.ink, backgroundColor: colors.navyDeep },
   error: { fontFamily: fonts.medium, color: colors.danger, fontSize: 13, marginTop: 12, textAlign: 'center' },
   button: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: 22 },
-  buttonText: { fontFamily: fonts.bold, color: '#fff', fontSize: 15 },
+  buttonText: { fontFamily: fonts.bold, color: colors.onPrimary, fontSize: 15 },
   forgotBtn: { alignItems: 'center', marginTop: 16, paddingVertical: 4 },
   forgot: { fontFamily: fonts.semibold, color: colors.sky, fontSize: 13.5 },
   divider: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 4 },

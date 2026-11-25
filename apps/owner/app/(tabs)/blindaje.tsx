@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSeguridad, RiesgoCajero } from '../../lib/useSeguridad';
 import { colors, fonts, radius, spacing } from '../../theme/tokens';
+import { Guide } from '@wybix/ui';
 
 function nivelColor(n: string) { return n === 'alto' ? colors.danger : n === 'medio' ? colors.warning : colors.success; }
 function nivelTxt(n: string) { return n === 'alto' ? 'ALTO' : n === 'medio' ? 'MEDIO' : 'BAJO'; }
@@ -70,7 +71,7 @@ export default function Blindaje() {
           <Text style={styles.empty}>No se pudo cargar. Desliza para reintentar.</Text>
         ) : riesgo.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Ionicons name="checkmark-circle" size={40} color={colors.success} />
+            <Guide cara="exito" size={72} etiqueta={null} />
             <Text style={styles.emptyTitle}>Todo en orden</Text>
             <Text style={styles.empty}>Sin actividad de riesgo registrada.</Text>
           </View>
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   sub: { fontFamily: fonts.regular, fontSize: 12, color: colors.muted },
   banner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(248,113,113,0.12)', borderColor: 'rgba(248,113,113,0.35)', borderWidth: 1, borderRadius: radius.md, padding: 12, marginBottom: spacing.md },
   bannerTxt: { fontFamily: fonts.medium, fontSize: 13, color: colors.danger, flexShrink: 1 },
-  card: { backgroundColor: colors.card, borderRadius: radius.md, borderLeftWidth: 4, padding: spacing.md, marginBottom: spacing.sm, shadowColor: '#0f172a', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, borderLeftWidth: 3, padding: spacing.md, marginBottom: spacing.sm },
   cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 12 },
   cajero: { fontFamily: fonts.semibold, fontSize: 16, color: colors.ink },
   monto: { fontFamily: fonts.regular, fontSize: 12, color: colors.muted, marginTop: 2 },

@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { useEmpresa } from '../lib/useEmpresa';
 import { esCodigoMfa, mensajeMfa } from '../lib/mfa';
 import { colors, fonts, radius } from '../theme/tokens';
+import { Guide } from '@wybix/ui';
 
 type Aprobacion = {
   id: string; status: string; action: string; etiqueta: string; location: string;
@@ -75,7 +76,12 @@ export default function Aprobaciones() {
         refreshControl={<RefreshControl refreshing={refrescando} onRefresh={async () => { setRefrescando(true); await cargar(); setRefrescando(false); }} tintColor={colors.primary} />}>
         {!lista && !error ? <ActivityIndicator color={colors.primary} style={{ marginTop: 30 }} /> : null}
         {error ? <Text style={styles.error} accessibilityLiveRegion="polite">{error}</Text> : null}
-        {lista && !pendientes.length ? <Text style={styles.vacio}>No hay solicitudes pendientes.</Text> : null}
+        {lista && !pendientes.length ? (
+          <View style={{ alignItems: 'center', gap: 8, paddingVertical: 24 }}>
+            <Guide cara="exito" size={80} etiqueta={null} />
+            <Text style={styles.vacio}>Nada pendiente. Te aviso cuando una caja pida permiso.</Text>
+          </View>
+        ) : null}
         {pendientes.map((a) => (
           <View key={a.id} style={styles.card} testID={`aprobacion-${a.id}`}>
             <Text style={styles.title}>{a.requested_by?.name ?? 'Alguien'} pide {a.etiqueta}</Text>
@@ -86,7 +92,7 @@ export default function Aprobaciones() {
                 <Text style={[styles.btnTxt, { color: colors.danger }]}>Rechazar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.btn, styles.btnSi]} disabled={ocupado === a.id} onPress={() => decidir(a, 'APPROVED')} accessibilityRole="button">
-                {ocupado === a.id ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnTxt}>Autorizar</Text>}
+                {ocupado === a.id ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.btnTxt}>Autorizar</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -121,5 +127,5 @@ const styles = StyleSheet.create({
   btn: { flex: 1, minHeight: 48, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   btnSi: { backgroundColor: colors.primary },
   btnNo: { borderWidth: 1, borderColor: colors.danger },
-  btnTxt: { fontFamily: fonts.bold, fontSize: 15, color: '#fff' },
+  btnTxt: { fontFamily: fonts.bold, fontSize: 15, color: colors.onPrimary },
 });

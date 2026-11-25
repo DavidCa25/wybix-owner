@@ -125,3 +125,5 @@ const est = StyleSheet.create({
   tarjeta: { backgroundColor: pos.superficie, borderRadius: pos.radio, padding: 16, borderWidth: 1, borderColor: pos.borde },
   aviso: { borderRadius: pos.radio, padding: 12 },
 });
+
+export { Guide, LogoWybix, MarcaWybix, useMovimientoReducido, wx, type CaraGuide } from './guide';

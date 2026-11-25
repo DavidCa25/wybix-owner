@@ -21,7 +21,25 @@ export interface ProductoCat {
   allow_decimal_qty?: boolean;
   category_uuid?: string | null;
   modifier_groups?: string[];   // uuids de grupos, en orden
+  /** Código de barras de la pieza (POS 0093). */
+  bar_code?: string | null;
+  /** Clave del producto: también se busca por ella. */
+  part_number?: string | null;
+  base_uom?: string | null;
+  /** Presentaciones de VENTA (POS 0089/0093): el cartón con su precio y su código. */
+  presentations?: PresentacionCat[];
+  /** Venta suelta (POS 0073): esta pieza sale de abrir ese paquete. */
+  suelto?: { parent_uuid: string; piezas: number } | null;
   tasa_iva?: string;
+}
+
+/** Una presentación de venta: `factor` piezas por `sale_price`. */
+export interface PresentacionCat {
+  id: string;
+  name: string;
+  factor: number;
+  sale_price: string;
+  bar_code: string | null;
 }
 
 export interface LineaReceta { ingredient_uuid: string; qty_base: string; waste_pct: string; }
@@ -74,6 +92,10 @@ export interface CatalogoIndexado {
   grupo: Map<string, GrupoCat>;
   /** uuid -> nombre de la categoría (para filtrar en Vender). */
   categorias?: Map<string, string>;
+  /** Código de barras -> producto (y presentación, si el código es del paquete). */
+  porCodigo?: Map<string, { product_uuid: string; presentation_id: string | null }>;
+  /** Paquete -> sus piezas sueltas (venta suelta). */
+  piezasDe?: Map<string, string[]>;
 }
 
 export function indexar(c: Catalogo): CatalogoIndexado {
@@ -90,8 +112,24 @@ export function indexar(c: Catalogo): CatalogoIndexado {
     grupo.set(g.uuid, g);
     for (const o of g.options) opcion.set(o.uuid, { opcion: o, grupo: g });
   }
+  // Códigos: el del paquete gana sobre una pieza que, por error, tenga el mismo.
+  const porCodigo = new Map<string, { product_uuid: string; presentation_id: string | null }>();
+  const piezasDe = new Map<string, string[]>();
+  for (const p of c.products) {
+    if (!p.active) continue;
+    const cod = p.bar_code?.trim();
+    if (cod && !porCodigo.has(cod)) porCodigo.set(cod, { product_uuid: p.uuid, presentation_id: null });
+    if (p.suelto?.parent_uuid) piezasDe.set(p.suelto.parent_uuid, [...(piezasDe.get(p.suelto.parent_uuid) ?? []), p.uuid]);
+  }
+  for (const p of c.products) {
+    if (!p.active) continue;
+    for (const x of p.presentations ?? []) {
+      const cod = x.bar_code?.trim();
+      if (cod) porCodigo.set(cod, { product_uuid: p.uuid, presentation_id: x.id });
+    }
+  }
   return { commercial:c.commercial,version: c.catalog_version, producto, recetasDe, opcion, grupo,
-    categorias: new Map((c.categories ?? []).map((x) => [x.uuid, x.nombre])) };
+    categorias: new Map((c.categories ?? []).map((x) => [x.uuid, x.nombre])), porCodigo, piezasDe };
 }
 
 /** Lo que se puede vender en esta versión (lo desactivado ya no aparece). */

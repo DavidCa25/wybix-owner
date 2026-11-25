@@ -1,12 +1,14 @@
 import { Platform, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../theme/tokens';
 
 // Aviso "Agregar a inicio" — solo en Safari de iOS cuando aún no está instalada.
 // En Android/iOS nativos y en la app ya instalada, no muestra nada.
 export default function PwaInstallHint() {
   const [show, setShow] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -28,8 +30,9 @@ export default function PwaInstallHint() {
     setShow(false);
   };
 
+  // Arriba: abajo vive el dock de secciones y la barra de Safari.
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, { top: insets.top + 12 }]}>
       <Ionicons name="phone-portrait-outline" size={22} color={colors.skyLight} />
       <Text style={styles.txt}>
         Instala Wybix: toca <Text style={styles.b}>Compartir</Text> y luego <Text style={styles.b}>Agregar a inicio</Text>.
@@ -43,7 +46,7 @@ export default function PwaInstallHint() {
 
 const styles = StyleSheet.create({
   wrap: {
-    position: 'absolute', left: 12, right: 12, bottom: 12, zIndex: 9999,
+    position: 'absolute', left: 12, right: 12, zIndex: 9999,
     backgroundColor: colors.navy, borderRadius: radius.md, padding: 14,
     flexDirection: 'row', alignItems: 'center', gap: 10,
   },

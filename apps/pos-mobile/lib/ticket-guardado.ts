@@ -16,6 +16,20 @@ export async function ticketGuardado(pos: PosLocal, saleUuid: string): Promise<T
   };
 }
 
+/**
+ * El ticket como TEXTO, para mandarlo por WhatsApp o compartirlo sin papel.
+ * Solo lo guardado: lo mismo que se imprimiría.
+ */
+export async function textoTicket(pos: PosLocal, saleUuid: string): Promise<string> {
+  const t = await ticketGuardado(pos, saleUuid);
+  return [
+    t.negocio, `${t.ubicacion} · Folio ${t.folio}`, t.fecha, '',
+    ...t.lineas.map(l => `${l.cantidad} × ${l.nombre}  ${l.importe}`), '',
+    `Total ${t.total}`, ...t.pagos.map(p => `${p.metodo} ${p.monto}`),
+    ...(Number(t.cambio) > 0 ? [`Cambio ${dinero(t.cambio)}`] : []), '', 'Gracias por tu compra.',
+  ].join('\n');
+}
+
 /** El resultado se guarda incluso si el transporte falla. Sin impresora queda pendiente. */
 export async function imprimirGuardado(pos: PosLocal, impresora: { tipo: string; imprimir(t: Ticket): Promise<void> }, saleUuid: string, reimprime?: Persona) {
   if (reimprime && !puede(reimprime.role, 'REIMPRIMIR')) throw new Error('No tienes permiso para reimprimir.');

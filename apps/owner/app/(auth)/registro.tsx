@@ -75,7 +75,7 @@ export default function Registro() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <TouchableOpacity style={[styles.button, !pairing && styles.buttonOff]} onPress={onRegister} disabled={busy || !pairing} activeOpacity={0.85}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Crear cuenta</Text>}
+            {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.buttonText}>Crear cuenta</Text>}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push('/(auth)/escanear')} style={styles.linkBtn}>
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   error: { fontFamily: fonts.medium, color: colors.danger, fontSize: 13, marginTop: 12, textAlign: 'center' },
   button: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 15, alignItems: 'center', marginTop: 22 },
   buttonOff: { opacity: 0.5 },
-  buttonText: { fontFamily: fonts.bold, color: '#fff', fontSize: 15 },
+  buttonText: { fontFamily: fonts.bold, color: colors.onPrimary, fontSize: 15 },
   linkBtn: { marginTop: 16, alignItems: 'center' },
   link: { fontFamily: fonts.semibold, color: colors.sky, fontSize: 13.5 }
 });

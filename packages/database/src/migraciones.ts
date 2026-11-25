@@ -215,6 +215,18 @@ ALTER TABLE sales ADD COLUMN printed INTEGER NOT NULL DEFAULT 0;
 `,
   },
   {version:3,nombre:'precios-promociones-combos',sql:`ALTER TABLE sales ADD COLUMN commercial_snapshot TEXT;ALTER TABLE sale_lines ADD COLUMN commercial_snapshot TEXT;`},
+  {
+    version: 4,
+    nombre: 'devoluciones-y-paquetes',
+    sql: `
+-- Devolución parcial o total: lo regresado por renglón y el total devuelto.
+ALTER TABLE sales ADD COLUMN refunded_total TEXT NOT NULL DEFAULT '0.00';
+ALTER TABLE sale_lines ADD COLUMN returned_qty TEXT NOT NULL DEFAULT '0';
+-- Presentación de venta (el cartón) con la que se vendió el renglón.
+ALTER TABLE sale_lines ADD COLUMN presentation_id TEXT;
+CREATE INDEX IF NOT EXISTS ix_sales_shift ON sales (shift_uuid, occurred_at);
+`,
+  },
 ];
 
 export async function versionActual(db: BaseLocal): Promise<number> {

@@ -70,6 +70,8 @@ try {
   for (const l of club.out.split(/\r?\n/).filter((x) => /^(ok|FALLA)\|/.test(x))) { const [e, id, ...m] = l.split('|'); check(id, e === 'ok', m.join('|')); }
   for (const x of correrPruebas('tests/marca.test.sql', 'MARCA')) check(x.id, x.ok, x.msg);
   for (const x of correrPruebas('tests/canal-evento.test.sql', 'CANAL')) check(x.id, x.ok, x.msg);
+  // 2026-11-24: snapshot condicional y métricas del latido (POS Mobile rápido).
+  for (const x of correrPruebas('tests/pos-mobile-rapido.test.sql', 'RAPIDO')) check(x.id, x.ok, x.msg);
 } catch (e) {
   check('F3-Z', false, 'la prueba se interrumpió', e.message);
 } finally {

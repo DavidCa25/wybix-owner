@@ -153,7 +153,7 @@ const st = StyleSheet.create({
   input: { fontFamily: fonts.regular, color: colors.ink, fontSize: 14, borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.bg },
   btn: { flex: 1, borderRadius: radius.sm, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
   btnPri: { backgroundColor: colors.primary },
-  btnPriTxt: { fontFamily: fonts.semibold, color: '#fff', fontSize: 14 },
+  btnPriTxt: { fontFamily: fonts.semibold, color: colors.onPrimary, fontSize: 14 },
   btnSec: { backgroundColor: 'rgba(255,255,255,0.06)' },
   btnSecTxt: { fontFamily: fonts.semibold, color: colors.ink, fontSize: 14 },
   btnOff: { opacity: 0.45 },
