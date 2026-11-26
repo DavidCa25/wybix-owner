@@ -5,7 +5,7 @@
  */
 import { useCallback, useRef, useState } from "react";
 import { puede } from "@wybix/domain";
-import type { Persona } from "@wybix/database";
+import { estadoDesvincular, type EstadoDesvincular, type Persona } from "@wybix/database";
 import { Autorizar } from "../../components/Autorizar";
 import { imprimirGuardado } from "../../lib/ticket-guardado";
 import { bluetoothDisponible, impresorasEmparejadas, type ConfigImpresora, type DispositivoBt } from "../../lib/impresion";
@@ -18,10 +18,11 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import {
   Aviso,
   Boton,
+  Sheet,
   Tarjeta,
   pos as t,
   tipo,
@@ -43,7 +44,41 @@ export default function Sincronia() {
     minima,
     desfaseMin,
     metricas,
+    negocio,
+    desvincular,
   } = usePos();
+  const router = useRouter();
+  // Desvincular: primero se revisa qué hay en la tablet; luego, encargado y confirmación.
+  const [desv, setDesv] = useState<EstadoDesvincular | null>(null);
+  const [desvAutorizar, setDesvAutorizar] = useState(false);
+  const [desvConfirmar, setDesvConfirmar] = useState(false);
+  const [desvinculando, setDesvinculando] = useState(false);
+  const pedirDesvincular = async () => {
+    if (!db) return;
+    const e = await estadoDesvincular(db);
+    setDesv(e);
+    if (!sync.revocado && e.turnoAbierto) {
+      setMsg({ texto: "Cierra el turno antes de desvincular la tablet.", tono: "peligro" });
+      return;
+    }
+    if (!sync.revocado && e.pendientes) {
+      setMsg({ texto: `Hay ${e.pendientes} ${e.pendientes === 1 ? "operación" : "operaciones"} sin enviar. Conéctate a Internet y toca «Sincronizar ahora» antes de desvincular.`, tono: "peligro" });
+      return;
+    }
+    if (puede(persona?.role, "DESVINCULAR")) setDesvConfirmar(true);
+    else setDesvAutorizar(true);
+  };
+  const confirmarDesvincular = async () => {
+    setDesvinculando(true);
+    try {
+      await desvincular({ forzar: sync.revocado });
+      setDesvConfirmar(false);
+      router.replace("/enrolar");
+    } catch (e) {
+      setDesvConfirmar(false);
+      setMsg({ texto: (e as Error).message, tono: "peligro" });
+    } finally { setDesvinculando(false); }
+  };
   // Lo que tardó el último ciclo, por fase (para saber dónde se va el tiempo).
   const [ciclo, setCiclo] = useState<Awaited<ReturnType<typeof metricas>>>(null);
   const [revision, setRevision] = useState<
@@ -418,9 +453,39 @@ export default function Sincronia() {
                 />
               </View>
             )}
+            <View style={{ gap: 8, borderTopWidth: 1, borderColor: t.borde, paddingTop: 12, marginTop: 4 }}>
+              <Text style={tipo.subtitulo}>Usar esta tablet en otro negocio</Text>
+              <Text style={tipo.tenue}>
+                Borra de la tablet el catálogo, el personal y las ventas{negocio ? ` de ${negocio}` : ""}, y vuelve a la pantalla de vincular. Antes cierra el turno y sincroniza: lo que no haya llegado a Wybix se perdería.
+              </Text>
+              <Boton testID="desvincular" titulo="Desvincular del negocio" variante="peligro" onPress={() => { void pedirDesvincular(); }} />
+            </View>
           </Tarjeta>
         </View>
       </ScrollView>
+      <Autorizar visible={desvAutorizar} accion="DESVINCULAR"
+        motivo="Desvincular esta tablet del negocio y borrar sus datos."
+        alCancelar={() => setDesvAutorizar(false)}
+        alAutorizar={() => { setDesvAutorizar(false); setDesvConfirmar(true); }} />
+      <Sheet
+        visible={desvConfirmar}
+        onClose={() => { if (!desvinculando) setDesvConfirmar(false); }}
+        busy={desvinculando}
+        title="¿Desvincular esta tablet?"
+        subtitle={negocio ? `Dejará de ser caja de ${negocio}.` : undefined}
+        footer={<Boton titulo="Sí, desvincular y borrar" variante="peligro" cargando={desvinculando} textoCargando="Borrando…" onPress={() => { void confirmarDesvincular(); }} />}
+      >
+        <Text style={tipo.cuerpo}>
+          Se borran de esta tablet el catálogo, el personal, los turnos y las ventas. Lo que ya llegó a Wybix no se toca: sigue en el negocio. Después podrás vincularla a otro negocio con su código o su QR.
+        </Text>
+        {sync.revocado && !!desv && (desv.pendientes > 0 || desv.turnoAbierto) && (
+          <Aviso tono="peligro" texto={`Esta tablet fue dada de baja: ${desv.pendientes ? `${desv.pendientes} ${desv.pendientes === 1 ? "operación sin enviar se perderá" : "operaciones sin enviar se perderán"}` : "el turno abierto se perderá"}.`} />
+        )}
+        {!!desv?.enRevision && (
+          <Aviso tono="peligro" texto={`${desv.enRevision} ${desv.enRevision === 1 ? "operación en revisión se borrará" : "operaciones en revisión se borrarán"} de la tablet.`} />
+        )}
+        <Text style={tipo.tenue}>La tablet seguirá en la lista de equipos del negocio; dala de baja ahí si ya no se usará.</Text>
+      </Sheet>
       <Autorizar visible={!!configPendiente} accion="CONFIGURAR_IMPRESORA"
         motivo="Cambiar la configuración de la impresora de tickets."
         alCancelar={() => { if (!lockConfig.current) setConfigPendiente(null); }}

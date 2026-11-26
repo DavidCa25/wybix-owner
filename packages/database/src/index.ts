@@ -5,3 +5,4 @@ export * from './snapshot.ts';
 export * from './sincronia.ts';
 export * from './acceso.ts';
 export * from './cobros.ts';
+export * from './desvincular.ts';
