@@ -42,3 +42,14 @@ export const credencial = {
   leer: () => SecureStore.getItemAsync('wx_device_token', OPC),
   guardar: (t: string) => SecureStore.setItemAsync('wx_device_token', t, OPC),
 };
+
+/**
+ * Desvincular: la tablet olvida su credencial y su identidad. Al enrolarse en
+ * otro negocio nace como un equipo nuevo. La llave de la base se conserva:
+ * el archivo ya quedó vacío y se sigue abriendo con ella.
+ */
+export async function olvidarNegocio() {
+  await SecureStore.deleteItemAsync('wx_device_token', OPC);
+  await SecureStore.deleteItemAsync('wx_device_uuid', OPC);
+  enCurso.delete('wx_device_uuid');
+}

@@ -42,5 +42,12 @@ export async function writeVault(name: string, value: Uint8Array): Promise<void>
     tx.oncomplete = () => resolve(); tx.onerror = () => reject(new Error('No se pudo guardar. Libera espacio antes de continuar.')); tx.onabort = () => reject(tx.error);
   });
 }
+export async function deleteVault(name: string): Promise<void> {
+  const db = await open();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction('values', 'readwrite'); tx.objectStore('values').delete(name);
+    tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+  });
+}
 export const readText = async (name: string) => { const b = await readVault(name); return b ? new TextDecoder().decode(b) : null; };
 export const writeText = (name: string, value: string) => writeVault(name, new TextEncoder().encode(value));

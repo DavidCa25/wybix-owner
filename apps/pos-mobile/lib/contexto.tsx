@@ -11,13 +11,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 import * as Network from 'expo-network';
-import { crearPos, guardarEnrolamiento, guardarDesfase, desfaseGuardado, type BaseLocal, type Identidad, type Persona, type PosLocal } from '@wybix/database';
+import { crearPos, borrarDatosLocales, guardarEnrolamiento, guardarDesfase, desfaseGuardado, type BaseLocal, type Identidad, type Persona, type PosLocal } from '@wybix/database';
 import { crearSincronizador, type EstadoSync, type MetricasCiclo, type ModoCiclo } from '@wybix/sync';
 import { crearClienteNube, emparejarLocalHost, type EstadoAprobacion } from '@wybix/api';
 import { armarDestino, clienteNube } from './destino';
 import { abrirBase } from './base';
 import { CONFIG, cumpleVersion } from './config';
-import { credencial, deviceUuid } from './llaves';
+import { credencial, deviceUuid, olvidarNegocio } from './llaves';
 import { registrarFondo } from './fondo';
 import { impresoraDesdeConfig, sinImpresora, type Impresora, type ConfigImpresora } from './impresion';
 import { aplicarMarca } from '../components/ui';
@@ -36,6 +36,12 @@ interface Ctx {
   enrolar(codigo: string): Promise<void>;
   /** Caja de sucursal: canjea el QR de la computadora principal (Local Host). */
   enrolarSucursal(qr: string): Promise<void>;
+  /**
+   * Borra los datos del negocio de esta tablet y la deja lista para enrolarse
+   * en otro. Se niega con turno abierto u operaciones sin enviar, salvo que la
+   * tablet ya esté dada de baja (`forzar`: lo pendiente nunca podría subir).
+   */
+  desvincular(o?: { forzar?: boolean }): Promise<void>;
   /** EVENTO (nube) o SUCURSAL (Local Host). */
   modo: 'EVENTO' | 'SUCURSAL';
   versionOk: boolean; minima: string | null;
@@ -212,6 +218,18 @@ export function PosProvider({ children }: { children: ReactNode }) {
     setFase('listo');
   }, [db, pos, armarMotor, leerEstado]);
 
+  const desvincular = useCallback(async (o: { forzar?: boolean } = {}) => {
+    if (!db) throw new Error('La base no está lista.');
+    await borrarDatosLocales(db, { forzar: !!o.forzar && sync.revocado });
+    await olvidarNegocio();
+    if (aviso.current.t) { clearTimeout(aviso.current.t); aviso.current.t = null; }
+    motor.current = null; nubeRef.current = null;
+    setPersona(null); setIdentidad(null); setNegocio(null); setCanalEvento(null);
+    setMinima(null); setDesfaseMin(null); setImpresora(sinImpresora);
+    aplicarMarca(null); setMarca(''); setSync(syncInicial); setModo('EVENTO');
+    setFase('sin_enrolar');
+  }, [db, sync.revocado]);
+
   const configurarImpresora = useCallback(async (c: ConfigImpresora, autorizador?: Persona | null) => {
     if (!pos || !persona) throw new Error('Entra con tu PIN para configurar la impresora.');
     await pos.configurarImpresora(persona, c, autorizador);
@@ -228,9 +246,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
   const valor = useMemo<Ctx>(() => ({
     fase, error, db, pos, identidad, sync, sincronizar, metricas, persona,
-    entrar: setPersona, salir: () => setPersona(null), enrolar, enrolarSucursal, modo,
+    entrar: setPersona, salir: () => setPersona(null), enrolar, enrolarSucursal, desvincular, modo,
     versionOk: cumpleVersion(CONFIG.version, minima), minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento,
-  }), [fase, error, db, pos, identidad, sync, sincronizar, metricas, persona, enrolar, enrolarSucursal, modo, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento]);
+  }), [fase, error, db, pos, identidad, sync, sincronizar, metricas, persona, enrolar, enrolarSucursal, desvincular, modo, minima, desfaseMin, impresora, configurarImpresora, recargar, aprobaciones, marca, negocio, canalEvento]);
 
   return <C.Provider value={valor}>{children}</C.Provider>;
 }
